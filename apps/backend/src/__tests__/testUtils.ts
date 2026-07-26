@@ -1,5 +1,7 @@
 import bcrypt from "bcrypt";
 import { nanoid } from "nanoid";
+import request from "supertest";
+import { Express } from "express";
 import { controlClient } from "../db/controlClient";
 import { getTenantClient } from "../db/tenantClientPool";
 import { tenantDatabaseUrl } from "../config/env";
@@ -56,4 +58,12 @@ export async function setupTestTenant(prefix: string): Promise<TestTenant> {
 export async function teardownTestTenant(tenant: TestTenant): Promise<void> {
   await controlClient.tenant.deleteMany({ where: { slug: tenant.slug } });
   await dropTenantDatabase(tenant.databaseName);
+}
+
+export async function loginAsAdmin(app: Express, tenant: TestTenant): Promise<string> {
+  const res = await request(app)
+    .post("/api/auth/login")
+    .set("X-Tenant-Slug", tenant.slug)
+    .send({ email: tenant.adminEmail, password: tenant.adminPassword });
+  return res.body.accessToken as string;
 }

@@ -32,6 +32,7 @@ jobs:
       TENANT_DB_PASSWORD: ""
       JWT_ACCESS_SECRET: ci-access-secret
       JWT_REFRESH_SECRET: ci-refresh-secret
+      JWT_SAAS_ACCESS_SECRET: ci-saas-access-secret
       NODE_ENV: test
 
     steps:
@@ -68,3 +69,6 @@ jobs:
 
       - name: Build frontend
         run: npm run build --workspace=apps/frontend
+
+      - name: Build saas-frontend
+        run: npm run build --workspace=apps/saas-frontend

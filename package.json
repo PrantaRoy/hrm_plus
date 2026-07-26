@@ -7,15 +7,17 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspace=apps/backend & npm run dev --workspace=apps/frontend & wait",
+    "dev": "npm run dev --workspace=apps/backend & npm run dev --workspace=apps/frontend & npm run dev --workspace=apps/saas-frontend & wait",
     "dev:backend": "npm run dev --workspace=apps/backend",
     "dev:frontend": "npm run dev --workspace=apps/frontend",
-    "build": "npm run build --workspace=packages/shared && npm run build --workspace=apps/backend && npm run build --workspace=apps/frontend",
-    "typecheck": "npm run typecheck --workspace=apps/backend && npm run typecheck --workspace=apps/frontend",
-    "lint": "npm run lint --workspace=apps/backend && npm run lint --workspace=apps/frontend",
+    "dev:saas-frontend": "npm run dev --workspace=apps/saas-frontend",
+    "build": "npm run build --workspace=packages/shared && npm run build --workspace=apps/backend && npm run build --workspace=apps/frontend && npm run build --workspace=apps/saas-frontend",
+    "typecheck": "npm run typecheck --workspace=apps/backend && npm run typecheck --workspace=apps/frontend && npm run typecheck --workspace=apps/saas-frontend",
+    "lint": "npm run lint --workspace=apps/backend && npm run lint --workspace=apps/frontend && npm run lint --workspace=apps/saas-frontend",
     "test": "npm run test --workspace=apps/backend",
     "migrate:control": "npm run migrate:control --workspace=apps/backend",
-    "provision-tenant": "npm run provision-tenant --workspace=apps/backend"
+    "provision-tenant": "npm run provision-tenant --workspace=apps/backend",
+    "create-saas-admin": "npm run create-saas-admin --workspace=apps/backend"
   },
   "devDependencies": {
     "typescript": "^5.6.3"

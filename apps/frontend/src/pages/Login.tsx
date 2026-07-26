@@ -1,17 +1,39 @@
 import { FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import * as authApi from "../api/auth";
 import { useAuth } from "../auth/AuthContext";
+
+type Step = "email" | "password";
 
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [step, setStep] = useState<Step>("email");
   const [tenantSlug, setTenantSlug] = useState(import.meta.env.VITE_DEFAULT_TENANT_SLUG ?? "");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleContinue(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setSubmitting(true);
+    try {
+      const { exists } = await authApi.checkEmail(tenantSlug.trim(), email.trim());
+      if (!exists) {
+        setError("No account found with that email for this organisation");
+        return;
+      }
+      setStep("password");
+    } catch (err: any) {
+      setError(err.response?.data?.error?.message ?? "Something went wrong");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleLogin(e: FormEvent) {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
@@ -28,7 +50,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-100">
       <form
-        onSubmit={handleSubmit}
+        onSubmit={step === "email" ? handleContinue : handleLogin}
         className="w-full max-w-sm bg-white rounded-lg shadow p-8 space-y-4"
       >
         <div>
@@ -42,16 +64,38 @@ export default function Login() {
           </div>
         )}
 
-        <Field label="Organisation slug" value={tenantSlug} onChange={setTenantSlug} placeholder="acme" />
-        <Field label="Email" type="email" value={email} onChange={setEmail} placeholder="you@acme.com" />
-        <Field label="Password" type="password" value={password} onChange={setPassword} />
+        {step === "email" ? (
+          <>
+            <Field
+              label="Organisation slug"
+              value={tenantSlug}
+              onChange={setTenantSlug}
+              placeholder="acme"
+            />
+            <Field label="Email" type="email" value={email} onChange={setEmail} placeholder="you@acme.com" />
+          </>
+        ) : (
+          <>
+            <div className="text-sm text-slate-600">
+              Signing in as <span className="font-medium text-slate-900">{email}</span> ({tenantSlug})
+              <button
+                type="button"
+                onClick={() => setStep("email")}
+                className="ml-2 text-slate-500 underline"
+              >
+                Change
+              </button>
+            </div>
+            <Field label="Password" type="password" value={password} onChange={setPassword} />
+          </>
+        )}
 
         <button
           type="submit"
           disabled={submitting}
           className="w-full bg-slate-900 text-white rounded py-2 font-medium disabled:opacity-50"
         >
-          {submitting ? "Signing in..." : "Sign in"}
+          {submitting ? "Please wait..." : step === "email" ? "Continue" : "Sign in"}
         </button>
       </form>
     </div>

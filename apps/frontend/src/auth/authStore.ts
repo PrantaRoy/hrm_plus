@@ -4,6 +4,7 @@ export interface Session {
   token: string;
   user: AuthUser;
   tenantSlug: string;
+  mustChangePassword: boolean;
 }
 
 const STORAGE_KEY = "hrm-plus-session";
@@ -28,6 +29,13 @@ export function getSession(): Session | null {
 export function setSession(next: Session): void {
   session = next;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  listeners.forEach((listener) => listener());
+}
+
+export function setMustChangePassword(value: boolean): void {
+  if (!session) return;
+  session = { ...session, mustChangePassword: value };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
   listeners.forEach((listener) => listener());
 }
 

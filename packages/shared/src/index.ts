@@ -10,7 +10,31 @@ export type {
   PaginatedResult,
 } from "./employee";
 
-export type { LoginRequest, AuthUser, LoginResponse, JwtAccessPayload } from "./auth";
+export type {
+  LoginRequest,
+  AuthUser,
+  LoginResponse,
+  CheckEmailResponse,
+  ChangePasswordInput,
+  JwtAccessPayload,
+} from "./auth";
 
 export type { ApiErrorBody } from "./api";
 export { TENANT_HEADER } from "./api";
+
+export type {
+  PackageDto,
+  CreatePackageInput,
+  UpdatePackageInput,
+  ApplicationStatus,
+  TenantApplicationDto,
+  SubmitApplicationInput,
+  UpdateApplicationInput,
+  ReviewApplicationInput,
+  SaasTenantStatus,
+  SaasTenantDto,
+  UpdateSaasTenantInput,
+  SaasStats,
+  SaasAdminUser,
+  SaasLoginResponse,
+} from "./saas";

@@ -17,6 +17,16 @@ export interface LoginResponse {
   accessToken: string;
   user: AuthUser;
   tenantSlug: string;
+  mustChangePassword: boolean;
+}
+
+export interface CheckEmailResponse {
+  exists: boolean;
+}
+
+export interface ChangePasswordInput {
+  currentPassword: string;
+  newPassword: string;
 }
 
 export interface JwtAccessPayload {

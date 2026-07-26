@@ -2,29 +2,46 @@ import express, { Express } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
+import path from "node:path";
 import { pinoHttp } from "pino-http";
-import { env } from "./config/env";
+import { corsOrigins } from "./config/env";
 import { logger } from "./logger";
 import { tenantResolver } from "./middleware/tenantResolver";
 import { errorHandler } from "./middleware/errorHandler";
 import { authRouter } from "./modules/auth/auth.routes";
 import { employeeRouter } from "./modules/employees/employee.routes";
 import { departmentRouter } from "./modules/departments/department.routes";
+import { saasAuthRouter } from "./modules/saas/saasAuth/saasAuth.routes";
+import { publicPackageRouter, adminPackageRouter } from "./modules/saas/packages/package.routes";
+import { publicApplicationRouter, adminApplicationRouter } from "./modules/saas/applications/application.routes";
+import { saasTenantRouter } from "./modules/saas/tenants/saasTenant.routes";
+import { statsRouter } from "./modules/saas/stats/stats.routes";
 
 export function createApp(): Express {
   const app = express();
 
   app.use(helmet());
-  app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
+  app.use(cors({ origin: corsOrigins, credentials: true }));
   app.use(cookieParser());
   app.use(express.json());
   app.use(pinoHttp({ logger }));
+  app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
   app.get("/health", (_req, res) => res.json({ status: "ok" }));
 
+  // Tenant-scoped API (existing employee portal)
   app.use("/api/auth", tenantResolver, authRouter);
   app.use("/api/employees", tenantResolver, employeeRouter);
   app.use("/api/departments", tenantResolver, departmentRouter);
+
+  // SaaS control-plane API (public landing/signup + super-admin portal)
+  app.use("/saas/admin/auth", saasAuthRouter);
+  app.use("/saas/public/packages", publicPackageRouter);
+  app.use("/saas/public/applications", publicApplicationRouter);
+  app.use("/saas/admin/packages", adminPackageRouter);
+  app.use("/saas/admin/applications", adminApplicationRouter);
+  app.use("/saas/admin/tenants", saasTenantRouter);
+  app.use("/saas/admin/stats", statsRouter);
 
   app.use(errorHandler);
 

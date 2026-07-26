@@ -1,6 +1,18 @@
 import { RequestHandler } from "express";
-import { loginSchema } from "./auth.schemas";
+import { CheckEmailResponse } from "@hrm-plus/shared";
+import { changePasswordSchema, checkEmailSchema, loginSchema } from "./auth.schemas";
 import * as authService from "./auth.service";
+
+export const checkEmailHandler: RequestHandler = async (req, res, next) => {
+  try {
+    const { email } = checkEmailSchema.parse(req.body);
+    const exists = await authService.checkEmailExists(req.prisma!, email);
+    const response: CheckEmailResponse = { exists };
+    res.json(response);
+  } catch (err) {
+    next(err);
+  }
+};
 
 export const loginHandler: RequestHandler = async (req, res, next) => {
   try {
@@ -14,4 +26,14 @@ export const loginHandler: RequestHandler = async (req, res, next) => {
 
 export const meHandler: RequestHandler = (req, res) => {
   res.json({ user: req.user });
+};
+
+export const changePasswordHandler: RequestHandler = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = changePasswordSchema.parse(req.body);
+    await authService.changePassword(req.prisma!, req.user!.id, currentPassword, newPassword);
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
 };

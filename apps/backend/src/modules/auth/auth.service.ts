@@ -4,6 +4,11 @@ import { AuthUser, isRoleName, LoginResponse } from "@hrm-plus/shared";
 import { ApiError } from "../../utils/ApiError";
 import { signAccessToken } from "./jwt";
 
+export async function checkEmailExists(prisma: PrismaClient, email: string): Promise<boolean> {
+  const user = await prisma.user.findUnique({ where: { email }, select: { id: true, isActive: true } });
+  return Boolean(user && user.isActive);
+}
+
 export async function login(
   prisma: PrismaClient,
   tenantSlug: string,
@@ -45,5 +50,28 @@ export async function login(
     email: user.email,
   });
 
-  return { accessToken, user: authUser, tenantSlug };
+  return { accessToken, user: authUser, tenantSlug, mustChangePassword: user.mustChangePassword };
+}
+
+export async function changePassword(
+  prisma: PrismaClient,
+  userId: number,
+  currentPassword: string,
+  newPassword: string
+): Promise<void> {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    throw ApiError.unauthorized();
+  }
+
+  const matches = await bcrypt.compare(currentPassword, user.passwordHash);
+  if (!matches) {
+    throw ApiError.unauthorized("Current password is incorrect");
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+  await prisma.user.update({
+    where: { id: userId },
+    data: { passwordHash, mustChangePassword: false },
+  });
 }

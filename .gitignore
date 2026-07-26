@@ -9,3 +9,6 @@ build/
 coverage/
 .turbo/
 apps/backend/generated/
+apps/backend/uploads/logos/*
+!apps/backend/uploads/logos/.gitkeep
+

@@ -15,6 +15,10 @@ declare global {
         email: string;
         role: RoleName;
       };
+      saasAdmin?: {
+        id: number;
+        email: string;
+      };
     }
   }
 }

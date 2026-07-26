@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { nanoid } from "nanoid";
+import { nanoid, customAlphabet } from "nanoid";
 import request from "supertest";
 import { Express } from "express";
 import { controlClient } from "../db/controlClient";
@@ -12,6 +12,10 @@ import {
   seedDefaultRoles,
 } from "../modules/tenants/tenantProvisioning";
 
+// Email- and slug-safe: nanoid's default alphabet includes "_", which occasionally produces
+// addresses like "admin@iso-a-ab_cd.test" that fail the app's own email validation.
+const safeSuffix = customAlphabet("0123456789abcdefghijklmnopqrstuvwxyz", 8);
+
 export interface TestTenant {
   slug: string;
   databaseName: string;
@@ -20,7 +24,7 @@ export interface TestTenant {
 }
 
 export async function setupTestTenant(prefix: string): Promise<TestTenant> {
-  const suffix = nanoid(8).toLowerCase();
+  const suffix = safeSuffix();
   const slug = `${prefix}-${suffix}`;
   const databaseName = `hrm_test_${prefix}_${suffix}`.replace(/-/g, "_");
   const adminEmail = `admin@${slug}.test`;
@@ -65,5 +69,36 @@ export async function loginAsAdmin(app: Express, tenant: TestTenant): Promise<st
     .post("/api/auth/login")
     .set("X-Tenant-Slug", tenant.slug)
     .send({ email: tenant.adminEmail, password: tenant.adminPassword });
+  if (res.status !== 200) {
+    throw new Error(`loginAsAdmin failed: ${res.status} ${JSON.stringify(res.body)}`);
+  }
+  return res.body.accessToken as string;
+}
+
+export interface TestSaasAdmin {
+  email: string;
+  password: string;
+}
+
+export async function setupTestSaasAdmin(prefix: string): Promise<TestSaasAdmin> {
+  const suffix = safeSuffix();
+  const email = `${prefix}-${suffix}@saas-admin.test`;
+  const password = "SaasAdminPass123!";
+  const passwordHash = await bcrypt.hash(password, 10);
+  await controlClient.platformAdmin.create({ data: { email, passwordHash } });
+  return { email, password };
+}
+
+export async function teardownTestSaasAdmin(admin: TestSaasAdmin): Promise<void> {
+  await controlClient.platformAdmin.deleteMany({ where: { email: admin.email } });
+}
+
+export async function loginAsSaasAdmin(app: Express, admin: TestSaasAdmin): Promise<string> {
+  const res = await request(app)
+    .post("/saas/admin/auth/login")
+    .send({ email: admin.email, password: admin.password });
+  if (res.status !== 200) {
+    throw new Error(`loginAsSaasAdmin failed: ${res.status} ${JSON.stringify(res.body)}`);
+  }
   return res.body.accessToken as string;
 }

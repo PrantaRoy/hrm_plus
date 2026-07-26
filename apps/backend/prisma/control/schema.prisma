@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../generated/control"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("CONTROL_DATABASE_URL")
+}
+
+model Tenant {
+  id           Int      @id @default(autoincrement())
+  name         String
+  slug         String   @unique
+  databaseName String   @unique
+  status       String   @default("Active")
+  createdAt    DateTime @default(now())
+}
+
+model PlatformAdmin {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}

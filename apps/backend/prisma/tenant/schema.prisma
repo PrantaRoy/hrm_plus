@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../generated/tenant"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("TENANT_MIGRATION_DATABASE_URL")
+}
+
+model Role {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  users User[]
+}
+
+model User {
+  id           Int        @id @default(autoincrement())
+  email        String     @unique
+  passwordHash String
+  isActive     Boolean    @default(true)
+  roleId       Int
+  role         Role       @relation(fields: [roleId], references: [id])
+  employee     Employee?
+  auditLogs    AuditLog[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Department {
+  id                 Int          @id @default(autoincrement())
+  name               String
+  parentDepartmentId Int?
+  parentDepartment   Department?  @relation("DepartmentHierarchy", fields: [parentDepartmentId], references: [id])
+  childDepartments   Department[] @relation("DepartmentHierarchy")
+  employees          Employee[]
+  createdAt          DateTime     @default(now())
+}
+
+model Employee {
+  id            Int         @id @default(autoincrement())
+  employeeCode  String      @unique
+  firstName     String
+  lastName      String
+  email         String      @unique
+  jobTitle      String?
+  status        String      @default("Active")
+  startDate     DateTime
+  departmentId  Int?
+  department    Department? @relation(fields: [departmentId], references: [id])
+  managerId     Int?
+  manager       Employee?   @relation("EmployeeHierarchy", fields: [managerId], references: [id])
+  directReports Employee[]  @relation("EmployeeHierarchy")
+  userId        Int?        @unique
+  user          User?       @relation(fields: [userId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int?
+  user       User?    @relation(fields: [userId], references: [id])
+  action     String
+  entityType String
+  entityId   Int?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+}

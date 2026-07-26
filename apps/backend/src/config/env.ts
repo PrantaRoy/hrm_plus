@@ -26,8 +26,9 @@ if (!parsed.success) {
 export const env = parsed.data;
 
 export function tenantDatabaseUrl(databaseName: string): string {
+  const user = encodeURIComponent(env.TENANT_DB_USER);
   const auth = env.TENANT_DB_PASSWORD
-    ? `${env.TENANT_DB_USER}:${env.TENANT_DB_PASSWORD}`
-    : env.TENANT_DB_USER;
+    ? `${user}:${encodeURIComponent(env.TENANT_DB_PASSWORD)}`
+    : user;
   return `mysql://${auth}@${env.TENANT_DB_HOST}:${env.TENANT_DB_PORT}/${databaseName}`;
 }

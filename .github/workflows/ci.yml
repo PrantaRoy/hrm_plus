@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      CONTROL_DATABASE_URL: mysql://root@127.0.0.1:3306/hrm_control
+      TENANT_MIGRATION_DATABASE_URL: mysql://root@127.0.0.1:3306/hrm_tenant_template
+      TENANT_DB_HOST: 127.0.0.1
+      TENANT_DB_PORT: 3306
+      TENANT_DB_USER: root
+      TENANT_DB_PASSWORD: ""
+      JWT_ACCESS_SECRET: ci-access-secret
+      JWT_REFRESH_SECRET: ci-refresh-secret
+      NODE_ENV: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared package
+        run: npm run build --workspace=packages/shared
+
+      - name: Generate Prisma clients
+        run: npm run prisma:generate --workspace=apps/backend
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Set up control database
+        run: npm run migrate:control:deploy --workspace=apps/backend
+
+      - name: Run backend tests
+        run: npm run test --workspace=apps/backend
+
+      - name: Build backend
+        run: npm run build --workspace=apps/backend
+
+      - name: Build frontend
+        run: npm run build --workspace=apps/frontend

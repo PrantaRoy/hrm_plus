@@ -1,12 +1,14 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { DepartmentDto, ROLES, RoleName } from "@hrm-plus/shared";
+import { DepartmentDto, RoleDto, RoleName } from "@hrm-plus/shared";
 import { createEmployee } from "../../api/employees";
 import { listDepartments } from "../../api/departments";
+import { listRoles } from "../../api/roles";
 
 export default function EmployeeCreate() {
   const navigate = useNavigate();
   const [departments, setDepartments] = useState<DepartmentDto[]>([]);
+  const [roles, setRoles] = useState<RoleDto[]>([]);
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -14,7 +16,7 @@ export default function EmployeeCreate() {
     jobTitle: "",
     startDate: new Date().toISOString().slice(0, 10),
     departmentId: "",
-    role: "Staff" as RoleName,
+    role: "" as RoleName,
     password: "",
   });
   const [error, setError] = useState<string | null>(null);
@@ -22,6 +24,13 @@ export default function EmployeeCreate() {
 
   useEffect(() => {
     listDepartments().then(setDepartments).catch(() => setDepartments([]));
+    listRoles()
+      .then((allRoles) => {
+        const activeRoles = allRoles.filter((r) => r.status === "Active");
+        setRoles(activeRoles);
+        setForm((f) => (f.role ? f : { ...f, role: activeRoles[0]?.name ?? "" }));
+      })
+      .catch(() => setRoles([]));
   }, []);
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
@@ -97,9 +106,9 @@ export default function EmployeeCreate() {
             onChange={(e) => set("role", e.target.value as RoleName)}
             className="mt-1 w-full border border-slate-300 rounded px-3 py-2"
           >
-            {ROLES.map((role) => (
-              <option key={role} value={role}>
-                {role}
+            {roles.map((role) => (
+              <option key={role.id} value={role.name}>
+                {role.name}
               </option>
             ))}
           </select>

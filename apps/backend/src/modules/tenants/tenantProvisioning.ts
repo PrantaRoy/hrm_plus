@@ -53,3 +53,21 @@ export async function seedDefaultRoles(
     number
   >;
 }
+
+const WEEK_DAYS: Array<{ name: string; isWeekend: boolean }> = [
+  { name: "Sunday", isWeekend: true },
+  { name: "Monday", isWeekend: false },
+  { name: "Tuesday", isWeekend: false },
+  { name: "Wednesday", isWeekend: false },
+  { name: "Thursday", isWeekend: false },
+  { name: "Friday", isWeekend: false },
+  { name: "Saturday", isWeekend: true },
+];
+
+export async function seedDefaultWeekDays(tenantClient: TenantPrismaClient): Promise<void> {
+  const existing = await tenantClient.weekDay.count();
+  if (existing > 0) {
+    return;
+  }
+  await tenantClient.weekDay.createMany({ data: WEEK_DAYS });
+}

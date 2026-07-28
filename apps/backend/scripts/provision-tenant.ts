@@ -8,6 +8,7 @@ import {
   createTenantDatabase,
   runTenantMigrations,
   seedDefaultRoles,
+  seedDefaultWeekDays,
 } from "../src/modules/tenants/tenantProvisioning";
 
 interface Args {
@@ -65,6 +66,7 @@ async function main() {
   console.log("Seeding roles and admin user...");
   const tenantClient = getTenantClient(databaseName);
   const roleIds = await seedDefaultRoles(tenantClient);
+  await seedDefaultWeekDays(tenantClient);
 
   const adminPassword = nanoid(12);
   const passwordHash = await bcrypt.hash(adminPassword, 10);

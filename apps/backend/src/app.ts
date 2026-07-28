@@ -11,6 +11,11 @@ import { errorHandler } from "./middleware/errorHandler";
 import { authRouter } from "./modules/auth/auth.routes";
 import { employeeRouter } from "./modules/employees/employee.routes";
 import { departmentRouter } from "./modules/departments/department.routes";
+import { shiftRouter } from "./modules/shifts/shift.routes";
+import { weekDayRouter } from "./modules/weekdays/weekday.routes";
+import { leaveTypeRouter } from "./modules/leave-types/leaveType.routes";
+import { designationRouter } from "./modules/designations/designation.routes";
+import { roleRouter } from "./modules/roles/role.routes";
 import { saasAuthRouter } from "./modules/saas/saasAuth/saasAuth.routes";
 import { publicPackageRouter, adminPackageRouter } from "./modules/saas/packages/package.routes";
 import { publicApplicationRouter, adminApplicationRouter } from "./modules/saas/applications/application.routes";
@@ -33,6 +38,11 @@ export function createApp(): Express {
   app.use("/api/auth", tenantResolver, authRouter);
   app.use("/api/employees", tenantResolver, employeeRouter);
   app.use("/api/departments", tenantResolver, departmentRouter);
+  app.use("/api/shifts", tenantResolver, shiftRouter);
+  app.use("/api/weekdays", tenantResolver, weekDayRouter);
+  app.use("/api/leave-types", tenantResolver, leaveTypeRouter);
+  app.use("/api/designations", tenantResolver, designationRouter);
+  app.use("/api/roles", tenantResolver, roleRouter);
 
   // SaaS control-plane API (public landing/signup + super-admin portal)
   app.use("/saas/admin/auth", saasAuthRouter);

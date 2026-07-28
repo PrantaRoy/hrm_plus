@@ -9,9 +9,13 @@ datasource db {
 }
 
 model Role {
-  id    Int    @id @default(autoincrement())
-  name  String @unique
-  users User[]
+  id               Int      @id @default(autoincrement())
+  name             String   @unique
+  status           String   @default("Active")
+  shortDescription String?
+  users            User[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 model User {
@@ -31,11 +35,50 @@ model User {
 model Department {
   id                 Int          @id @default(autoincrement())
   name               String
+  status             String       @default("Active")
+  shortDescription   String?
   parentDepartmentId Int?
   parentDepartment   Department?  @relation("DepartmentHierarchy", fields: [parentDepartmentId], references: [id])
   childDepartments   Department[] @relation("DepartmentHierarchy")
   employees          Employee[]
   createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+}
+
+model Shift {
+  id        Int      @id @default(autoincrement())
+  name      String
+  startTime String
+  endTime   String
+  status    String   @default("Active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WeekDay {
+  id        Int      @id @default(autoincrement())
+  name      String
+  isWeekend Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LeaveType {
+  id           Int      @id @default(autoincrement())
+  name         String
+  assignedDays Int
+  status       String   @default("Active")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Designation {
+  id               Int      @id @default(autoincrement())
+  name             String
+  status           String   @default("Active")
+  shortDescription String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 model Employee {

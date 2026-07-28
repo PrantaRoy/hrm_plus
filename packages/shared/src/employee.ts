@@ -2,10 +2,28 @@ import { RoleName } from "./roles";
 
 export type EmployeeStatus = "Active" | "Inactive";
 
+export type SettingStatus = "Active" | "Inactive";
+
 export interface DepartmentDto {
   id: number;
   name: string;
+  status: SettingStatus;
+  shortDescription: string | null;
   parentDepartmentId: number | null;
+}
+
+export interface CreateDepartmentInput {
+  name: string;
+  status?: SettingStatus;
+  shortDescription?: string | null;
+  parentDepartmentId?: number | null;
+}
+
+export interface UpdateDepartmentInput {
+  name?: string;
+  status?: SettingStatus;
+  shortDescription?: string | null;
+  parentDepartmentId?: number | null;
 }
 
 export interface EmployeeDto {

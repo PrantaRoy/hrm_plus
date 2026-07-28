@@ -18,6 +18,16 @@ export default function DashboardShell() {
             >
               Employees
             </NavLink>
+            {(user?.role === "Admin" || user?.role === "HR") && (
+              <NavLink
+                to="/settings"
+                className={({ isActive }) =>
+                  isActive ? "text-slate-900 font-medium" : "text-slate-500 hover:text-slate-700"
+                }
+              >
+                Settings
+              </NavLink>
+            )}
           </nav>
         </div>
         <div className="flex items-center gap-4 text-sm text-slate-600">

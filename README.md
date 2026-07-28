@@ -49,6 +49,47 @@ npm run dev
 - Tenant employee portal: http://localhost:5173
 - SaaS landing/signup + super-admin portal: http://localhost:5174
 
+## Demo login details
+
+Credentials for the currently-seeded local dev database (see `apps/backend/.env` for how these map to real values — passwords below are the actual working ones, not placeholders).
+
+### SaaS super-admin portal — http://localhost:5174/admin/login
+
+| Field | Value |
+|---|---|
+| Email | `owner@hrmplus.test` |
+| Password | `SuperAdmin123!` |
+
+Created via `npm run create-saas-admin -- --email owner@hrmplus.test --password SuperAdmin123!`. Manages packages, reviews/approves tenant applications, and can activate/deactivate any company.
+
+### Demo tenant "Acme Ltd" — http://localhost:5173/login
+
+| Field | Value |
+|---|---|
+| Organisation slug | `acme` |
+| Email | `admin@acme.hrmplus.test` |
+| Password | `PUxoBkUueckZ` |
+| Role | Admin |
+
+Provisioned via `npm run provision-tenant -- --name "Acme Ltd" --slug acme`. This is an `Admin` login for the Employee Directory (create/search/edit employees and departments).
+
+### Demo packages (seeded for the SaaS landing page)
+
+| Name | Price | Validity |
+|---|---|---|
+| Starter | Free | Unlimited |
+| Growth | $49.99 | 30 days |
+
+### Creating a new tenant end-to-end (no CLI shortcut)
+
+1. Go to http://localhost:5174/, pick a package, and submit the signup form (any unique subdomain slug).
+2. Log into the super-admin portal above, open **Applications**, and approve the new one.
+3. The new tenant's `Admin` login is: email = the contact email you entered on the signup form, password = `12345678` (you'll be forced to change it on first login) — subdomain = whatever slug you chose.
+
+### Postman collection
+
+`postman/HRM_PLUS.postman_collection.json` has all of the above pre-filled as collection variables (`saasAdminEmail`, `tenantEmail`, `tenantPassword`, etc.) — see `postman/README.md` for import instructions.
+
 ## The SaaS flow
 
 1. A super-admin logs into `/admin/login` on the saas-frontend and creates one or more **packages** (name, price — 0 for free — and validity in days, or unlimited).

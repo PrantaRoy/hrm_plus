@@ -2,24 +2,115 @@
   "info": {
     "_postman_id": "7d1ab0e2-213c-4f5a-aa59-d3a6e948b517",
     "name": "HRM PLUS API",
-    "description": "All backend API endpoints implemented so far for HRM PLUS. One Express backend serves two route namespaces: /api/* (tenant-scoped, consumed by the tenant employee portal) and /saas/* (consumed by the public SaaS landing/signup pages and the super-admin portal). Folders below group requests by which side of the system they belong to.\n\nRun requests top-to-bottom within a folder the first time — login/create requests have test scripts that auto-save tokens and ids (tenantAccessToken, saasAccessToken, employeeId, departmentId, packageId, applicationId, saasTenantId) into collection variables so later requests work without manual copy-pasting.",
+    "description": "All backend API endpoints implemented so far for HRM PLUS. One Express backend serves two route namespaces: /api/* (tenant-scoped, consumed by the tenant employee portal) and /saas/* (consumed by the public SaaS landing/signup pages and the super-admin portal). Folders below group requests by which side of the system they belong to.\n\nLogin/create requests have test scripts that auto-save tokens and ids (tenantAccessToken, saasAccessToken, employeeId, departmentId, packageId, applicationId, generatedTenantSlug, saasTenantId) into collection variables so later requests work without manual copy-pasting.\n\nThe Saas Backend > Applications (Admin) and Tenants (Admin) requests act on ids that only exist after you run Saas Frontend > Submit Application (and, for Tenants, also Saas Backend > Applications (Admin) > Approve Application) at least once \u2014 each has a description noting this. Tenants (Admin) > List Tenants only ever targets the tenant it just created (matched by slug) and deliberately never falls back to 'whatever tenant is first in the list', so it can't accidentally edit/deactivate a pre-existing tenant like the demo 'acme' one.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:4000", "type": "string" },
-    { "key": "tenantSlug", "value": "acme", "type": "string" },
-    { "key": "tenantEmail", "value": "admin@acme.hrmplus.test", "type": "string" },
-    { "key": "tenantPassword", "value": "PUxoBkUueckZ", "type": "string" },
-    { "key": "tenantAccessToken", "value": "", "type": "string" },
-    { "key": "tenantMustChangePassword", "value": "", "type": "string" },
-    { "key": "employeeId", "value": "", "type": "string" },
-    { "key": "departmentId", "value": "", "type": "string" },
-    { "key": "saasAdminEmail", "value": "owner@hrmplus.test", "type": "string" },
-    { "key": "saasAdminPassword", "value": "SuperAdmin123!", "type": "string" },
-    { "key": "saasAccessToken", "value": "", "type": "string" },
-    { "key": "packageId", "value": "", "type": "string" },
-    { "key": "applicationId", "value": "", "type": "string" },
-    { "key": "saasTenantId", "value": "", "type": "string" }
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000",
+      "type": "string"
+    },
+    {
+      "key": "tenantSlug",
+      "value": "acme",
+      "type": "string"
+    },
+    {
+      "key": "tenantEmail",
+      "value": "admin@acme.hrmplus.test",
+      "type": "string"
+    },
+    {
+      "key": "tenantPassword",
+      "value": "PUxoBkUueckZ",
+      "type": "string"
+    },
+    {
+      "key": "tenantAccessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tenantMustChangePassword",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "employeeId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "departmentId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "saasAdminEmail",
+      "value": "owner@hrmplus.test",
+      "type": "string"
+    },
+    {
+      "key": "saasAdminPassword",
+      "value": "SuperAdmin123!",
+      "type": "string"
+    },
+    {
+      "key": "saasAccessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "packageId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "applicationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "generatedTenantSlug",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "scratchPackageId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "saasTenantId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "shiftId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "weekDayId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "leaveTypeId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "designationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "roleId",
+      "value": "",
+      "type": "string"
+    }
   ],
   "item": [
     {
@@ -29,76 +120,35 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/health",
-          "host": ["{{baseUrl}}"],
-          "path": ["health"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
         },
         "description": "Basic liveness check, no auth required."
       },
       "response": []
     },
     {
-      "name": "Tenant Backend",
-      "description": "Protected tenant-data endpoints (employee directory, departments). Every request needs X-Tenant-Slug and a tenant access token from Tenant Frontend > Login.",
+      "name": "Saas Backend",
+      "description": "Protected super-admin portal endpoints. Every request (except Saas Admin Login) needs a saas-admin access token from Saas Backend > Auth > Saas Admin Login. Suggested run order: Auth > Saas Admin Login, then Packages (Admin) > Create Package, then jump to the Saas Frontend folder to submit an application against that package, then come back here for Applications (Admin) and Tenants (Admin).",
       "item": [
         {
-          "name": "Employees",
+          "name": "Auth",
           "item": [
             {
-              "name": "List Employees",
-              "request": {
-                "method": "GET",
-                "header": [
-                  { "key": "X-Tenant-Slug", "value": "{{tenantSlug}}" }
-                ],
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [{ "key": "token", "value": "{{tenantAccessToken}}", "type": "string" }]
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/api/employees?page=1&pageSize=20&search=&departmentId=",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "employees"],
-                  "query": [
-                    { "key": "page", "value": "1" },
-                    { "key": "pageSize", "value": "20" },
-                    { "key": "search", "value": "", "disabled": true },
-                    { "key": "departmentId", "value": "", "disabled": true }
-                  ]
-                },
-                "description": "Paginated, searchable, department-filterable employee list."
-              },
-              "response": []
-            },
-            {
-              "name": "Get Employee",
-              "request": {
-                "method": "GET",
-                "header": [
-                  { "key": "X-Tenant-Slug", "value": "{{tenantSlug}}" }
-                ],
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [{ "key": "token", "value": "{{tenantAccessToken}}", "type": "string" }]
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/api/employees/{{employeeId}}",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "employees", "{{employeeId}}"]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Create Employee",
+              "name": "Saas Admin Login",
               "event": [
                 {
                   "listen": "test",
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "if (pm.response.code === 201) {",
+                      "if (pm.response.code === 200) {",
                       "  const json = pm.response.json();",
-                      "  pm.collectionVariables.set('employeeId', json.id);",
+                      "  pm.collectionVariables.set('saasAccessToken', json.accessToken);",
                       "}"
                     ]
                   }
@@ -107,79 +157,103 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "X-Tenant-Slug", "value": "{{tenantSlug}}" },
-                  { "key": "Content-Type", "value": "application/json" }
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
                 ],
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [{ "key": "token", "value": "{{tenantAccessToken}}", "type": "string" }]
-                },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Doe\",\n  \"email\": \"jane.doe.{{$timestamp}}@acme.test\",\n  \"jobTitle\": \"Software Engineer\",\n  \"startDate\": \"2026-02-01\",\n  \"departmentId\": null,\n  \"managerId\": null,\n  \"role\": \"Staff\",\n  \"password\": \"SuperSecret123!\"\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "raw": "{\n  \"email\": \"{{saasAdminEmail}}\",\n  \"password\": \"{{saasAdminPassword}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/employees",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "employees"]
+                  "raw": "{{baseUrl}}/saas/admin/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "saas",
+                    "admin",
+                    "auth",
+                    "login"
+                  ]
                 },
-                "description": "Requires Admin or HR role. Creates a linked login User + Employee record. Saves the new id into {{employeeId}}."
+                "description": "Signed with a separate secret (JWT_SAAS_ACCESS_SECRET) from tenant tokens. Saves accessToken into {{saasAccessToken}}."
               },
               "response": []
             },
             {
-              "name": "Update Employee",
+              "name": "Saas Admin Me",
               "request": {
-                "method": "PATCH",
-                "header": [
-                  { "key": "X-Tenant-Slug", "value": "{{tenantSlug}}" },
-                  { "key": "Content-Type", "value": "application/json" }
-                ],
+                "method": "GET",
+                "header": [],
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{ "key": "token", "value": "{{tenantAccessToken}}", "type": "string" }]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"jobTitle\": \"Senior Software Engineer\",\n  \"status\": \"Active\"\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{saasAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/employees/{{employeeId}}",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "employees", "{{employeeId}}"]
-                },
-                "description": "Requires Admin, HR, or Manager role. All fields optional: firstName, lastName, jobTitle, departmentId, managerId, status (Active/Inactive)."
+                  "raw": "{{baseUrl}}/saas/admin/auth/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "saas",
+                    "admin",
+                    "auth",
+                    "me"
+                  ]
+                }
               },
               "response": []
             }
           ]
         },
         {
-          "name": "Departments",
+          "name": "Packages (Admin)",
           "item": [
             {
-              "name": "List Departments",
+              "name": "List Packages (Admin)",
               "request": {
                 "method": "GET",
-                "header": [
-                  { "key": "X-Tenant-Slug", "value": "{{tenantSlug}}" }
-                ],
+                "header": [],
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{ "key": "token", "value": "{{tenantAccessToken}}", "type": "string" }]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{saasAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/departments",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "departments"]
-                }
+                  "raw": "{{baseUrl}}/saas/admin/packages",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "saas",
+                    "admin",
+                    "packages"
+                  ]
+                },
+                "description": "Includes inactive packages, unlike the public listing."
               },
               "response": []
             },
             {
-              "name": "Create Department",
+              "name": "Create Package",
               "event": [
                 {
                   "listen": "test",
@@ -188,7 +262,7 @@
                     "exec": [
                       "if (pm.response.code === 201) {",
                       "  const json = pm.response.json();",
-                      "  pm.collectionVariables.set('departmentId', json.id);",
+                      "  pm.collectionVariables.set('packageId', json.id);",
                       "}"
                     ]
                   }
@@ -197,28 +271,650 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "X-Tenant-Slug", "value": "{{tenantSlug}}" },
-                  { "key": "Content-Type", "value": "application/json" }
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
                 ],
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{ "key": "token", "value": "{{tenantAccessToken}}", "type": "string" }]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{saasAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"Engineering\",\n  \"parentDepartmentId\": null\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "raw": "{\n  \"name\": \"Growth\",\n  \"price\": 49.99,\n  \"validityDays\": 30,\n  \"isActive\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/departments",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "departments"]
+                  "raw": "{{baseUrl}}/saas/admin/packages",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "saas",
+                    "admin",
+                    "packages"
+                  ]
                 },
-                "description": "Requires Admin or HR role. Saves the new id into {{departmentId}}."
+                "description": "price: 0 = free. validityDays: null = unlimited. Saves the new id into {{packageId}}."
+              },
+              "response": []
+            },
+            {
+              "name": "Update Package",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{saasAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Growth (Updated)\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/saas/admin/packages/{{packageId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "saas",
+                    "admin",
+                    "packages",
+                    "{{packageId}}"
+                  ]
+                },
+                "description": "All fields optional: name, price, validityDays, isActive. Body here only renames it (deliberately does not set isActive:false or delete it \u2014 {{packageId}} is needed by Saas Frontend > Submit Application below)."
+              },
+              "response": []
+            },
+            {
+              "name": "Create Scratch Package (for Delete demo)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      "  const json = pm.response.json();",
+                      "  pm.collectionVariables.set('scratchPackageId', json.id);",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{saasAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Scratch Package (safe to delete)\",\n  \"price\": 0,\n  \"validityDays\": 7\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/saas/admin/packages",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "saas",
+                    "admin",
+                    "packages"
+                  ]
+                },
+                "description": "A disposable package that nothing else references, purely so Delete Package below always has something safe to delete \u2014 deliberately kept separate from {{packageId}}, which Saas Frontend > Submit Application needs to stay alive."
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Package",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{saasAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/saas/admin/packages/{{scratchPackageId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "saas",
+                    "admin",
+                    "packages",
+                    "{{scratchPackageId}}"
+                  ]
+                },
+                "description": "Deletes the scratch package created above (204 expected). To see the 409-in-use protection instead, point this at the package belonging to an approved tenant (a package referenced by {{saasTenantId}})."
               },
               "response": []
             }
           ]
+        },
+        {
+          "name": "Applications (Admin)",
+          "description": "These read/act on {{applicationId}}, which is only set after running Saas Frontend > Submit Application at least once. Run that first, then come back to Get/Update/Approve/Reject here.",
+          "item": [
+            {
+              "name": "List Applications",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{saasAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/saas/admin/applications?status=Pending",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "saas",
+                    "admin",
+                    "applications"
+                  ],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "Pending",
+                      "description": "Pending | Approved | Rejected, omit for all"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Application",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{saasAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/saas/admin/applications/{{applicationId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "saas",
+                    "admin",
+                    "applications",
+                    "{{applicationId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Application",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{saasAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"companyName\": \"Acme Ltd (Edited)\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/saas/admin/applications/{{applicationId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "saas",
+                    "admin",
+                    "applications",
+                    "{{applicationId}}"
+                  ]
+                },
+                "description": "Only allowed while the application is still Pending. All fields optional: companyName, companyType, overview, numberOfEmployees, contactEmail, packageId."
+              },
+              "response": []
+            },
+            {
+              "name": "Approve Application",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{saasAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/saas/admin/applications/{{applicationId}}/approve",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "saas",
+                    "admin",
+                    "applications",
+                    "{{applicationId}}",
+                    "approve"
+                  ]
+                },
+                "description": "Provisions a real tenant database, seeds roles, creates the tenant Admin user (password 12345678, mustChangePassword=true), and emails the login details."
+              },
+              "response": []
+            },
+            {
+              "name": "Reject Application",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{saasAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reviewNote\": \"Not a fit right now\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/saas/admin/applications/{{applicationId}}/reject",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "saas",
+                    "admin",
+                    "applications",
+                    "{{applicationId}}",
+                    "reject"
+                  ]
+                },
+                "description": "reviewNote is optional. Note: if the application above was just approved, this will correctly return 409 (already Approved) \u2014 reject a different, still-Pending application to see the success path."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Tenants (Admin)",
+          "description": "Update Tenant and Toggle Tenant Status act on {{saasTenantId}}, auto-captured by List Tenants below (run List Tenants at least once first \u2014 it grabs the newest tenant, which is the one Approve Application above just created).",
+          "item": [
+            {
+              "name": "List Tenants",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "  const json = pm.response.json();",
+                      "  const slug = pm.collectionVariables.get('generatedTenantSlug');",
+                      "  const match = Array.isArray(json) ? json.find((t) => t.slug === slug) : null;",
+                      "  if (match) {",
+                      "    pm.collectionVariables.set('saasTenantId', match.id);",
+                      "  } else {",
+                      "    console.warn('No tenant found matching {{generatedTenantSlug}} yet \u2014 approve an application first. Leaving saasTenantId untouched so Update/Toggle below cannot accidentally hit an unrelated tenant.');",
+                      "  }",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{saasAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/saas/admin/tenants",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "saas",
+                    "admin",
+                    "tenants"
+                  ]
+                },
+                "description": "Every provisioned company with package name, start/end date, and status. Finds the tenant whose slug matches {{generatedTenantSlug}} (set by Saas Frontend > Submit Application + Approve Application) and saves its id into {{saasTenantId}}. Deliberately does NOT fall back to 'the first tenant in the list' \u2014 that would risk acting on an unrelated, pre-existing tenant such as the demo 'acme' one."
+              },
+              "response": []
+            },
+            {
+              "name": "Update Tenant",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{saasAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Acme Ltd (Updated)\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/saas/admin/tenants/{{saasTenantId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "saas",
+                    "admin",
+                    "tenants",
+                    "{{saasTenantId}}"
+                  ]
+                },
+                "description": "All fields optional: name, companyType, overview, numberOfEmployees, contactEmail."
+              },
+              "response": []
+            },
+            {
+              "name": "Toggle Tenant Status",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{saasAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/saas/admin/tenants/{{saasTenantId}}/toggle-status",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "saas",
+                    "admin",
+                    "tenants",
+                    "{{saasTenantId}}",
+                    "toggle-status"
+                  ]
+                },
+                "description": "Flips Active/Inactive. Inactive immediately blocks every request to that tenant's subdomain (tenantResolver returns 404)."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Stats",
+          "item": [
+            {
+              "name": "Get Stats",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{saasAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/saas/admin/stats",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "saas",
+                    "admin",
+                    "stats"
+                  ]
+                },
+                "description": "{ totalCompanies, totalPackages } for the super-admin overview page."
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Saas Frontend",
+      "description": "Public, unauthenticated endpoints consumed directly by the public landing/signup pages.",
+      "item": [
+        {
+          "name": "List Public Packages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/saas/public/packages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "saas",
+                "public",
+                "packages"
+              ]
+            },
+            "description": "Active packages only \u2014 what the landing page shows to prospects."
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Application",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set('applicationId', json.id);",
+                  "  pm.collectionVariables.set('generatedTenantSlug', json.subdomainSlug);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "companyName",
+                  "value": "Postman Demo Co",
+                  "type": "text"
+                },
+                {
+                  "key": "companyType",
+                  "value": "Retail",
+                  "type": "text"
+                },
+                {
+                  "key": "overview",
+                  "value": "A demo company for API testing.",
+                  "type": "text"
+                },
+                {
+                  "key": "numberOfEmployees",
+                  "value": "25",
+                  "type": "text"
+                },
+                {
+                  "key": "contactEmail",
+                  "value": "owner-{{$timestamp}}@example.test",
+                  "type": "text"
+                },
+                {
+                  "key": "subdomainSlug",
+                  "value": "demo-{{$timestamp}}",
+                  "type": "text"
+                },
+                {
+                  "key": "packageId",
+                  "value": "{{packageId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "logo",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/saas/public/applications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "saas",
+                "public",
+                "applications"
+              ]
+            },
+            "description": "Multipart form submission. logo is optional (png/jpeg/webp/svg, max 2MB). subdomainSlug must be globally unique (defaults to a timestamp-suffixed demo value). Saves the new id into {{applicationId}} and the generated slug into {{generatedTenantSlug}}."
+          },
+          "response": []
         }
       ]
     },
@@ -231,18 +927,34 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "X-Tenant-Slug", "value": "{{tenantSlug}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "X-Tenant-Slug",
+                "value": "{{tenantSlug}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"{{tenantEmail}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/check-email",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "check-email"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "check-email"
+              ]
             },
             "description": "Step 1 of login: returns { exists: boolean }. The password field is only shown client-side once this returns true."
           },
@@ -268,20 +980,36 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "X-Tenant-Slug", "value": "{{tenantSlug}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "X-Tenant-Slug",
+                "value": "{{tenantSlug}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"{{tenantEmail}}\",\n  \"password\": \"{{tenantPassword}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
             },
-            "description": "Step 2 of login. Response includes mustChangePassword — if true, the frontend forces a password change before showing the dashboard. Saves accessToken into {{tenantAccessToken}}."
+            "description": "Step 2 of login. Response includes mustChangePassword \u2014 if true, the frontend forces a password change before showing the dashboard. Saves accessToken into {{tenantAccessToken}}."
           },
           "response": []
         },
@@ -290,16 +1018,31 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "X-Tenant-Slug", "value": "{{tenantSlug}}" }
+              {
+                "key": "X-Tenant-Slug",
+                "value": "{{tenantSlug}}"
+              }
             ],
             "auth": {
               "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{tenantAccessToken}}", "type": "string" }]
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tenantAccessToken}}",
+                  "type": "string"
+                }
+              ]
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/me",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "me"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
             }
           },
           "response": []
@@ -309,111 +1052,196 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "X-Tenant-Slug", "value": "{{tenantSlug}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "X-Tenant-Slug",
+                "value": "{{tenantSlug}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "auth": {
               "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{tenantAccessToken}}", "type": "string" }]
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tenantAccessToken}}",
+                  "type": "string"
+                }
+              ]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"currentPassword\": \"{{tenantPassword}}\",\n  \"newPassword\": \"NewPassword123!\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "raw": "{\n  \"currentPassword\": \"{{tenantPassword}}\",\n  \"newPassword\": \"TempPassword123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/change-password",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "change-password"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "change-password"
+              ]
             },
-            "description": "Sets a new password and clears mustChangePassword. Returns 204 with no body."
+            "description": "Sets a new password and clears mustChangePassword. Returns 204 with no body. IMPORTANT: {{tenantSlug}} is likely your persistent demo tenant (e.g. acme) \u2014 this genuinely changes its real login password. Run 'Revert Password' immediately after so the demo credentials stay valid for next time."
+          },
+          "response": []
+        },
+        {
+          "name": "Revert Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Tenant-Slug",
+                "value": "{{tenantSlug}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tenantAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"TempPassword123!\",\n  \"newPassword\": \"{{tenantPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/change-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "change-password"
+              ]
+            },
+            "description": "Undoes 'Change Password' above, restoring {{tenantPassword}} so the persistent demo tenant's real credentials are unaffected after running this folder end-to-end."
           },
           "response": []
         }
       ]
     },
     {
-      "name": "Saas Backend",
-      "description": "Protected super-admin portal endpoints. Every request (except Saas Admin Login) needs a saas-admin access token from Saas Backend > Auth > Saas Admin Login.",
+      "name": "Tenant Backend",
+      "description": "Protected tenant-data endpoints (employee directory, departments). Every request needs X-Tenant-Slug and a tenant access token from Tenant Frontend > Login.",
       "item": [
         {
-          "name": "Auth",
+          "name": "Employees",
           "item": [
             {
-              "name": "Saas Admin Login",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "if (pm.response.code === 200) {",
-                      "  const json = pm.response.json();",
-                      "  pm.collectionVariables.set('saasAccessToken', json.accessToken);",
-                      "}"
-                    ]
+              "name": "List Employees",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
                   }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"email\": \"{{saasAdminEmail}}\",\n  \"password\": \"{{saasAdminPassword}}\"\n}",
-                  "options": { "raw": { "language": "json" } }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/saas/admin/auth/login",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["saas", "admin", "auth", "login"]
+                  "raw": "{{baseUrl}}/api/employees?page=1&pageSize=20&search=&departmentId=",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "employees"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "20"
+                    },
+                    {
+                      "key": "search",
+                      "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "departmentId",
+                      "value": "",
+                      "disabled": true
+                    }
+                  ]
                 },
-                "description": "Signed with a separate secret (JWT_SAAS_ACCESS_SECRET) from tenant tokens. Saves accessToken into {{saasAccessToken}}."
+                "description": "Paginated, searchable, department-filterable employee list."
               },
               "response": []
             },
             {
-              "name": "Saas Admin Me",
+              "name": "Get Employee",
               "request": {
                 "method": "GET",
-                "header": [],
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{ "key": "token", "value": "{{saasAccessToken}}", "type": "string" }]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/saas/admin/auth/me",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["saas", "admin", "auth", "me"]
+                  "raw": "{{baseUrl}}/api/employees/{{employeeId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "employees",
+                    "{{employeeId}}"
+                  ]
                 }
-              },
-              "response": []
-            }
-          ]
-        },
-        {
-          "name": "Packages (Admin)",
-          "item": [
-            {
-              "name": "List Packages (Admin)",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [{ "key": "token", "value": "{{saasAccessToken}}", "type": "string" }]
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/saas/admin/packages",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["saas", "admin", "packages"]
-                },
-                "description": "Includes inactive packages, unlike the public listing."
               },
               "response": []
             },
             {
-              "name": "Create Package",
+              "name": "Create Employee",
               "event": [
                 {
                   "listen": "test",
@@ -422,7 +1250,7 @@
                     "exec": [
                       "if (pm.response.code === 201) {",
                       "  const json = pm.response.json();",
-                      "  pm.collectionVariables.set('packageId', json.id);",
+                      "  pm.collectionVariables.set('employeeId', json.id);",
                       "}"
                     ]
                   }
@@ -430,337 +1258,1394 @@
               ],
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{ "key": "token", "value": "{{saasAccessToken}}", "type": "string" }]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"Growth\",\n  \"price\": 49.99,\n  \"validityDays\": 30,\n  \"isActive\": true\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Doe\",\n  \"email\": \"jane.doe.{{$timestamp}}@acme.test\",\n  \"jobTitle\": \"Software Engineer\",\n  \"startDate\": \"2026-02-01\",\n  \"departmentId\": null,\n  \"managerId\": null,\n  \"role\": \"Staff\",\n  \"password\": \"SuperSecret123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/saas/admin/packages",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["saas", "admin", "packages"]
+                  "raw": "{{baseUrl}}/api/employees",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "employees"
+                  ]
                 },
-                "description": "price: 0 = free. validityDays: null = unlimited. Saves the new id into {{packageId}}."
+                "description": "Requires Admin or HR role. Creates a linked login User + Employee record. Saves the new id into {{employeeId}}."
               },
               "response": []
             },
             {
-              "name": "Update Package",
+              "name": "Update Employee",
               "request": {
                 "method": "PATCH",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{ "key": "token", "value": "{{saasAccessToken}}", "type": "string" }]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"Growth (Updated)\"\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "raw": "{\n  \"jobTitle\": \"Senior Software Engineer\",\n  \"status\": \"Active\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/saas/admin/packages/{{packageId}}",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["saas", "admin", "packages", "{{packageId}}"]
+                  "raw": "{{baseUrl}}/api/employees/{{employeeId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "employees",
+                    "{{employeeId}}"
+                  ]
                 },
-                "description": "All fields optional: name, price, validityDays, isActive. Body here only renames it (deliberately does not set isActive:false, since {{packageId}} is likely still referenced by Saas Frontend > Submit Application below)."
-              },
-              "response": []
-            },
-            {
-              "name": "Delete Package",
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [{ "key": "token", "value": "{{saasAccessToken}}", "type": "string" }]
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/saas/admin/packages/{{packageId}}",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["saas", "admin", "packages", "{{packageId}}"]
-                },
-                "description": "Run this LAST, after the Applications/Tenants requests below. Expected to return 409 once a tenant is on this package — that's the intended protection, demonstrating a package in use cannot be deleted. Run against a freshly-created, unused package to see the 204 success path instead."
+                "description": "Requires Admin, HR, or Manager role. All fields optional: firstName, lastName, jobTitle, departmentId, managerId, status (Active/Inactive)."
               },
               "response": []
             }
           ]
         },
         {
-          "name": "Applications (Admin)",
-          "description": "These read/act on {{applicationId}}, which is only set after running Saas Frontend > Submit Application at least once. Run that first, then come back to Get/Update/Approve/Reject here.",
+          "name": "Departments",
           "item": [
             {
-              "name": "List Applications",
+              "name": "List Departments",
               "request": {
                 "method": "GET",
-                "header": [],
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{ "key": "token", "value": "{{saasAccessToken}}", "type": "string" }]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/saas/admin/applications?status=Pending",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["saas", "admin", "applications"],
-                  "query": [{ "key": "status", "value": "Pending", "description": "Pending | Approved | Rejected, omit for all" }]
+                  "raw": "{{baseUrl}}/api/departments",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "departments"
+                  ]
                 }
               },
               "response": []
             },
             {
-              "name": "Get Application",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [{ "key": "token", "value": "{{saasAccessToken}}", "type": "string" }]
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/saas/admin/applications/{{applicationId}}",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["saas", "admin", "applications", "{{applicationId}}"]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Update Application",
-              "request": {
-                "method": "PATCH",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [{ "key": "token", "value": "{{saasAccessToken}}", "type": "string" }]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"companyName\": \"Acme Ltd (Edited)\"\n}",
-                  "options": { "raw": { "language": "json" } }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/saas/admin/applications/{{applicationId}}",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["saas", "admin", "applications", "{{applicationId}}"]
-                },
-                "description": "Only allowed while the application is still Pending. All fields optional: companyName, companyType, overview, numberOfEmployees, contactEmail, packageId."
-              },
-              "response": []
-            },
-            {
-              "name": "Approve Application",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [{ "key": "token", "value": "{{saasAccessToken}}", "type": "string" }]
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/saas/admin/applications/{{applicationId}}/approve",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["saas", "admin", "applications", "{{applicationId}}", "approve"]
-                },
-                "description": "Provisions a real tenant database, seeds roles, creates the tenant Admin user (password 12345678, mustChangePassword=true), and emails the login details."
-              },
-              "response": []
-            },
-            {
-              "name": "Reject Application",
-              "request": {
-                "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [{ "key": "token", "value": "{{saasAccessToken}}", "type": "string" }]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"reviewNote\": \"Not a fit right now\"\n}",
-                  "options": { "raw": { "language": "json" } }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/saas/admin/applications/{{applicationId}}/reject",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["saas", "admin", "applications", "{{applicationId}}", "reject"]
-                },
-                "description": "reviewNote is optional. Note: if the application above was just approved, this will correctly return 409 (already Approved) — reject a different, still-Pending application to see the success path."
-              },
-              "response": []
-            }
-          ]
-        },
-        {
-          "name": "Tenants (Admin)",
-          "description": "Update Tenant and Toggle Tenant Status act on {{saasTenantId}}, auto-captured by List Tenants below (run List Tenants at least once first — it grabs the newest tenant, which is the one Approve Application above just created).",
-          "item": [
-            {
-              "name": "List Tenants",
+              "name": "Create Department",
               "event": [
                 {
                   "listen": "test",
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "if (pm.response.code === 200) {",
+                      "if (pm.response.code === 201) {",
                       "  const json = pm.response.json();",
-                      "  if (Array.isArray(json) && json.length > 0) {",
-                      "    pm.collectionVariables.set('saasTenantId', json[0].id);",
-                      "  }",
+                      "  pm.collectionVariables.set('departmentId', json.id);",
                       "}"
                     ]
                   }
                 }
               ],
               "request": {
-                "method": "GET",
-                "header": [],
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{ "key": "token", "value": "{{saasAccessToken}}", "type": "string" }]
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/saas/admin/tenants",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["saas", "admin", "tenants"]
-                },
-                "description": "Every provisioned company with package name, start/end date, and status. Ordered newest-first, so this saves the most recently created tenant's id into {{saasTenantId}} for the two requests below."
-              },
-              "response": []
-            },
-            {
-              "name": "Update Tenant",
-              "request": {
-                "method": "PATCH",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [{ "key": "token", "value": "{{saasAccessToken}}", "type": "string" }]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"Acme Ltd (Updated)\"\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "raw": "{\n  \"name\": \"Engineering\",\n  \"status\": \"Active\",\n  \"shortDescription\": \"Builds the product\",\n  \"parentDepartmentId\": null\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/saas/admin/tenants/{{saasTenantId}}",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["saas", "admin", "tenants", "{{saasTenantId}}"]
+                  "raw": "{{baseUrl}}/api/departments",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "departments"
+                  ]
                 },
-                "description": "All fields optional: name, companyType, overview, numberOfEmployees, contactEmail."
+                "description": "Requires Admin or HR role. Saves the new id into {{departmentId}}."
               },
               "response": []
             },
             {
-              "name": "Toggle Tenant Status",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [{ "key": "token", "value": "{{saasAccessToken}}", "type": "string" }]
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/saas/admin/tenants/{{saasTenantId}}/toggle-status",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["saas", "admin", "tenants", "{{saasTenantId}}", "toggle-status"]
-                },
-                "description": "Flips Active/Inactive. Inactive immediately blocks every request to that tenant's subdomain (tenantResolver returns 404)."
-              },
-              "response": []
-            }
-          ]
-        },
-        {
-          "name": "Stats",
-          "item": [
-            {
-              "name": "Get Stats",
+              "name": "Get Department",
               "request": {
                 "method": "GET",
-                "header": [],
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{ "key": "token", "value": "{{saasAccessToken}}", "type": "string" }]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/saas/admin/stats",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["saas", "admin", "stats"]
+                  "raw": "{{baseUrl}}/api/departments/{{departmentId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "departments",
+                    "{{departmentId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Department",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
                 },
-                "description": "{ totalCompanies, totalPackages } for the super-admin overview page."
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Engineering\",\n  \"status\": \"Active\",\n  \"shortDescription\": \"Builds the product\",\n  \"parentDepartmentId\": null\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/departments/{{departmentId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "departments",
+                    "{{departmentId}}"
+                  ]
+                },
+                "description": "Requires Admin or HR role."
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Department",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/departments/{{departmentId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "departments",
+                    "{{departmentId}}"
+                  ]
+                },
+                "description": "Requires Admin or HR role. Fails with 409 if the department has employees or sub-departments."
               },
               "response": []
             }
           ]
-        }
-      ]
-    },
-    {
-      "name": "Saas Frontend",
-      "description": "Public, unauthenticated endpoints consumed directly by the public landing/signup pages.",
-      "item": [
-        {
-          "name": "List Public Packages",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/saas/public/packages",
-              "host": ["{{baseUrl}}"],
-              "path": ["saas", "public", "packages"]
-            },
-            "description": "Active packages only — what the landing page shows to prospects."
-          },
-          "response": []
         },
         {
-          "name": "Submit Application",
-          "event": [
+          "name": "Shifts",
+          "item": [
             {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "if (pm.response.code === 201) {",
-                  "  const json = pm.response.json();",
-                  "  pm.collectionVariables.set('applicationId', json.id);",
-                  "}"
-                ]
-              }
+              "name": "List Shifts",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/shifts",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "shifts"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Shift",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/shifts/{{shiftId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "shifts",
+                    "{{shiftId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Shift",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      "  const json = pm.response.json();",
+                      "  pm.collectionVariables.set('shiftId', json.id);",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Morning Shift\",\n  \"startTime\": \"09:00\",\n  \"endTime\": \"17:00\",\n  \"status\": \"Active\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/shifts",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "shifts"
+                  ]
+                },
+                "description": "Requires Admin or HR role. Saves the new id into {{shiftId}}."
+              },
+              "response": []
+            },
+            {
+              "name": "Update Shift",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Morning Shift\",\n  \"startTime\": \"09:30\",\n  \"endTime\": \"17:30\",\n  \"status\": \"Active\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/shifts/{{shiftId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "shifts",
+                    "{{shiftId}}"
+                  ]
+                },
+                "description": "Requires Admin or HR role."
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Shift",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/shifts/{{shiftId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "shifts",
+                    "{{shiftId}}"
+                  ]
+                },
+                "description": "Requires Admin or HR role."
+              },
+              "response": []
             }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                { "key": "companyName", "value": "Acme Ltd", "type": "text" },
-                { "key": "companyType", "value": "Retail", "type": "text" },
-                { "key": "overview", "value": "A demo company for API testing.", "type": "text" },
-                { "key": "numberOfEmployees", "value": "25", "type": "text" },
-                { "key": "contactEmail", "value": "owner-{{$timestamp}}@example.test", "type": "text" },
-                { "key": "subdomainSlug", "value": "demo-{{$timestamp}}", "type": "text" },
-                { "key": "packageId", "value": "{{packageId}}", "type": "text" },
-                { "key": "logo", "type": "file", "src": [], "disabled": true }
-              ]
+          ]
+        },
+        {
+          "name": "Week Days",
+          "item": [
+            {
+              "name": "List Week Days",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/weekdays",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "weekdays"
+                  ]
+                }
+              },
+              "response": []
             },
-            "url": {
-              "raw": "{{baseUrl}}/saas/public/applications",
-              "host": ["{{baseUrl}}"],
-              "path": ["saas", "public", "applications"]
+            {
+              "name": "Get Week Day",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/weekdays/{{weekDayId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "weekdays",
+                    "{{weekDayId}}"
+                  ]
+                }
+              },
+              "response": []
             },
-            "description": "Multipart form submission. logo is optional (png/jpeg/webp/svg, max 2MB). subdomainSlug must be globally unique. Saves the new id into {{applicationId}}."
-          },
-          "response": []
+            {
+              "name": "Create Week Day",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      "  const json = pm.response.json();",
+                      "  pm.collectionVariables.set('weekDayId', json.id);",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Monday\",\n  \"isWeekend\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/weekdays",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "weekdays"
+                  ]
+                },
+                "description": "Requires Admin or HR role. Saves the new id into {{weekDayId}}."
+              },
+              "response": []
+            },
+            {
+              "name": "Update Week Day",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Monday\",\n  \"isWeekend\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/weekdays/{{weekDayId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "weekdays",
+                    "{{weekDayId}}"
+                  ]
+                },
+                "description": "Requires Admin or HR role."
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Week Day",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/weekdays/{{weekDayId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "weekdays",
+                    "{{weekDayId}}"
+                  ]
+                },
+                "description": "Requires Admin or HR role."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Leave Types",
+          "item": [
+            {
+              "name": "List Leave Types",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/leave-types",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "leave-types"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Leave Type",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/leave-types/{{leaveTypeId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "leave-types",
+                    "{{leaveTypeId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Leave Type",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      "  const json = pm.response.json();",
+                      "  pm.collectionVariables.set('leaveTypeId', json.id);",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Annual Leave\",\n  \"assignedDays\": 20,\n  \"status\": \"Active\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/leave-types",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "leave-types"
+                  ]
+                },
+                "description": "Requires Admin or HR role. Saves the new id into {{leaveTypeId}}."
+              },
+              "response": []
+            },
+            {
+              "name": "Update Leave Type",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Annual Leave\",\n  \"assignedDays\": 22,\n  \"status\": \"Active\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/leave-types/{{leaveTypeId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "leave-types",
+                    "{{leaveTypeId}}"
+                  ]
+                },
+                "description": "Requires Admin or HR role."
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Leave Type",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/leave-types/{{leaveTypeId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "leave-types",
+                    "{{leaveTypeId}}"
+                  ]
+                },
+                "description": "Requires Admin or HR role."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Designations",
+          "item": [
+            {
+              "name": "List Designations",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/designations",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "designations"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Designation",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/designations/{{designationId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "designations",
+                    "{{designationId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Designation",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      "  const json = pm.response.json();",
+                      "  pm.collectionVariables.set('designationId', json.id);",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Software Engineer\",\n  \"status\": \"Active\",\n  \"shortDescription\": \"Builds software\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/designations",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "designations"
+                  ]
+                },
+                "description": "Requires Admin or HR role. Saves the new id into {{designationId}}."
+              },
+              "response": []
+            },
+            {
+              "name": "Update Designation",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Senior Software Engineer\",\n  \"status\": \"Active\",\n  \"shortDescription\": \"Builds software\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/designations/{{designationId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "designations",
+                    "{{designationId}}"
+                  ]
+                },
+                "description": "Requires Admin or HR role."
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Designation",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/designations/{{designationId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "designations",
+                    "{{designationId}}"
+                  ]
+                },
+                "description": "Requires Admin or HR role."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Roles",
+          "item": [
+            {
+              "name": "List Roles",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/roles",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "roles"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Role",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/roles/{{roleId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "roles",
+                    "{{roleId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Role",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      "  const json = pm.response.json();",
+                      "  pm.collectionVariables.set('roleId', json.id);",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Team Lead\",\n  \"status\": \"Active\",\n  \"shortDescription\": \"Leads a team\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/roles",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "roles"
+                  ]
+                },
+                "description": "Requires Admin or HR role. Saves the new id into {{roleId}}. Built-in roles (Admin/HR/Manager/Staff) are seeded per tenant and cannot be created again."
+              },
+              "response": []
+            },
+            {
+              "name": "Update Role",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Team Lead\",\n  \"status\": \"Active\",\n  \"shortDescription\": \"Leads a small team\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/roles/{{roleId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "roles",
+                    "{{roleId}}"
+                  ]
+                },
+                "description": "Requires Admin or HR role. Renaming a built-in role returns 403."
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Role",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/roles/{{roleId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "roles",
+                    "{{roleId}}"
+                  ]
+                },
+                "description": "Requires Admin or HR role. Deleting a built-in role returns 403; deleting a role assigned to users returns 409."
+              },
+              "response": []
+            }
+          ]
         }
       ]
     }

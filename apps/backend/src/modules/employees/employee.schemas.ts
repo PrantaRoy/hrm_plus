@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { ROLES } from "@hrm-plus/shared";
 
 export const listEmployeesQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -16,7 +15,7 @@ export const createEmployeeSchema = z.object({
   startDate: z.string().min(1),
   departmentId: z.number().int().nullable().optional(),
   managerId: z.number().int().nullable().optional(),
-  role: z.enum(ROLES),
+  role: z.string().trim().min(1),
   password: z.string().min(8),
 });
 

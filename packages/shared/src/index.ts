@@ -3,12 +3,33 @@ export type { RoleName } from "./roles";
 
 export type {
   EmployeeStatus,
+  SettingStatus,
   DepartmentDto,
+  CreateDepartmentInput,
+  UpdateDepartmentInput,
   EmployeeDto,
   CreateEmployeeInput,
   UpdateEmployeeInput,
   PaginatedResult,
 } from "./employee";
+
+export type {
+  ShiftDto,
+  CreateShiftInput,
+  UpdateShiftInput,
+  WeekDayDto,
+  CreateWeekDayInput,
+  UpdateWeekDayInput,
+  LeaveTypeDto,
+  CreateLeaveTypeInput,
+  UpdateLeaveTypeInput,
+  DesignationDto,
+  CreateDesignationInput,
+  UpdateDesignationInput,
+  RoleDto,
+  CreateRoleInput,
+  UpdateRoleInput,
+} from "./settings";
 
 export type {
   LoginRequest,

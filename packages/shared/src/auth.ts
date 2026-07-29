@@ -29,6 +29,19 @@ export interface ChangePasswordInput {
   newPassword: string;
 }
 
+export interface VerifyTenantResponse {
+  tenantName: string;
+}
+
+export interface RequestPasswordResetInput {
+  email: string;
+}
+
+export interface ResetPasswordInput {
+  token: string;
+  newPassword: string;
+}
+
 export interface JwtAccessPayload {
   sub: number;
   tenantSlug: string;

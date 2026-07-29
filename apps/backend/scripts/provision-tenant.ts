@@ -81,7 +81,7 @@ async function main() {
       firstName: "Tenant",
       lastName: "Admin",
       email: adminEmail,
-      startDate: new Date(),
+      joiningDate: new Date(),
       userId: adminUser.id,
     },
   });

@@ -1,19 +1,33 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Building2, UserCheck, Users } from "lucide-react";
 import { Card, PageHeader, Spinner, StatCard } from "@hrm-plus/ui";
-import { DepartmentDto, EmployeeDto } from "@hrm-plus/shared";
+import { DepartmentDto, DutyScheduleAssignmentDto, EmployeeDto } from "@hrm-plus/shared";
 import { listEmployees } from "../api/employees";
 import { listDepartments } from "../api/departments";
+import { getMySchedule } from "../api/rosters";
 import { useAuth } from "../auth/AuthContext";
+
+function toDateInput(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
 
 export default function Dashboard() {
   const { user } = useAuth();
   const [employees, setEmployees] = useState<EmployeeDto[] | null>(null);
   const [departments, setDepartments] = useState<DepartmentDto[]>([]);
+  const [mySchedule, setMySchedule] = useState<DutyScheduleAssignmentDto[]>([]);
 
   useEffect(() => {
-    listEmployees({ page: 1, pageSize: 1000 }).then((res) => setEmployees(res.items));
+    listEmployees({ page: 1, pageSize: 100 }).then((res) => setEmployees(res.items));
     listDepartments().then(setDepartments).catch(() => setDepartments([]));
+
+    const today = new Date();
+    const weekFromNow = new Date(today);
+    weekFromNow.setDate(weekFromNow.getDate() + 6);
+    getMySchedule({ startDate: toDateInput(today), endDate: toDateInput(weekFromNow) })
+      .then(setMySchedule)
+      .catch(() => setMySchedule([]));
   }, []);
 
   if (!employees) {
@@ -62,6 +76,44 @@ export default function Dashboard() {
                   />
                 </div>
                 <span className="w-8 shrink-0 text-right text-sm font-medium text-slate-900">{dept.count}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      <Card
+        title="My Duty Schedule"
+        description="Your approved duty for the next 7 days."
+        actions={
+          <Link to="/my-schedule" className="text-sm text-brand-600 hover:underline">
+            View full calendar
+          </Link>
+        }
+      >
+        {mySchedule.length === 0 ? (
+          <p className="text-sm text-slate-400">No approved duty schedule for the coming week yet.</p>
+        ) : (
+          <div className="space-y-2">
+            {mySchedule.map((assignment) => (
+              <div key={assignment.id} className="flex items-center justify-between text-sm">
+                <span className="text-slate-600">
+                  {new Date(assignment.date).toLocaleDateString(undefined, {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                    timeZone: "UTC",
+                  })}
+                </span>
+                <span className="font-medium text-slate-900">
+                  {assignment.isWeekend
+                    ? "Weekly Off"
+                    : assignment.isLeave
+                      ? "Leave"
+                      : assignment.isHoliday
+                        ? "Holiday"
+                        : (assignment.dutyScheduleName ?? "—")}
+                </span>
               </div>
             ))}
           </div>

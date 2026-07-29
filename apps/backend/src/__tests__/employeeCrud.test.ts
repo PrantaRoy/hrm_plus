@@ -25,12 +25,16 @@ function authed(req: request.Test) {
 }
 
 describe("Employee directory CRUD", () => {
-  it("creates an employee with a linked login user", async () => {
+  it("creates an employee with a linked login user and the full HR profile", async () => {
     const res = await authed(request(app).post("/api/employees")).send({
       firstName: "Jane",
       lastName: "Doe",
       email: "jane.doe@example.com",
-      startDate: "2026-01-15",
+      phoneNumber: "+1-555-0100",
+      gender: "Female",
+      dateOfBirth: "1990-05-01",
+      joiningDate: "2026-01-15",
+      employmentType: "Full-Time",
       role: "Staff",
       password: "SuperSecret123!",
     });
@@ -39,6 +43,42 @@ describe("Employee directory CRUD", () => {
     expect(res.body.firstName).toBe("Jane");
     expect(res.body.role).toBe("Staff");
     expect(res.body.status).toBe("Active");
+    expect(res.body.phoneNumber).toBe("+1-555-0100");
+    expect(res.body.gender).toBe("Female");
+    expect(res.body.joiningDate.slice(0, 10)).toBe("2026-01-15");
+    expect(res.body.employmentType).toBe("Full-Time");
+    expect(res.body.avatarUrl).toBeNull();
+  });
+
+  it("creates an employee with a department, designation, and reporting-to manager", async () => {
+    const department = await authed(request(app).post("/api/departments")).send({ name: "Engineering" });
+    const designation = await authed(request(app).post("/api/designations")).send({ name: "Engineer" });
+    const managerRes = await authed(request(app).post("/api/employees")).send({
+      firstName: "Mona",
+      lastName: "Manager",
+      email: "mona.manager@example.com",
+      joiningDate: "2026-01-01",
+      role: "Manager",
+      password: "SuperSecret123!",
+    });
+
+    const res = await authed(request(app).post("/api/employees")).send({
+      firstName: "Rick",
+      lastName: "Report",
+      email: "rick.report@example.com",
+      joiningDate: "2026-01-15",
+      departmentId: department.body.id,
+      designationId: designation.body.id,
+      reportingToId: managerRes.body.id,
+      role: "Staff",
+      password: "SuperSecret123!",
+    });
+
+    expect(res.status).toBe(201);
+    expect(res.body.departmentName).toBe("Engineering");
+    expect(res.body.designationName).toBe("Engineer");
+    expect(res.body.reportingToId).toBe(managerRes.body.id);
+    expect(res.body.reportingToName).toBe("Mona Manager");
   });
 
   it("lists and searches employees", async () => {
@@ -57,30 +97,64 @@ describe("Employee directory CRUD", () => {
       firstName: "Jane",
       lastName: "Duplicate",
       email: "jane.doe@example.com",
-      startDate: "2026-01-15",
+      joiningDate: "2026-01-15",
       role: "Staff",
       password: "SuperSecret123!",
     });
     expect(res.status).toBe(409);
   });
 
-  it("updates an employee and deactivates their login", async () => {
+  it("updates an employee's HR profile fields and deactivates their login", async () => {
     const created = await authed(request(app).post("/api/employees")).send({
       firstName: "Sam",
       lastName: "Smith",
       email: "sam.smith@example.com",
-      startDate: "2026-02-01",
+      joiningDate: "2026-02-01",
       role: "Staff",
       password: "SuperSecret123!",
     });
 
-    const updateRes = await authed(
-      request(app).patch(`/api/employees/${created.body.id}`)
-    ).send({ status: "Inactive", jobTitle: "Former Employee" });
+    const updateRes = await authed(request(app).patch(`/api/employees/${created.body.id}`)).send({
+      status: "Inactive",
+      jobTitle: "Former Employee",
+      terminationDate: "2026-06-01",
+      employmentType: "Part-Time",
+    });
 
     expect(updateRes.status).toBe(200);
     expect(updateRes.body.status).toBe("Inactive");
     expect(updateRes.body.jobTitle).toBe("Former Employee");
+    expect(updateRes.body.terminationDate?.slice(0, 10)).toBe("2026-06-01");
+    expect(updateRes.body.employmentType).toBe("Part-Time");
+  });
+
+  it("rejects an employee reporting to themselves", async () => {
+    const created = await authed(request(app).post("/api/employees")).send({
+      firstName: "Self",
+      lastName: "Reporter",
+      email: "self.reporter@example.com",
+      joiningDate: "2026-02-01",
+      role: "Staff",
+      password: "SuperSecret123!",
+    });
+
+    const res = await authed(request(app).patch(`/api/employees/${created.body.id}`)).send({
+      reportingToId: created.body.id,
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("rejects an invalid gender value", async () => {
+    const res = await authed(request(app).post("/api/employees")).send({
+      firstName: "Bad",
+      lastName: "Gender",
+      email: "bad.gender@example.com",
+      joiningDate: "2026-02-01",
+      gender: "Unknown",
+      role: "Staff",
+      password: "SuperSecret123!",
+    });
+    expect(res.status).toBe(400);
   });
 
   it("blocks non-Admin/HR roles from creating employees", async () => {
@@ -88,7 +162,7 @@ describe("Employee directory CRUD", () => {
       firstName: "Extra",
       lastName: "Staff",
       email: "extra.staff@example.com",
-      startDate: "2026-02-01",
+      joiningDate: "2026-02-01",
       role: "Staff",
       password: "SuperSecret123!",
     });
@@ -107,7 +181,7 @@ describe("Employee directory CRUD", () => {
         firstName: "Blocked",
         lastName: "Attempt",
         email: "blocked@example.com",
-        startDate: "2026-02-01",
+        joiningDate: "2026-02-01",
         role: "Staff",
         password: "SuperSecret123!",
       });

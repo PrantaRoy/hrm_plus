@@ -44,7 +44,7 @@ describe("Role CRUD", () => {
       firstName: "Lead",
       lastName: "Person",
       email: "lead.person@example.com",
-      startDate: "2026-01-01",
+      joiningDate: "2026-01-01",
       role: "Team Lead",
       password: "SuperSecret123!",
     });

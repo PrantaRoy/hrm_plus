@@ -145,7 +145,7 @@ describe("Department CRUD (extended)", () => {
       firstName: "Dept",
       lastName: "Worker",
       email: "dept.worker@example.com",
-      startDate: "2026-01-01",
+      joiningDate: "2026-01-01",
       role: "Staff",
       password: "SuperSecret123!",
       departmentId: dept.body.id,
@@ -162,7 +162,7 @@ describe("Settings CRUD authorization", () => {
       firstName: "Plain",
       lastName: "Staffer",
       email: "plain.staffer@example.com",
-      startDate: "2026-01-01",
+      joiningDate: "2026-01-01",
       role: "Staff",
       password: "SuperSecret123!",
     });

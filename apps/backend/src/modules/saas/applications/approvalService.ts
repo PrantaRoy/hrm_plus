@@ -74,7 +74,7 @@ export async function approveApplication(applicationId: number): Promise<TenantA
       firstName: application.companyName,
       lastName: "Admin",
       email: application.contactEmail,
-      startDate,
+      joiningDate: startDate,
       userId: adminUser.id,
     },
   });

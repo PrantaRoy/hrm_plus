@@ -28,6 +28,13 @@ model User {
   role         Role       @relation(fields: [roleId], references: [id])
   employee     Employee?
   auditLogs    AuditLog[]
+  rostersGenerated   Roster[]                 @relation("RosterGeneratedBy")
+  rostersApproved    Roster[]                 @relation("RosterApprovedBy")
+  rostersCreated     Roster[]                 @relation("RosterCreatedBy")
+  rostersUpdated     Roster[]                 @relation("RosterUpdatedBy")
+  assignmentsCreated DutyScheduleAssignment[] @relation("AssignmentCreatedBy")
+  assignmentsUpdated DutyScheduleAssignment[] @relation("AssignmentUpdatedBy")
+  passwordResetTokens PasswordResetToken[]
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 }
@@ -41,6 +48,8 @@ model Department {
   parentDepartment   Department?  @relation("DepartmentHierarchy", fields: [parentDepartmentId], references: [id])
   childDepartments   Department[] @relation("DepartmentHierarchy")
   employees          Employee[]
+  rosters            Roster[]
+  dutyAssignments    DutyScheduleAssignment[]
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
 }
@@ -73,32 +82,59 @@ model LeaveType {
 }
 
 model Designation {
-  id               Int      @id @default(autoincrement())
+  id               Int        @id @default(autoincrement())
   name             String
-  status           String   @default("Active")
+  status           String     @default("Active")
   shortDescription String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  employees        Employee[]
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
 }
 
 model Employee {
-  id            Int         @id @default(autoincrement())
-  employeeCode  String      @unique
-  firstName     String
-  lastName      String
-  email         String      @unique
-  jobTitle      String?
-  status        String      @default("Active")
-  startDate     DateTime
-  departmentId  Int?
-  department    Department? @relation(fields: [departmentId], references: [id])
-  managerId     Int?
-  manager       Employee?   @relation("EmployeeHierarchy", fields: [managerId], references: [id])
-  directReports Employee[]  @relation("EmployeeHierarchy")
-  userId        Int?        @unique
-  user          User?       @relation(fields: [userId], references: [id])
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id              Int          @id @default(autoincrement())
+  employeeCode    String       @unique
+  firstName       String
+  lastName        String
+  email           String       @unique
+  phoneNumber     String?
+  gender          String?
+  dateOfBirth     DateTime?
+  jobTitle        String?
+  status          String       @default("Active")
+  joiningDate     DateTime
+  terminationDate DateTime?
+  employmentType  String       @default("Full-Time")
+  avatarUrl       String?
+  avatarKey       String?
+  departmentId    Int?
+  department      Department?  @relation(fields: [departmentId], references: [id])
+  designationId   Int?
+  designation     Designation? @relation(fields: [designationId], references: [id])
+  reportingToId   Int?
+  reportingTo     Employee?    @relation("EmployeeHierarchy", fields: [reportingToId], references: [id])
+  directReports   Employee[]   @relation("EmployeeHierarchy")
+  userId          Int?         @unique
+  user            User?        @relation(fields: [userId], references: [id])
+  documents       EmployeeDocument[]
+  dutyAssignments DutyScheduleAssignment[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+model EmployeeDocument {
+  id              Int       @id @default(autoincrement())
+  employeeId      Int
+  employee        Employee  @relation(fields: [employeeId], references: [id])
+  documentName    String
+  type            String
+  startDate       DateTime?
+  expiryDate      DateTime?
+  documentFileUrl String?
+  documentFileKey String?
+  status          String    @default("Active")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 model AuditLog {
@@ -110,4 +146,88 @@ model AuditLog {
   entityId   Int?
   metadata   Json?
   createdAt  DateTime @default(now())
+}
+
+model DutySchedule {
+  id                        Int      @id @default(autoincrement())
+  name                      String
+  startTime                 String
+  endTime                   String
+  checkinConsiderMinutes    Int      @default(0)
+  checkoutConsiderMinutes   Int      @default(0)
+  maxOverTimeMinutes        Int      @default(0)
+  earlyCheckinBufferMinutes Int      @default(0)
+  isTardyApplicable         Boolean  @default(true)
+  status                    String   @default("Active")
+  shortDescription          String?
+  assignments               DutyScheduleAssignment[]
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+}
+
+model Roster {
+  id            Int       @id @default(autoincrement())
+  departmentId  Int
+  department    Department @relation(fields: [departmentId], references: [id])
+  periodType    String    // "Weekly" | "Fortnightly" | "Monthly"
+  startDate     DateTime
+  endDate       DateTime
+  status        String    @default("Draft") // "Draft" | "Pending" | "Approved"
+  generatedById Int?
+  generatedBy   User?     @relation("RosterGeneratedBy", fields: [generatedById], references: [id])
+  approvedById  Int?
+  approvedBy    User?     @relation("RosterApprovedBy", fields: [approvedById], references: [id])
+  approvedAt    DateTime?
+  createdById   Int
+  createdBy     User      @relation("RosterCreatedBy", fields: [createdById], references: [id])
+  updatedById   Int?
+  updatedBy     User?     @relation("RosterUpdatedBy", fields: [updatedById], references: [id])
+  assignments   DutyScheduleAssignment[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([departmentId, startDate, endDate])
+  @@index([status])
+}
+
+model DutyScheduleAssignment {
+  id             Int          @id @default(autoincrement())
+  rosterId       Int
+  roster         Roster       @relation(fields: [rosterId], references: [id])
+  employeeId     Int
+  employee       Employee     @relation(fields: [employeeId], references: [id])
+  dutyScheduleId Int?
+  dutySchedule   DutySchedule? @relation(fields: [dutyScheduleId], references: [id])
+  departmentId   Int
+  department     Department   @relation(fields: [departmentId], references: [id])
+  date           DateTime
+  status         String       @default("Scheduled") // "Scheduled" | "Cancelled"
+  comment        String?
+  isLeave        Boolean      @default(false)
+  isHoliday      Boolean      @default(false)
+  isWeekend      Boolean      @default(false)
+  changeRequest  String?
+  createdById    Int
+  createdBy      User         @relation("AssignmentCreatedBy", fields: [createdById], references: [id])
+  updatedById    Int?
+  updatedBy      User?        @relation("AssignmentUpdatedBy", fields: [updatedById], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([employeeId, date])
+  @@index([rosterId])
+  @@index([departmentId, date])
+  @@index([dutyScheduleId])
+}
+
+model PasswordResetToken {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id])
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
 }

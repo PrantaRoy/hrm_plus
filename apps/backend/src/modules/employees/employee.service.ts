@@ -3,6 +3,7 @@ import { nanoid } from "nanoid";
 import { PrismaClient, Prisma } from "../../../generated/tenant";
 import { CreateEmployeeInput, EmployeeDto, PaginatedResult, UpdateEmployeeInput } from "@hrm-plus/shared";
 import { ApiError } from "../../utils/ApiError";
+import { getStorageDriver } from "../../storage";
 import { employeeInclude, toEmployeeDto } from "./employee.mapper";
 
 export interface ListEmployeesOptions {
@@ -85,10 +86,15 @@ export async function createEmployee(
         firstName: input.firstName,
         lastName: input.lastName,
         email: input.email,
+        phoneNumber: input.phoneNumber,
+        gender: input.gender,
+        dateOfBirth: input.dateOfBirth ? new Date(input.dateOfBirth) : null,
         jobTitle: input.jobTitle,
-        startDate: new Date(input.startDate),
+        joiningDate: new Date(input.joiningDate),
+        employmentType: input.employmentType ?? "Full-Time",
         departmentId: input.departmentId ?? null,
-        managerId: input.managerId ?? null,
+        designationId: input.designationId ?? null,
+        reportingToId: input.reportingToId ?? null,
         userId: user.id,
       },
       include: employeeInclude,
@@ -108,8 +114,8 @@ export async function updateEmployee(
     throw ApiError.notFound("Employee not found");
   }
 
-  if (input.managerId === id) {
-    throw ApiError.badRequest("An employee cannot be their own manager");
+  if (input.reportingToId === id) {
+    throw ApiError.badRequest("An employee cannot report to themselves");
   }
 
   const employee = await prisma.employee.update({
@@ -117,9 +123,16 @@ export async function updateEmployee(
     data: {
       firstName: input.firstName,
       lastName: input.lastName,
+      phoneNumber: input.phoneNumber,
+      gender: input.gender,
+      dateOfBirth: input.dateOfBirth === undefined ? undefined : input.dateOfBirth ? new Date(input.dateOfBirth) : null,
       jobTitle: input.jobTitle,
+      terminationDate:
+        input.terminationDate === undefined ? undefined : input.terminationDate ? new Date(input.terminationDate) : null,
+      employmentType: input.employmentType,
       departmentId: input.departmentId,
-      managerId: input.managerId,
+      designationId: input.designationId,
+      reportingToId: input.reportingToId,
       status: input.status,
     },
     include: employeeInclude,
@@ -128,6 +141,37 @@ export async function updateEmployee(
   if (input.status === "Inactive" && employee.userId) {
     await prisma.user.update({ where: { id: employee.userId }, data: { isActive: false } });
   }
+
+  return toEmployeeDto(employee);
+}
+
+export async function setEmployeeAvatar(
+  prisma: PrismaClient,
+  id: number,
+  file: { buffer: Buffer; originalName: string; mimeType: string }
+): Promise<EmployeeDto> {
+  const existing = await prisma.employee.findUnique({ where: { id } });
+  if (!existing) {
+    throw ApiError.notFound("Employee not found");
+  }
+
+  const storage = getStorageDriver();
+  const stored = await storage.save({
+    buffer: file.buffer,
+    originalName: file.originalName,
+    mimeType: file.mimeType,
+    folder: "avatars",
+  });
+
+  if (existing.avatarKey) {
+    await storage.delete(existing.avatarKey).catch(() => undefined);
+  }
+
+  const employee = await prisma.employee.update({
+    where: { id },
+    data: { avatarUrl: stored.url, avatarKey: stored.key },
+    include: employeeInclude,
+  });
 
   return toEmployeeDto(employee);
 }

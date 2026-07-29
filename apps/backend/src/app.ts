@@ -2,9 +2,9 @@ import express, { Express } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
-import path from "node:path";
 import { pinoHttp } from "pino-http";
 import { corsOrigins } from "./config/env";
+import { LOCAL_UPLOAD_ROOT } from "./storage";
 import { logger } from "./logger";
 import { tenantResolver } from "./middleware/tenantResolver";
 import { errorHandler } from "./middleware/errorHandler";
@@ -12,6 +12,8 @@ import { authRouter } from "./modules/auth/auth.routes";
 import { employeeRouter } from "./modules/employees/employee.routes";
 import { departmentRouter } from "./modules/departments/department.routes";
 import { shiftRouter } from "./modules/shifts/shift.routes";
+import { dutyScheduleRouter } from "./modules/duty-schedules/dutySchedule.routes";
+import { rosterRouter } from "./modules/rosters/roster.routes";
 import { weekDayRouter } from "./modules/weekdays/weekday.routes";
 import { leaveTypeRouter } from "./modules/leave-types/leaveType.routes";
 import { designationRouter } from "./modules/designations/designation.routes";
@@ -30,7 +32,11 @@ export function createApp(): Express {
   app.use(cookieParser());
   app.use(express.json());
   app.use(pinoHttp({ logger }));
-  app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
+  app.use(
+    "/uploads",
+    helmet.crossOriginResourcePolicy({ policy: "cross-origin" }),
+    express.static(LOCAL_UPLOAD_ROOT)
+  );
 
   app.get("/health", (_req, res) => res.json({ status: "ok" }));
 
@@ -39,6 +45,8 @@ export function createApp(): Express {
   app.use("/api/employees", tenantResolver, employeeRouter);
   app.use("/api/departments", tenantResolver, departmentRouter);
   app.use("/api/shifts", tenantResolver, shiftRouter);
+  app.use("/api/duty-schedules", tenantResolver, dutyScheduleRouter);
+  app.use("/api/rosters", tenantResolver, rosterRouter);
   app.use("/api/weekdays", tenantResolver, weekDayRouter);
   app.use("/api/leave-types", tenantResolver, leaveTypeRouter);
   app.use("/api/designations", tenantResolver, designationRouter);

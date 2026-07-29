@@ -24,6 +24,7 @@ function colorFor(name: string): string {
 
 export interface AvatarProps {
   name: string;
+  src?: string | null;
   size?: "sm" | "md" | "lg";
   className?: string;
 }
@@ -34,7 +35,18 @@ const sizeClasses = {
   lg: "h-14 w-14 text-lg",
 };
 
-export function Avatar({ name, size = "md", className }: AvatarProps) {
+export function Avatar({ name, src, size = "md", className }: AvatarProps) {
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt={name}
+        title={name}
+        className={cn("inline-block shrink-0 rounded-full object-cover", sizeClasses[size], className)}
+      />
+    );
+  }
+
   return (
     <span
       className={cn(

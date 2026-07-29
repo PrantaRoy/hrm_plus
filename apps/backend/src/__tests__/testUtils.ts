@@ -51,7 +51,7 @@ export async function setupTestTenant(prefix: string): Promise<TestTenant> {
       firstName: "Test",
       lastName: "Admin",
       email: adminEmail,
-      startDate: new Date(),
+      joiningDate: new Date(),
       userId: adminUser.id,
     },
   });

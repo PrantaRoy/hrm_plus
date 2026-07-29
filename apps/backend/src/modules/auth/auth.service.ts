@@ -1,8 +1,12 @@
 import bcrypt from "bcrypt";
+import crypto from "node:crypto";
 import { PrismaClient } from "../../../generated/tenant";
 import { AuthUser, isRoleName, LoginResponse } from "@hrm-plus/shared";
 import { ApiError } from "../../utils/ApiError";
 import { signAccessToken } from "./jwt";
+import { sendPasswordResetEmail } from "../notifications/email.service";
+
+const PASSWORD_RESET_TTL_MS = 5 * 60 * 1000;
 
 export async function checkEmailExists(prisma: PrismaClient, email: string): Promise<boolean> {
   const user = await prisma.user.findUnique({ where: { email }, select: { id: true, isActive: true } });
@@ -74,4 +78,50 @@ export async function changePassword(
     where: { id: userId },
     data: { passwordHash, mustChangePassword: false },
   });
+}
+
+export async function requestPasswordReset(
+  prisma: PrismaClient,
+  email: string,
+  buildResetUrl: (token: string) => string
+): Promise<void> {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user || !user.isActive) {
+    return;
+  }
+
+  const token = crypto.randomBytes(32).toString("hex");
+  await prisma.passwordResetToken.create({
+    data: {
+      userId: user.id,
+      token,
+      expiresAt: new Date(Date.now() + PASSWORD_RESET_TTL_MS),
+    },
+  });
+
+  await sendPasswordResetEmail(user.email, buildResetUrl(token));
+}
+
+export async function resetPassword(
+  prisma: PrismaClient,
+  token: string,
+  newPassword: string
+): Promise<void> {
+  const resetToken = await prisma.passwordResetToken.findUnique({ where: { token } });
+
+  if (!resetToken || resetToken.usedAt || resetToken.expiresAt < new Date()) {
+    throw ApiError.badRequest("This reset link is invalid or has expired");
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: resetToken.userId },
+      data: { passwordHash, mustChangePassword: false },
+    }),
+    prisma.passwordResetToken.update({
+      where: { id: resetToken.id },
+      data: { usedAt: new Date() },
+    }),
+  ]);
 }

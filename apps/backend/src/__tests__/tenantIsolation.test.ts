@@ -35,7 +35,7 @@ describe("Multi-tenant isolation", () => {
         firstName: "Secret",
         lastName: "FromTenantA",
         email: "secret@tenant-a.test",
-        startDate: "2026-01-01",
+        joiningDate: "2026-01-01",
         role: "Staff",
         password: "SuperSecret123!",
       });

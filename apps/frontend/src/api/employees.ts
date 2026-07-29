@@ -34,3 +34,10 @@ export async function updateEmployee(id: number, input: UpdateEmployeeInput): Pr
   const res = await apiClient.patch<EmployeeDto>(`/employees/${id}`, input);
   return res.data;
 }
+
+export async function uploadEmployeeAvatar(id: number, file: File): Promise<EmployeeDto> {
+  const formData = new FormData();
+  formData.append("avatar", file);
+  const res = await apiClient.post<EmployeeDto>(`/employees/${id}/avatar`, formData);
+  return res.data;
+}

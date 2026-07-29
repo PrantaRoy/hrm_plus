@@ -1,9 +1,12 @@
 export { ROLES, isRoleName } from "./roles";
 export type { RoleName } from "./roles";
 
+export { GENDERS, EMPLOYMENT_TYPES } from "./employee";
 export type {
   EmployeeStatus,
   SettingStatus,
+  Gender,
+  EmploymentType,
   DepartmentDto,
   CreateDepartmentInput,
   UpdateDepartmentInput,
@@ -12,6 +15,14 @@ export type {
   UpdateEmployeeInput,
   PaginatedResult,
 } from "./employee";
+
+export { DOCUMENT_TYPES } from "./employeeDocument";
+export type {
+  DocumentType,
+  EmployeeDocumentDto,
+  CreateEmployeeDocumentInput,
+  UpdateEmployeeDocumentInput,
+} from "./employeeDocument";
 
 export type {
   ShiftDto,
@@ -38,10 +49,35 @@ export type {
   CheckEmailResponse,
   ChangePasswordInput,
   JwtAccessPayload,
+  VerifyTenantResponse,
+  RequestPasswordResetInput,
+  ResetPasswordInput,
 } from "./auth";
 
 export type { ApiErrorBody } from "./api";
 export { TENANT_HEADER } from "./api";
+
+export type {
+  DutyScheduleDto,
+  CreateDutyScheduleInput,
+  UpdateDutyScheduleInput,
+} from "./dutySchedule";
+
+export { ROSTER_PERIOD_TYPES, ROSTER_STATUSES, ASSIGNMENT_STATUSES } from "./roster";
+export type {
+  RosterPeriodType,
+  RosterStatus,
+  AssignmentStatus,
+  RosterDto,
+  CreateRosterInput,
+  UpdateRosterInput,
+  AutoGenerateRosterInput,
+  AutoGenerateRosterResult,
+  DutyScheduleAssignmentDto,
+  CreateAssignmentInput,
+  UpdateAssignmentInput,
+  ListAssignmentsQuery,
+} from "./roster";
 
 export type {
   PackageDto,

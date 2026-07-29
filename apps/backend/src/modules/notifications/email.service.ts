@@ -79,6 +79,16 @@ export async function sendApplicationApprovedEmail(
   );
 }
 
+export async function sendPasswordResetEmail(to: string, resetUrl: string): Promise<void> {
+  await send(
+    to,
+    "Reset your HRM PLUS password",
+    `<p>We received a request to reset your HRM PLUS password.</p>
+     <p><a href="${resetUrl}">Click here to reset your password</a></p>
+     <p>This link will expire in 5 minutes. If you didn't request this, you can safely ignore this email.</p>`
+  );
+}
+
 export async function sendApplicationRejectedEmail(
   to: string,
   companyName: string,

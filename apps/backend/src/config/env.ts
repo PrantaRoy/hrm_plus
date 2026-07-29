@@ -17,12 +17,20 @@ const envSchema = z.object({
   NODE_ENV: z.string().default("development"),
   CORS_ORIGIN: z.string().default("http://localhost:5173,http://localhost:5174"),
   PUBLIC_TENANT_BASE_DOMAIN: z.string().default("hrmplus.test"),
+  FRONTEND_BASE_URL: z.string().default("http://localhost:5173"),
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.string().default("587"),
   SMTP_SECURE: z.string().default("false"),
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
   EMAIL_FROM: z.string().default("HRM PLUS <no-reply@hrmplus.test>"),
+  STORAGE_DRIVER: z.enum(["local", "s3"]).default("local"),
+  LOCAL_UPLOAD_DIR: z.string().default("uploads"),
+  AWS_REGION: z.string().optional(),
+  AWS_ACCESS_KEY_ID: z.string().optional(),
+  AWS_SECRET_ACCESS_KEY: z.string().optional(),
+  AWS_S3_BUCKET: z.string().optional(),
+  AWS_S3_PUBLIC_BASE_URL: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

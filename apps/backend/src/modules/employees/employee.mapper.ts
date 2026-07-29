@@ -4,7 +4,8 @@ import { EmployeeDto, isRoleName } from "@hrm-plus/shared";
 const employeeWithRelations = Prisma.validator<Prisma.EmployeeDefaultArgs>()({
   include: {
     department: true,
-    manager: true,
+    designation: true,
+    reportingTo: true,
     user: { include: { role: true } },
   },
 });
@@ -21,13 +22,23 @@ export function toEmployeeDto(employee: EmployeeWithRelations): EmployeeDto {
     firstName: employee.firstName,
     lastName: employee.lastName,
     email: employee.email,
+    phoneNumber: employee.phoneNumber,
+    gender: employee.gender as EmployeeDto["gender"],
+    dateOfBirth: employee.dateOfBirth ? employee.dateOfBirth.toISOString() : null,
     jobTitle: employee.jobTitle,
     status: employee.status as EmployeeDto["status"],
-    startDate: employee.startDate.toISOString(),
+    joiningDate: employee.joiningDate.toISOString(),
+    terminationDate: employee.terminationDate ? employee.terminationDate.toISOString() : null,
+    employmentType: employee.employmentType as EmployeeDto["employmentType"],
+    avatarUrl: employee.avatarUrl,
     departmentId: employee.departmentId,
     departmentName: employee.department?.name ?? null,
-    managerId: employee.managerId,
-    managerName: employee.manager ? `${employee.manager.firstName} ${employee.manager.lastName}` : null,
+    designationId: employee.designationId,
+    designationName: employee.designation?.name ?? null,
+    reportingToId: employee.reportingToId,
+    reportingToName: employee.reportingTo
+      ? `${employee.reportingTo.firstName} ${employee.reportingTo.lastName}`
+      : null,
     role: roleName && isRoleName(roleName) ? roleName : null,
   };
 }

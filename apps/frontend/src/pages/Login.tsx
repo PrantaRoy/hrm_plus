@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button, Field, Input, Logo } from "@hrm-plus/ui";
 import * as authApi from "../api/auth";
 import { useAuth } from "../auth/AuthContext";
@@ -120,6 +120,11 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </Field>
+              <div className="text-right">
+                <Link to="/forgot-password" className="text-sm text-brand-600 underline">
+                  Forgot password?
+                </Link>
+              </div>
             </>
           )}
 

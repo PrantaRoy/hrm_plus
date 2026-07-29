@@ -19,6 +19,7 @@ import {
 } from "@hrm-plus/ui";
 import { listEmployees } from "../../api/employees";
 import { listDepartments } from "../../api/departments";
+import { resolveFileUrl } from "../../utils/fileUrl";
 
 const PAGE_SIZE = 10;
 
@@ -134,7 +135,11 @@ export default function EmployeeList() {
               <TableRow key={employee.id}>
                 <TableCell>
                   <Link to={`/employees/${employee.id}`} className="flex items-center gap-3 group">
-                    <Avatar name={`${employee.firstName} ${employee.lastName}`} size="sm" />
+                    <Avatar
+                      name={`${employee.firstName} ${employee.lastName}`}
+                      src={resolveFileUrl(employee.avatarUrl)}
+                      size="sm"
+                    />
                     <div>
                       <div className="font-medium text-slate-900 group-hover:text-brand-600">
                         {employee.firstName} {employee.lastName}

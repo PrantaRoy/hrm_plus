@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DepartmentDto, RoleDto, RoleName } from "@hrm-plus/shared";
+import { Button, Card, Field, Input, PageHeader, Select } from "@hrm-plus/ui";
 import { createEmployee } from "../../api/employees";
 import { listDepartments } from "../../api/departments";
 import { listRoles } from "../../api/roles";
@@ -61,100 +62,73 @@ export default function EmployeeCreate() {
   }
 
   return (
-    <div className="max-w-xl">
-      <h1 className="text-xl font-semibold text-slate-900 mb-4">New Employee</h1>
-      <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-lg p-6 space-y-4">
-        {error && (
-          <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">
-            {error}
-          </div>
-        )}
+    <div className="max-w-xl space-y-5">
+      <PageHeader title="New Employee" description="Add a new person to your organisation." />
+      <Card>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+              {error}
+            </div>
+          )}
 
-        <div className="grid grid-cols-2 gap-4">
-          <TextField label="First name" value={form.firstName} onChange={(v) => set("firstName", v)} />
-          <TextField label="Last name" value={form.lastName} onChange={(v) => set("lastName", v)} />
-        </div>
-        <TextField label="Email" type="email" value={form.email} onChange={(v) => set("email", v)} />
-        <TextField label="Job title" value={form.jobTitle} onChange={(v) => set("jobTitle", v)} required={false} />
-        <div className="grid grid-cols-2 gap-4">
-          <TextField
-            label="Start date"
-            type="date"
-            value={form.startDate}
-            onChange={(v) => set("startDate", v)}
-          />
-          <label className="block text-sm">
-            <span className="text-slate-700 font-medium">Department</span>
-            <select
-              value={form.departmentId}
-              onChange={(e) => set("departmentId", e.target.value)}
-              className="mt-1 w-full border border-slate-300 rounded px-3 py-2"
-            >
-              <option value="">None</option>
-              {departments.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="First name" required>
+              <Input required value={form.firstName} onChange={(e) => set("firstName", e.target.value)} />
+            </Field>
+            <Field label="Last name" required>
+              <Input required value={form.lastName} onChange={(e) => set("lastName", e.target.value)} />
+            </Field>
+          </div>
+          <Field label="Email" required>
+            <Input type="email" required value={form.email} onChange={(e) => set("email", e.target.value)} />
+          </Field>
+          <Field label="Job title">
+            <Input value={form.jobTitle} onChange={(e) => set("jobTitle", e.target.value)} />
+          </Field>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Start date" required>
+              <Input
+                type="date"
+                required
+                value={form.startDate}
+                onChange={(e) => set("startDate", e.target.value)}
+              />
+            </Field>
+            <Field label="Department">
+              <Select value={form.departmentId} onChange={(e) => set("departmentId", e.target.value)}>
+                <option value="">None</option>
+                {departments.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          </div>
+          <Field label="Role" required>
+            <Select value={form.role} onChange={(e) => set("role", e.target.value as RoleName)}>
+              {roles.map((role) => (
+                <option key={role.id} value={role.name}>
+                  {role.name}
                 </option>
               ))}
-            </select>
-          </label>
-        </div>
-        <label className="block text-sm">
-          <span className="text-slate-700 font-medium">Role</span>
-          <select
-            value={form.role}
-            onChange={(e) => set("role", e.target.value as RoleName)}
-            className="mt-1 w-full border border-slate-300 rounded px-3 py-2"
-          >
-            {roles.map((role) => (
-              <option key={role.id} value={role.name}>
-                {role.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <TextField
-          label="Temporary password"
-          type="password"
-          value={form.password}
-          onChange={(v) => set("password", v)}
-        />
+            </Select>
+          </Field>
+          <Field label="Temporary password" required>
+            <Input
+              type="password"
+              required
+              value={form.password}
+              onChange={(e) => set("password", e.target.value)}
+            />
+          </Field>
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full bg-slate-900 text-white rounded py-2 font-medium disabled:opacity-50"
-        >
-          {submitting ? "Creating..." : "Create Employee"}
-        </button>
-      </form>
+          <Button type="submit" isLoading={submitting} className="w-full">
+            Create Employee
+          </Button>
+        </form>
+      </Card>
     </div>
-  );
-}
-
-function TextField({
-  label,
-  value,
-  onChange,
-  type = "text",
-  required = true,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  type?: string;
-  required?: boolean;
-}) {
-  return (
-    <label className="block text-sm">
-      <span className="text-slate-700 font-medium">{label}</span>
-      <input
-        type={type}
-        required={required}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full border border-slate-300 rounded px-3 py-2"
-      />
-    </label>
   );
 }

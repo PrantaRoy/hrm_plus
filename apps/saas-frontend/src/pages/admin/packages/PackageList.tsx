@@ -1,5 +1,22 @@
 import { FormEvent, useEffect, useState } from "react";
+import { Plus } from "lucide-react";
 import { PackageDto } from "@hrm-plus/shared";
+import {
+  Badge,
+  Button,
+  Card,
+  Checkbox,
+  EmptyState,
+  Field,
+  Input,
+  PageHeader,
+  Select,
+  Table,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from "@hrm-plus/ui";
 import { createPackage, deletePackage, listAdminPackages, updatePackage } from "../../../api/packages";
 
 export default function PackageList() {
@@ -30,18 +47,19 @@ export default function PackageList() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-slate-900">Packages</h1>
-        <button
-          onClick={() => setShowForm((v) => !v)}
-          className="bg-slate-900 text-white rounded px-4 py-2 text-sm font-medium"
-        >
-          {showForm ? "Cancel" : "New Package"}
-        </button>
-      </div>
+      <PageHeader
+        title="Packages"
+        description="Plans that companies can subscribe to."
+        actions={
+          <Button size="sm" onClick={() => setShowForm((v) => !v)} className="gap-1.5">
+            {!showForm && <Plus className="h-4 w-4" />}
+            {showForm ? "Cancel" : "New Package"}
+          </Button>
+        }
+      />
 
       {error && (
-        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">{error}</div>
+        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</div>
       )}
 
       {showForm && (
@@ -53,58 +71,44 @@ export default function PackageList() {
         />
       )}
 
-      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-slate-500 text-left">
+      <Table>
+        <TableHead>
+          <tr>
+            <TableHeaderCell>Name</TableHeaderCell>
+            <TableHeaderCell>Price</TableHeaderCell>
+            <TableHeaderCell>Validity</TableHeaderCell>
+            <TableHeaderCell>Status</TableHeaderCell>
+            <TableHeaderCell className="text-right">Actions</TableHeaderCell>
+          </tr>
+        </TableHead>
+        <tbody>
+          {packages.map((pkg) => (
+            <TableRow key={pkg.id}>
+              <TableCell className="font-medium text-slate-900">{pkg.name}</TableCell>
+              <TableCell>{pkg.price === 0 ? "Free" : `$${pkg.price.toFixed(2)}`}</TableCell>
+              <TableCell>{pkg.validityDays ? `${pkg.validityDays} days` : "Unlimited"}</TableCell>
+              <TableCell>
+                <Badge color={pkg.isActive ? "green" : "slate"}>{pkg.isActive ? "Active" : "Inactive"}</Badge>
+              </TableCell>
+              <TableCell className="text-right whitespace-nowrap">
+                <Button size="sm" variant="secondary" onClick={() => handleToggleActive(pkg)} className="mr-2">
+                  {pkg.isActive ? "Deactivate" : "Activate"}
+                </Button>
+                <Button size="sm" variant="danger" onClick={() => handleDelete(pkg)}>
+                  Delete
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+          {packages.length === 0 && (
             <tr>
-              <th className="px-4 py-2">Name</th>
-              <th className="px-4 py-2">Price</th>
-              <th className="px-4 py-2">Validity</th>
-              <th className="px-4 py-2">Status</th>
-              <th className="px-4 py-2">Actions</th>
+              <td colSpan={5}>
+                <EmptyState title="No packages yet" description="Create your first plan to get started." />
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {packages.map((pkg) => (
-              <tr key={pkg.id} className="border-t border-slate-100">
-                <td className="px-4 py-2 font-medium text-slate-900">{pkg.name}</td>
-                <td className="px-4 py-2 text-slate-600">
-                  {pkg.price === 0 ? "Free" : `$${pkg.price.toFixed(2)}`}
-                </td>
-                <td className="px-4 py-2 text-slate-600">
-                  {pkg.validityDays ? `${pkg.validityDays} days` : "Unlimited"}
-                </td>
-                <td className="px-4 py-2">
-                  <span
-                    className={
-                      pkg.isActive
-                        ? "text-green-700 bg-green-50 px-2 py-0.5 rounded text-xs"
-                        : "text-slate-500 bg-slate-100 px-2 py-0.5 rounded text-xs"
-                    }
-                  >
-                    {pkg.isActive ? "Active" : "Inactive"}
-                  </span>
-                </td>
-                <td className="px-4 py-2 space-x-3">
-                  <button onClick={() => handleToggleActive(pkg)} className="text-slate-600 underline">
-                    {pkg.isActive ? "Deactivate" : "Activate"}
-                  </button>
-                  <button onClick={() => handleDelete(pkg)} className="text-red-600 underline">
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {packages.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-slate-400">
-                  No packages yet.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+          )}
+        </tbody>
+      </Table>
     </div>
   );
 }
@@ -136,58 +140,43 @@ function PackageForm({ onCreated }: { onCreated: () => void }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-lg p-6 space-y-4 max-w-md">
-      {error && (
-        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">{error}</div>
-      )}
-      <label className="block text-sm">
-        <span className="text-slate-700 font-medium">Name</span>
-        <input
-          required
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="mt-1 w-full border border-slate-300 rounded px-3 py-2"
-        />
-      </label>
-      <label className="block text-sm">
-        <span className="text-slate-700 font-medium">Price (0 = free)</span>
-        <input
-          type="number"
-          min="0"
-          step="0.01"
-          required
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          className="mt-1 w-full border border-slate-300 rounded px-3 py-2"
-        />
-      </label>
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" checked={unlimited} onChange={(e) => setUnlimited(e.target.checked)} />
-        <span className="text-slate-700 font-medium">Unlimited validity</span>
-      </label>
-      {!unlimited && (
-        <label className="block text-sm">
-          <span className="text-slate-700 font-medium">Validity (days)</span>
-          <select
-            value={validityDays}
-            onChange={(e) => setValidityDays(e.target.value)}
-            className="mt-1 w-full border border-slate-300 rounded px-3 py-2"
-          >
-            {[7, 15, 30, 180, 365].map((d) => (
-              <option key={d} value={d}>
-                {d} days
-              </option>
-            ))}
-          </select>
+    <Card className="max-w-md">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</div>
+        )}
+        <Field label="Name" required>
+          <Input required value={name} onChange={(e) => setName(e.target.value)} />
+        </Field>
+        <Field label="Price (0 = free)" required>
+          <Input
+            type="number"
+            min="0"
+            step="0.01"
+            required
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+          />
+        </Field>
+        <label className="flex items-center gap-2 text-sm">
+          <Checkbox checked={unlimited} onChange={(e) => setUnlimited(e.target.checked)} />
+          <span className="text-slate-700 font-medium">Unlimited validity</span>
         </label>
-      )}
-      <button
-        type="submit"
-        disabled={submitting}
-        className="w-full bg-slate-900 text-white rounded py-2 font-medium disabled:opacity-50"
-      >
-        {submitting ? "Creating..." : "Create package"}
-      </button>
-    </form>
+        {!unlimited && (
+          <Field label="Validity (days)">
+            <Select value={validityDays} onChange={(e) => setValidityDays(e.target.value)}>
+              {[7, 15, 30, 180, 365].map((d) => (
+                <option key={d} value={d}>
+                  {d} days
+                </option>
+              ))}
+            </Select>
+          </Field>
+        )}
+        <Button type="submit" isLoading={submitting} className="w-full">
+          Create package
+        </Button>
+      </form>
+    </Card>
   );
 }

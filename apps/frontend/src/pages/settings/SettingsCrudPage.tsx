@@ -1,4 +1,19 @@
 import { useEffect, useState } from "react";
+import { Plus } from "lucide-react";
+import {
+  Button,
+  Checkbox,
+  EmptyState,
+  Input,
+  Select,
+  Spinner,
+  StatusPill,
+  Table,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from "@hrm-plus/ui";
 
 export type FieldType = "text" | "number" | "time" | "boolean" | "status";
 
@@ -24,17 +39,7 @@ function renderDisplayValue(field: FieldDef, value: unknown) {
     return value ? "Yes" : "No";
   }
   if (field.type === "status") {
-    return (
-      <span
-        className={
-          value === "Active"
-            ? "text-green-700 bg-green-50 px-2 py-0.5 rounded text-xs"
-            : "text-slate-500 bg-slate-100 px-2 py-0.5 rounded text-xs"
-        }
-      >
-        {String(value ?? "Active")}
-      </span>
-    );
+    return <StatusPill status={String(value ?? "Active")} />;
   }
   if (value === null || value === undefined || value === "") {
     return "—";
@@ -52,35 +57,23 @@ function FieldInput({
   onChange: (value: unknown) => void;
 }) {
   if (field.type === "boolean") {
-    return (
-      <input
-        type="checkbox"
-        checked={Boolean(value)}
-        onChange={(e) => onChange(e.target.checked)}
-        className="h-4 w-4"
-      />
-    );
+    return <Checkbox checked={Boolean(value)} onChange={(e) => onChange(e.target.checked)} />;
   }
   if (field.type === "status") {
     return (
-      <select
-        value={String(value ?? "Active")}
-        onChange={(e) => onChange(e.target.value)}
-        className="border border-slate-300 rounded px-2 py-1 text-sm w-full"
-      >
+      <Select value={String(value ?? "Active")} onChange={(e) => onChange(e.target.value)}>
         <option value="Active">Active</option>
         <option value="Inactive">Inactive</option>
-      </select>
+      </Select>
     );
   }
   return (
-    <input
+    <Input
       type={field.type === "number" ? "number" : field.type === "time" ? "time" : "text"}
       value={value === null || value === undefined ? "" : String(value)}
       onChange={(e) =>
         onChange(field.type === "number" ? (e.target.value === "" ? "" : Number(e.target.value)) : e.target.value)
       }
-      className="border border-slate-300 rounded px-2 py-1 text-sm w-full"
     />
   );
 }
@@ -165,143 +158,132 @@ export default function SettingsCrudPage<T extends { id: number }>({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-slate-900">{title}</h1>
+        <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
         {!adding && (
-          <button
-            onClick={() => setAdding(true)}
-            className="bg-slate-900 text-white rounded px-4 py-2 text-sm font-medium"
-          >
+          <Button size="sm" onClick={() => setAdding(true)} className="gap-1.5">
+            <Plus className="h-4 w-4" />
             Add {title.replace(/s$/, "")}
-          </button>
+          </Button>
         )}
       </div>
 
       {error && (
-        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">{error}</div>
+        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</div>
       )}
 
-      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-slate-500 text-left">
-            <tr>
+      <Table>
+        <TableHead>
+          <tr>
+            {fields.map((f) => (
+              <TableHeaderCell key={f.key}>{f.label}</TableHeaderCell>
+            ))}
+            <TableHeaderCell className="text-right">Actions</TableHeaderCell>
+          </tr>
+        </TableHead>
+        <tbody>
+          {adding && (
+            <TableRow className="bg-slate-50">
               {fields.map((f) => (
-                <th key={f.key} className="px-4 py-2">
-                  {f.label}
-                </th>
+                <TableCell key={f.key}>
+                  <FieldInput
+                    field={f}
+                    value={newForm[f.key]}
+                    onChange={(v) => setNewForm((form) => ({ ...form, [f.key]: v }))}
+                  />
+                </TableCell>
               ))}
-              <th className="px-4 py-2 text-right">Actions</th>
+              <TableCell className="text-right whitespace-nowrap">
+                <Button size="sm" onClick={handleAdd} isLoading={submitting} className="mr-2">
+                  Save
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    setAdding(false);
+                    setNewForm(emptyForm);
+                  }}
+                >
+                  Cancel
+                </Button>
+              </TableCell>
+            </TableRow>
+          )}
+
+          {loading && (
+            <tr>
+              <td colSpan={fields.length + 1} className="py-10">
+                <div className="flex justify-center">
+                  <Spinner />
+                </div>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {adding && (
-              <tr className="border-t border-slate-100 bg-slate-50">
-                {fields.map((f) => (
-                  <td key={f.key} className="px-4 py-2">
-                    <FieldInput
-                      field={f}
-                      value={newForm[f.key]}
-                      onChange={(v) => setNewForm((form) => ({ ...form, [f.key]: v }))}
-                    />
-                  </td>
-                ))}
-                <td className="px-4 py-2 text-right whitespace-nowrap">
-                  <button
-                    onClick={handleAdd}
-                    disabled={submitting}
-                    className="bg-slate-900 text-white rounded px-3 py-1 text-xs font-medium disabled:opacity-50 mr-2"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => {
-                      setAdding(false);
-                      setNewForm(emptyForm);
-                    }}
-                    className="border border-slate-300 rounded px-3 py-1 text-xs"
-                  >
-                    Cancel
-                  </button>
-                </td>
-              </tr>
-            )}
+          )}
+          {!loading && items.length === 0 && !adding && (
+            <tr>
+              <td colSpan={fields.length + 1}>
+                <EmptyState title="No records yet" description={`Add your first ${title.toLowerCase()} to get started.`} />
+              </td>
+            </tr>
+          )}
 
-            {loading && (
-              <tr>
-                <td colSpan={fields.length + 1} className="px-4 py-6 text-center text-slate-400">
-                  Loading...
-                </td>
-              </tr>
-            )}
-            {!loading && items.length === 0 && !adding && (
-              <tr>
-                <td colSpan={fields.length + 1} className="px-4 py-6 text-center text-slate-400">
-                  No records yet.
-                </td>
-              </tr>
-            )}
-
-            {!loading &&
-              items.map((item) => {
-                const locked = isLocked?.(item) ?? false;
-                const editing = editingId === item.id;
-                return (
-                  <tr key={item.id} className="border-t border-slate-100 hover:bg-slate-50">
-                    {fields.map((f) => (
-                      <td key={f.key} className="px-4 py-2 text-slate-600">
-                        {editing && !(locked && f.key === "name") ? (
-                          <FieldInput
-                            field={f}
-                            value={editForm[f.key]}
-                            onChange={(v) => setEditForm((form) => ({ ...form, [f.key]: v }))}
-                          />
-                        ) : (
-                          renderDisplayValue(f, editing ? editForm[f.key] : (item as any)[f.key])
-                        )}
-                      </td>
-                    ))}
-                    <td className="px-4 py-2 text-right whitespace-nowrap">
-                      {editing ? (
-                        <>
-                          <button
-                            onClick={handleSaveEdit}
-                            disabled={submitting}
-                            className="bg-slate-900 text-white rounded px-3 py-1 text-xs font-medium disabled:opacity-50 mr-2"
-                          >
-                            Save
-                          </button>
-                          <button
-                            onClick={() => setEditingId(null)}
-                            className="border border-slate-300 rounded px-3 py-1 text-xs"
-                          >
-                            Cancel
-                          </button>
-                        </>
+          {!loading &&
+            items.map((item) => {
+              const locked = isLocked?.(item) ?? false;
+              const editing = editingId === item.id;
+              return (
+                <TableRow key={item.id}>
+                  {fields.map((f) => (
+                    <TableCell key={f.key}>
+                      {editing && !(locked && f.key === "name") ? (
+                        <FieldInput
+                          field={f}
+                          value={editForm[f.key]}
+                          onChange={(v) => setEditForm((form) => ({ ...form, [f.key]: v }))}
+                        />
                       ) : (
-                        <>
-                          <button
-                            onClick={() => startEdit(item)}
-                            className="border border-slate-300 rounded px-3 py-1 text-xs mr-2"
-                            title={locked ? "Built-in name cannot be changed, but other fields can" : undefined}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(item.id)}
-                            disabled={locked}
-                            className="border border-slate-300 rounded px-3 py-1 text-xs text-red-700 disabled:opacity-40"
-                            title={locked ? "Built-in records cannot be deleted" : undefined}
-                          >
-                            Delete
-                          </button>
-                        </>
+                        renderDisplayValue(f, editing ? editForm[f.key] : (item as any)[f.key])
                       )}
-                    </td>
-                  </tr>
-                );
-              })}
-          </tbody>
-        </table>
-      </div>
+                    </TableCell>
+                  ))}
+                  <TableCell className="text-right whitespace-nowrap">
+                    {editing ? (
+                      <>
+                        <Button size="sm" onClick={handleSaveEdit} isLoading={submitting} className="mr-2">
+                          Save
+                        </Button>
+                        <Button size="sm" variant="secondary" onClick={() => setEditingId(null)}>
+                          Cancel
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => startEdit(item)}
+                          className="mr-2"
+                          title={locked ? "Built-in name cannot be changed, but other fields can" : undefined}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          onClick={() => handleDelete(item.id)}
+                          disabled={locked}
+                          title={locked ? "Built-in records cannot be deleted" : undefined}
+                        >
+                          Delete
+                        </Button>
+                      </>
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+        </tbody>
+      </Table>
     </div>
   );
 }

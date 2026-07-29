@@ -109,3 +109,8 @@ Runs Jest + Supertest integration tests against real ephemeral tenant databases:
 ## Multi-tenancy model
 
 Each tenant gets its own MySQL database. A separate control-plane database (`hrm_control`) stores the tenant registry, packages, and applications. Every tenant-scoped API request must include an `X-Tenant-Slug` header (or, in production, a subdomain) so the backend can resolve which tenant database to use before authenticating the request. The SaaS control-plane routes (`/saas/*`) use a separately-secreted JWT so a tenant login token can never be used against the super-admin API.
+
+Confirmed-working credentials right now:
+
+SaaS super-admin: owner@hrmplus.test / SuperAdmin123!
+Tenant acme: admin@acme.hrmplus.test / PUxoBkUueckZ

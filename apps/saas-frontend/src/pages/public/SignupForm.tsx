@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { PackageDto } from "@hrm-plus/shared";
+import { Button, Card, Field, Input, Select, Textarea } from "@hrm-plus/ui";
 import { listPublicPackages } from "../../api/packages";
 import { submitApplication } from "../../api/applications";
 
@@ -56,112 +57,83 @@ export default function SignupForm() {
 
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-6">
-      <div className="max-w-xl mx-auto">
-        <h1 className="text-2xl font-semibold text-slate-900 mb-6">Set up your company</h1>
-        <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-lg p-6 space-y-4">
-          {error && (
-            <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">
-              {error}
-            </div>
-          )}
+      <div className="max-w-xl mx-auto space-y-6">
+        <h1 className="text-2xl font-semibold text-slate-900">Set up your company</h1>
+        <Card>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+                {error}
+              </div>
+            )}
 
-          <Field label="Company name" value={form.companyName} onChange={(v) => set("companyName", v)} />
-          <Field label="Type of company" value={form.companyType} onChange={(v) => set("companyType", v)} />
-          <label className="block text-sm">
-            <span className="text-slate-700 font-medium">Company overview</span>
-            <textarea
-              required
-              value={form.overview}
-              onChange={(e) => set("overview", e.target.value)}
-              rows={3}
-              className="mt-1 w-full border border-slate-300 rounded px-3 py-2"
-            />
-          </label>
-          <Field
-            label="Number of employees"
-            type="number"
-            value={form.numberOfEmployees}
-            onChange={(v) => set("numberOfEmployees", v)}
-          />
-          <Field
-            label="Contact email"
-            type="email"
-            value={form.contactEmail}
-            onChange={(v) => set("contactEmail", v)}
-          />
-          <label className="block text-sm">
-            <span className="text-slate-700 font-medium">Subdomain prefix</span>
-            <div className="mt-1 flex items-center border border-slate-300 rounded overflow-hidden">
-              <input
+            <Field label="Company name" required>
+              <Input required value={form.companyName} onChange={(e) => set("companyName", e.target.value)} />
+            </Field>
+            <Field label="Type of company" required>
+              <Input required value={form.companyType} onChange={(e) => set("companyType", e.target.value)} />
+            </Field>
+            <Field label="Company overview" required>
+              <Textarea
                 required
-                value={form.subdomainSlug}
-                onChange={(e) => set("subdomainSlug", e.target.value.toLowerCase())}
-                className="flex-1 px-3 py-2 outline-none"
-                placeholder="acme"
+                rows={3}
+                value={form.overview}
+                onChange={(e) => set("overview", e.target.value)}
               />
-              <span className="px-3 text-slate-400 text-sm">.hrmplus.test</span>
-            </div>
-          </label>
-          <label className="block text-sm">
-            <span className="text-slate-700 font-medium">Package</span>
-            <select
-              required
-              value={form.packageId}
-              onChange={(e) => set("packageId", e.target.value)}
-              className="mt-1 w-full border border-slate-300 rounded px-3 py-2"
-            >
-              <option value="">Select a package</option>
-              {packages.map((pkg) => (
-                <option key={pkg.id} value={pkg.id}>
-                  {pkg.name} — {pkg.price === 0 ? "Free" : `$${pkg.price.toFixed(2)}`}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block text-sm">
-            <span className="text-slate-700 font-medium">Company logo (optional)</span>
-            <input
-              type="file"
-              accept="image/png,image/jpeg,image/webp,image/svg+xml"
-              onChange={(e) => setLogo(e.target.files?.[0] ?? null)}
-              className="mt-1 w-full text-sm"
-            />
-          </label>
+            </Field>
+            <Field label="Number of employees" required>
+              <Input
+                type="number"
+                required
+                value={form.numberOfEmployees}
+                onChange={(e) => set("numberOfEmployees", e.target.value)}
+              />
+            </Field>
+            <Field label="Contact email" required>
+              <Input
+                type="email"
+                required
+                value={form.contactEmail}
+                onChange={(e) => set("contactEmail", e.target.value)}
+              />
+            </Field>
+            <Field label="Subdomain prefix" required>
+              <div className="flex items-center border border-slate-300 rounded-md overflow-hidden focus-within:ring-2 focus-within:ring-brand-500">
+                <input
+                  required
+                  value={form.subdomainSlug}
+                  onChange={(e) => set("subdomainSlug", e.target.value.toLowerCase())}
+                  className="flex-1 px-3 py-2 text-sm outline-none"
+                  placeholder="acme"
+                />
+                <span className="px-3 text-slate-400 text-sm">.hrmplus.test</span>
+              </div>
+            </Field>
+            <Field label="Package" required>
+              <Select required value={form.packageId} onChange={(e) => set("packageId", e.target.value)}>
+                <option value="">Select a package</option>
+                {packages.map((pkg) => (
+                  <option key={pkg.id} value={pkg.id}>
+                    {pkg.name} — {pkg.price === 0 ? "Free" : `$${pkg.price.toFixed(2)}`}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="Company logo (optional)">
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                onChange={(e) => setLogo(e.target.files?.[0] ?? null)}
+                className="mt-1 w-full text-sm text-slate-600"
+              />
+            </Field>
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full bg-slate-900 text-white rounded py-2 font-medium disabled:opacity-50"
-          >
-            {submitting ? "Submitting..." : "Submit application"}
-          </button>
-        </form>
+            <Button type="submit" isLoading={submitting} className="w-full">
+              Submit application
+            </Button>
+          </form>
+        </Card>
       </div>
     </div>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  type = "text",
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  type?: string;
-}) {
-  return (
-    <label className="block text-sm">
-      <span className="text-slate-700 font-medium">{label}</span>
-      <input
-        type={type}
-        required
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full border border-slate-300 rounded px-3 py-2"
-      />
-    </label>
   );
 }

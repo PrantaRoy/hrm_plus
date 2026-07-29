@@ -3,6 +3,7 @@ import { RequireAuth } from "./auth/RequireAuth";
 import Login from "./pages/Login";
 import ChangePassword from "./pages/ChangePassword";
 import DashboardShell from "./pages/DashboardShell";
+import Dashboard from "./pages/Dashboard";
 import EmployeeList from "./pages/employees/EmployeeList";
 import EmployeeCreate from "./pages/employees/EmployeeCreate";
 import EmployeeDetail from "./pages/employees/EmployeeDetail";
@@ -23,7 +24,7 @@ export default function App() {
         <Route path="/change-password" element={<ChangePassword />} />
 
         <Route element={<DashboardShell />}>
-          <Route path="/" element={<Navigate to="/employees" replace />} />
+          <Route path="/" element={<Dashboard />} />
           <Route path="/employees" element={<EmployeeList />} />
           <Route
             path="/employees/new"

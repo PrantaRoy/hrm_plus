@@ -1,5 +1,6 @@
 import { FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Button, Field, Input, Logo } from "@hrm-plus/ui";
 import * as authApi from "../api/auth";
 import { useAuth } from "../auth/AuthContext";
 
@@ -39,7 +40,7 @@ export default function Login() {
     setSubmitting(true);
     try {
       await login(tenantSlug.trim(), email.trim(), password);
-      navigate("/employees");
+      navigate("/");
     } catch (err: any) {
       setError(err.response?.data?.error?.message ?? "Login failed");
     } finally {
@@ -48,84 +49,85 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100">
-      <form
-        onSubmit={step === "email" ? handleContinue : handleLogin}
-        className="w-full max-w-sm bg-white rounded-lg shadow p-8 space-y-4"
-      >
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">HRM PLUS</h1>
-          <p className="text-sm text-slate-500">Sign in to your organisation's workspace</p>
+    <div className="min-h-screen flex">
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between bg-brand-600 p-12 text-white">
+        <Logo size="md" wordmarkClassName="text-white" />
+        <div className="max-w-sm">
+          <h2 className="text-3xl font-semibold leading-tight">
+            One place to run your entire HR operation.
+          </h2>
+          <p className="mt-4 text-brand-100">
+            Employee records, departments, roles, and workforce settings — organised for growing
+            teams.
+          </p>
         </div>
+        <p className="text-sm text-brand-200">© {new Date().getFullYear()} HRM Plus</p>
+      </div>
 
-        {error && (
-          <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">
-            {error}
+      <div className="flex w-full lg:w-1/2 items-center justify-center bg-slate-50 p-8">
+        <form onSubmit={step === "email" ? handleContinue : handleLogin} className="w-full max-w-sm space-y-5">
+          <div className="lg:hidden mb-2">
+            <Logo size="md" />
           </div>
-        )}
+          <div>
+            <h1 className="text-2xl font-semibold text-slate-900">Sign in</h1>
+            <p className="text-sm text-slate-500">Sign in to your organisation's workspace</p>
+          </div>
 
-        {step === "email" ? (
-          <>
-            <Field
-              label="Organisation slug"
-              value={tenantSlug}
-              onChange={setTenantSlug}
-              placeholder="acme"
-            />
-            <Field label="Email" type="email" value={email} onChange={setEmail} placeholder="you@acme.com" />
-          </>
-        ) : (
-          <>
-            <div className="text-sm text-slate-600">
-              Signing in as <span className="font-medium text-slate-900">{email}</span> ({tenantSlug})
-              <button
-                type="button"
-                onClick={() => setStep("email")}
-                className="ml-2 text-slate-500 underline"
-              >
-                Change
-              </button>
+          {error && (
+            <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+              {error}
             </div>
-            <Field label="Password" type="password" value={password} onChange={setPassword} />
-          </>
-        )}
+          )}
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full bg-slate-900 text-white rounded py-2 font-medium disabled:opacity-50"
-        >
-          {submitting ? "Please wait..." : step === "email" ? "Continue" : "Sign in"}
-        </button>
-      </form>
+          {step === "email" ? (
+            <>
+              <Field label="Organisation slug">
+                <Input
+                  required
+                  value={tenantSlug}
+                  onChange={(e) => setTenantSlug(e.target.value)}
+                  placeholder="acme"
+                />
+              </Field>
+              <Field label="Email">
+                <Input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@acme.com"
+                />
+              </Field>
+            </>
+          ) : (
+            <>
+              <div className="text-sm text-slate-600">
+                Signing in as <span className="font-medium text-slate-900">{email}</span> ({tenantSlug})
+                <button
+                  type="button"
+                  onClick={() => setStep("email")}
+                  className="ml-2 text-brand-600 underline"
+                >
+                  Change
+                </button>
+              </div>
+              <Field label="Password">
+                <Input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </Field>
+            </>
+          )}
+
+          <Button type="submit" isLoading={submitting} className="w-full">
+            {step === "email" ? "Continue" : "Sign in"}
+          </Button>
+        </form>
+      </div>
     </div>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  type = "text",
-  placeholder,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  type?: string;
-  placeholder?: string;
-}) {
-  return (
-    <label className="block text-sm">
-      <span className="text-slate-700 font-medium">{label}</span>
-      <input
-        type={type}
-        required
-        value={value}
-        placeholder={placeholder}
-        onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full border border-slate-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400"
-      />
-    </label>
   );
 }

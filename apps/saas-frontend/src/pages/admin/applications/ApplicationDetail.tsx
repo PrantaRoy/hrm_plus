@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { TenantApplicationDto } from "@hrm-plus/shared";
+import { Button, Card, Field, Input, Spinner, StatusPill, Textarea } from "@hrm-plus/ui";
 import { approveApplication, getApplication, rejectApplication, updateApplication } from "../../../api/applications";
 
 export default function ApplicationDetail() {
@@ -25,7 +27,13 @@ export default function ApplicationDetail() {
     });
   }, [id]);
 
-  if (!application) return <p className="text-slate-400">Loading...</p>;
+  if (!application) {
+    return (
+      <div className="flex justify-center py-24">
+        <Spinner />
+      </div>
+    );
+  }
 
   async function handleSave() {
     setBusy(true);
@@ -69,99 +77,99 @@ export default function ApplicationDetail() {
 
   return (
     <div className="max-w-xl space-y-4">
-      <button onClick={() => navigate(-1)} className="text-sm text-slate-500">
-        ← Back
+      <button
+        onClick={() => navigate(-1)}
+        className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back
       </button>
 
-      <div className="bg-white border border-slate-200 rounded-lg p-6 space-y-4">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-slate-900">{application.companyName}</h1>
-            <p className="text-sm text-slate-500">{application.subdomainSlug}.hrmplus.test</p>
+      <Card>
+        <div className="space-y-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-xl font-semibold text-slate-900">{application.companyName}</h1>
+              <p className="text-sm text-slate-500">{application.subdomainSlug}.hrmplus.test</p>
+            </div>
+            <StatusPill status={application.status} />
           </div>
-          <span className="text-xs bg-slate-100 px-2 py-0.5 rounded">{application.status}</span>
-        </div>
 
-        {error && (
-          <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">{error}</div>
-        )}
+          {error && (
+            <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</div>
+          )}
 
-        {!editing ? (
-          <dl className="grid grid-cols-2 gap-y-2 text-sm">
-            <dt className="text-slate-500">Type</dt>
-            <dd className="text-slate-900">{application.companyType}</dd>
-            <dt className="text-slate-500">Employees</dt>
-            <dd className="text-slate-900">{application.numberOfEmployees}</dd>
-            <dt className="text-slate-500">Contact email</dt>
-            <dd className="text-slate-900">{application.contactEmail}</dd>
-            <dt className="text-slate-500">Package</dt>
-            <dd className="text-slate-900">{application.packageName}</dd>
-            <dt className="text-slate-500">Overview</dt>
-            <dd className="text-slate-900 col-span-2">{application.overview}</dd>
-          </dl>
-        ) : (
-          <div className="space-y-3">
-            {(["companyName", "companyType", "contactEmail"] as const).map((field) => (
-              <label key={field} className="block text-sm">
-                <span className="text-slate-700 font-medium capitalize">{field}</span>
-                <input
-                  value={form[field]}
-                  onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))}
-                  className="mt-1 w-full border border-slate-300 rounded px-3 py-2"
+          {!editing ? (
+            <dl className="grid grid-cols-2 gap-y-3 text-sm">
+              <dt className="text-slate-500">Type</dt>
+              <dd className="text-slate-900">{application.companyType}</dd>
+              <dt className="text-slate-500">Employees</dt>
+              <dd className="text-slate-900">{application.numberOfEmployees}</dd>
+              <dt className="text-slate-500">Contact email</dt>
+              <dd className="text-slate-900">{application.contactEmail}</dd>
+              <dt className="text-slate-500">Package</dt>
+              <dd className="text-slate-900">{application.packageName}</dd>
+              <dt className="text-slate-500">Overview</dt>
+              <dd className="text-slate-900 col-span-2">{application.overview}</dd>
+            </dl>
+          ) : (
+            <div className="space-y-3">
+              <Field label="Company name">
+                <Input
+                  value={form.companyName}
+                  onChange={(e) => setForm((f) => ({ ...f, companyName: e.target.value }))}
                 />
-              </label>
-            ))}
-            <label className="block text-sm">
-              <span className="text-slate-700 font-medium">Overview</span>
-              <textarea
-                value={form.overview}
-                onChange={(e) => setForm((f) => ({ ...f, overview: e.target.value }))}
-                rows={3}
-                className="mt-1 w-full border border-slate-300 rounded px-3 py-2"
-              />
-            </label>
-          </div>
-        )}
+              </Field>
+              <Field label="Company type">
+                <Input
+                  value={form.companyType}
+                  onChange={(e) => setForm((f) => ({ ...f, companyType: e.target.value }))}
+                />
+              </Field>
+              <Field label="Contact email">
+                <Input
+                  value={form.contactEmail}
+                  onChange={(e) => setForm((f) => ({ ...f, contactEmail: e.target.value }))}
+                />
+              </Field>
+              <Field label="Overview">
+                <Textarea
+                  rows={3}
+                  value={form.overview}
+                  onChange={(e) => setForm((f) => ({ ...f, overview: e.target.value }))}
+                />
+              </Field>
+            </div>
+          )}
 
-        {application.status === "Pending" && (
-          <div className="flex gap-3 pt-2">
-            {editing ? (
-              <>
-                <button
-                  onClick={handleSave}
-                  disabled={busy}
-                  className="bg-slate-900 text-white rounded px-4 py-2 text-sm font-medium disabled:opacity-50"
-                >
-                  Save
-                </button>
-                <button onClick={() => setEditing(false)} className="border border-slate-300 rounded px-4 py-2 text-sm">
-                  Cancel
-                </button>
-              </>
-            ) : (
-              <>
-                <button onClick={() => setEditing(true)} className="border border-slate-300 rounded px-4 py-2 text-sm">
-                  Edit
-                </button>
-                <button
-                  onClick={handleApprove}
-                  disabled={busy}
-                  className="bg-green-700 text-white rounded px-4 py-2 text-sm font-medium disabled:opacity-50"
-                >
-                  Approve
-                </button>
-                <button
-                  onClick={handleReject}
-                  disabled={busy}
-                  className="bg-red-600 text-white rounded px-4 py-2 text-sm font-medium disabled:opacity-50"
-                >
-                  Reject
-                </button>
-              </>
-            )}
-          </div>
-        )}
-      </div>
+          {application.status === "Pending" && (
+            <div className="flex gap-3 pt-2">
+              {editing ? (
+                <>
+                  <Button onClick={handleSave} isLoading={busy}>
+                    Save
+                  </Button>
+                  <Button variant="secondary" onClick={() => setEditing(false)}>
+                    Cancel
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="secondary" onClick={() => setEditing(true)}>
+                    Edit
+                  </Button>
+                  <Button onClick={handleApprove} isLoading={busy}>
+                    Approve
+                  </Button>
+                  <Button variant="danger" onClick={handleReject} disabled={busy}>
+                    Reject
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </Card>
     </div>
   );
 }

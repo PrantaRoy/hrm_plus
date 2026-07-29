@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { PackageDto } from "@hrm-plus/shared";
+import { Card, Logo } from "@hrm-plus/ui";
 import { listPublicPackages } from "../../api/packages";
 
 function formatPrice(pkg: PackageDto): string {
@@ -22,7 +23,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
-        <span className="font-semibold text-slate-900 text-lg">HRM PLUS</span>
+        <Logo size="sm" />
         <Link to="/admin/login" className="text-sm text-slate-500 hover:text-slate-900">
           Super-admin login
         </Link>
@@ -36,20 +37,17 @@ export default function Landing() {
 
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {packages.map((pkg) => (
-            <div
-              key={pkg.id}
-              className="bg-white border border-slate-200 rounded-lg p-6 text-left flex flex-col"
-            >
+            <Card key={pkg.id} className="text-left flex flex-col">
               <h2 className="text-xl font-semibold text-slate-900">{pkg.name}</h2>
               <p className="mt-2 text-3xl font-bold text-slate-900">{formatPrice(pkg)}</p>
               <p className="text-sm text-slate-500">Validity: {formatValidity(pkg)}</p>
               <Link
                 to={`/signup?packageId=${pkg.id}`}
-                className="mt-6 bg-slate-900 text-white rounded py-2 text-center font-medium"
+                className="mt-6 bg-brand-600 text-white rounded-md py-2 text-center font-medium hover:bg-brand-700"
               >
                 Get Started
               </Link>
-            </div>
+            </Card>
           ))}
           {packages.length === 0 && (
             <p className="col-span-full text-slate-400">No packages available yet.</p>

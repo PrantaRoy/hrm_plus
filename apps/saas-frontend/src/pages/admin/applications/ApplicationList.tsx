@@ -1,6 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ApplicationStatus, TenantApplicationDto } from "@hrm-plus/shared";
+import {
+  Button,
+  EmptyState,
+  PageHeader,
+  Select,
+  StatusPill,
+  Table,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from "@hrm-plus/ui";
 import { approveApplication, listApplications, rejectApplication } from "../../../api/applications";
 
 const STATUSES: (ApplicationStatus | "All")[] = ["All", "Pending", "Approved", "Rejected"];
@@ -47,80 +59,80 @@ export default function ApplicationList() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-slate-900">Tenant Applications</h1>
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value as ApplicationStatus | "All")}
-          className="border border-slate-300 rounded px-3 py-2 text-sm"
-        >
-          {STATUSES.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-      </div>
+      <PageHeader
+        title="Tenant Applications"
+        description="Review and act on new company signups."
+        actions={
+          <Select
+            value={status}
+            onChange={(e) => setStatus(e.target.value as ApplicationStatus | "All")}
+            className="w-40"
+          >
+            {STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </Select>
+        }
+      />
 
       {error && (
-        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">{error}</div>
+        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</div>
       )}
 
-      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-slate-500 text-left">
+      <Table>
+        <TableHead>
+          <tr>
+            <TableHeaderCell>Company</TableHeaderCell>
+            <TableHeaderCell>Subdomain</TableHeaderCell>
+            <TableHeaderCell>Package</TableHeaderCell>
+            <TableHeaderCell>Status</TableHeaderCell>
+            <TableHeaderCell className="text-right">Actions</TableHeaderCell>
+          </tr>
+        </TableHead>
+        <tbody>
+          {applications.map((app) => (
+            <TableRow key={app.id}>
+              <TableCell>
+                <Link to={`/admin/applications/${app.id}`} className="font-medium text-slate-900 hover:text-brand-600">
+                  {app.companyName}
+                </Link>
+                <div className="text-xs text-slate-400">{app.contactEmail}</div>
+              </TableCell>
+              <TableCell>{app.subdomainSlug}</TableCell>
+              <TableCell>{app.packageName}</TableCell>
+              <TableCell>
+                <StatusPill status={app.status} />
+              </TableCell>
+              <TableCell className="text-right whitespace-nowrap">
+                {app.status === "Pending" && (
+                  <>
+                    <Button
+                      size="sm"
+                      onClick={() => handleApprove(app.id)}
+                      disabled={busyId === app.id}
+                      className="mr-2"
+                    >
+                      Approve
+                    </Button>
+                    <Button size="sm" variant="danger" onClick={() => handleReject(app.id)} disabled={busyId === app.id}>
+                      Reject
+                    </Button>
+                  </>
+                )}
+              </TableCell>
+            </TableRow>
+          ))}
+          {applications.length === 0 && (
             <tr>
-              <th className="px-4 py-2">Company</th>
-              <th className="px-4 py-2">Subdomain</th>
-              <th className="px-4 py-2">Package</th>
-              <th className="px-4 py-2">Status</th>
-              <th className="px-4 py-2">Actions</th>
+              <td colSpan={5}>
+                <EmptyState title="No applications found" description="New signups will show up here." />
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {applications.map((app) => (
-              <tr key={app.id} className="border-t border-slate-100">
-                <td className="px-4 py-2">
-                  <Link to={`/admin/applications/${app.id}`} className="text-slate-900 font-medium">
-                    {app.companyName}
-                  </Link>
-                  <div className="text-xs text-slate-400">{app.contactEmail}</div>
-                </td>
-                <td className="px-4 py-2 text-slate-600">{app.subdomainSlug}</td>
-                <td className="px-4 py-2 text-slate-600">{app.packageName}</td>
-                <td className="px-4 py-2 text-slate-600">{app.status}</td>
-                <td className="px-4 py-2 space-x-3">
-                  {app.status === "Pending" && (
-                    <>
-                      <button
-                        onClick={() => handleApprove(app.id)}
-                        disabled={busyId === app.id}
-                        className="text-green-700 underline disabled:opacity-50"
-                      >
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => handleReject(app.id)}
-                        disabled={busyId === app.id}
-                        className="text-red-600 underline disabled:opacity-50"
-                      >
-                        Reject
-                      </button>
-                    </>
-                  )}
-                </td>
-              </tr>
-            ))}
-            {applications.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-slate-400">
-                  No applications found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+          )}
+        </tbody>
+      </Table>
     </div>
   );
 }

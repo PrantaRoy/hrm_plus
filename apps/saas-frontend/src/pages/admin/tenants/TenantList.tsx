@@ -1,5 +1,17 @@
 import { useEffect, useState } from "react";
 import { SaasTenantDto } from "@hrm-plus/shared";
+import {
+  Button,
+  EmptyState,
+  Input,
+  PageHeader,
+  StatusPill,
+  Table,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from "@hrm-plus/ui";
 import { listSaasTenants, toggleTenantStatus, updateSaasTenant } from "../../../api/tenants";
 
 export default function TenantList() {
@@ -42,89 +54,73 @@ export default function TenantList() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold text-slate-900">Companies</h1>
+      <PageHeader title="Companies" description="Every tenant provisioned on the platform." />
 
       {error && (
-        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">{error}</div>
+        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</div>
       )}
 
-      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-slate-500 text-left">
+      <Table>
+        <TableHead>
+          <tr>
+            <TableHeaderCell>Company</TableHeaderCell>
+            <TableHeaderCell>Subdomain</TableHeaderCell>
+            <TableHeaderCell>Package</TableHeaderCell>
+            <TableHeaderCell>Start date</TableHeaderCell>
+            <TableHeaderCell>End date</TableHeaderCell>
+            <TableHeaderCell>Status</TableHeaderCell>
+            <TableHeaderCell className="text-right">Actions</TableHeaderCell>
+          </tr>
+        </TableHead>
+        <tbody>
+          {tenants.map((tenant) => (
+            <TableRow key={tenant.id}>
+              <TableCell className="font-medium text-slate-900">
+                {editingId === tenant.id ? (
+                  <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="w-48" />
+                ) : (
+                  tenant.name
+                )}
+              </TableCell>
+              <TableCell>{tenant.slug}</TableCell>
+              <TableCell>{tenant.packageName ?? "—"}</TableCell>
+              <TableCell>{tenant.startDate.slice(0, 10)}</TableCell>
+              <TableCell>{tenant.endDate ? tenant.endDate.slice(0, 10) : "Unlimited"}</TableCell>
+              <TableCell>
+                <StatusPill status={tenant.status} />
+              </TableCell>
+              <TableCell className="text-right whitespace-nowrap">
+                {editingId === tenant.id ? (
+                  <>
+                    <Button size="sm" onClick={() => saveEdit(tenant.id)} className="mr-2">
+                      Save
+                    </Button>
+                    <Button size="sm" variant="secondary" onClick={() => setEditingId(null)}>
+                      Cancel
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button size="sm" variant="secondary" onClick={() => startEdit(tenant)} className="mr-2">
+                      Edit
+                    </Button>
+                    <Button size="sm" variant="danger" onClick={() => handleToggle(tenant.id)}>
+                      {tenant.status === "Active" ? "Deactivate" : "Activate"}
+                    </Button>
+                  </>
+                )}
+              </TableCell>
+            </TableRow>
+          ))}
+          {tenants.length === 0 && (
             <tr>
-              <th className="px-4 py-2">Company</th>
-              <th className="px-4 py-2">Subdomain</th>
-              <th className="px-4 py-2">Package</th>
-              <th className="px-4 py-2">Start date</th>
-              <th className="px-4 py-2">End date</th>
-              <th className="px-4 py-2">Status</th>
-              <th className="px-4 py-2">Actions</th>
+              <td colSpan={7}>
+                <EmptyState title="No companies yet" description="Approved applications will appear here." />
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {tenants.map((tenant) => (
-              <tr key={tenant.id} className="border-t border-slate-100">
-                <td className="px-4 py-2 font-medium text-slate-900">
-                  {editingId === tenant.id ? (
-                    <input
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      className="border border-slate-300 rounded px-2 py-1 text-sm"
-                    />
-                  ) : (
-                    tenant.name
-                  )}
-                </td>
-                <td className="px-4 py-2 text-slate-600">{tenant.slug}</td>
-                <td className="px-4 py-2 text-slate-600">{tenant.packageName ?? "—"}</td>
-                <td className="px-4 py-2 text-slate-600">{tenant.startDate.slice(0, 10)}</td>
-                <td className="px-4 py-2 text-slate-600">
-                  {tenant.endDate ? tenant.endDate.slice(0, 10) : "Unlimited"}
-                </td>
-                <td className="px-4 py-2">
-                  <span
-                    className={
-                      tenant.status === "Active"
-                        ? "text-green-700 bg-green-50 px-2 py-0.5 rounded text-xs"
-                        : "text-slate-500 bg-slate-100 px-2 py-0.5 rounded text-xs"
-                    }
-                  >
-                    {tenant.status}
-                  </span>
-                </td>
-                <td className="px-4 py-2 space-x-3">
-                  {editingId === tenant.id ? (
-                    <>
-                      <button onClick={() => saveEdit(tenant.id)} className="text-slate-900 underline">
-                        Save
-                      </button>
-                      <button onClick={() => setEditingId(null)} className="text-slate-500 underline">
-                        Cancel
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button onClick={() => startEdit(tenant)} className="text-slate-600 underline">
-                        Edit
-                      </button>
-                      <button onClick={() => handleToggle(tenant.id)} className="text-red-600 underline">
-                        {tenant.status === "Active" ? "Deactivate" : "Activate"}
-                      </button>
-                    </>
-                  )}
-                </td>
-              </tr>
-            ))}
-            {tenants.length === 0 && (
-              <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-slate-400">
-                  No companies yet.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+          )}
+        </tbody>
+      </Table>
     </div>
   );
 }

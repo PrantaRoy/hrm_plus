@@ -1,6 +1,22 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Search, UserPlus } from "lucide-react";
 import { DepartmentDto, EmployeeDto, PaginatedResult } from "@hrm-plus/shared";
+import {
+  Avatar,
+  Button,
+  EmptyState,
+  Input,
+  PageHeader,
+  Select,
+  Spinner,
+  StatusPill,
+  Table,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from "@hrm-plus/ui";
 import { listEmployees } from "../../api/employees";
 import { listDepartments } from "../../api/departments";
 
@@ -41,34 +57,41 @@ export default function EmployeeList() {
   const totalPages = result ? Math.max(1, Math.ceil(result.total / PAGE_SIZE)) : 1;
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-slate-900">Employee Directory</h1>
-        <Link
-          to="/employees/new"
-          className="bg-slate-900 text-white rounded px-4 py-2 text-sm font-medium"
-        >
-          New Employee
-        </Link>
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        title="Employee Directory"
+        description="Browse and manage everyone in your organisation."
+        actions={
+          <Link
+            to="/employees/new"
+            className="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+          >
+            <UserPlus className="h-4 w-4" />
+            New Employee
+          </Link>
+        }
+      />
 
-      <div className="flex gap-3">
-        <input
-          value={search}
-          onChange={(e) => {
-            setPage(1);
-            setSearch(e.target.value);
-          }}
-          placeholder="Search by name, email, or code..."
-          className="border border-slate-300 rounded px-3 py-2 text-sm w-72"
-        />
-        <select
+      <div className="flex flex-wrap gap-3">
+        <div className="relative w-72">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Input
+            value={search}
+            onChange={(e) => {
+              setPage(1);
+              setSearch(e.target.value);
+            }}
+            placeholder="Search by name, email, or code..."
+            className="pl-9"
+          />
+        </div>
+        <Select
           value={departmentId}
           onChange={(e) => {
             setPage(1);
             setDepartmentId(e.target.value);
           }}
-          className="border border-slate-300 rounded px-3 py-2 text-sm"
+          className="w-56"
         >
           <option value="">All departments</option>
           {departments.map((d) => (
@@ -76,84 +99,78 @@ export default function EmployeeList() {
               {d.name}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-slate-500 text-left">
+      <Table>
+        <TableHead>
+          <tr>
+            <TableHeaderCell>Name</TableHeaderCell>
+            <TableHeaderCell>Email</TableHeaderCell>
+            <TableHeaderCell>Department</TableHeaderCell>
+            <TableHeaderCell>Role</TableHeaderCell>
+            <TableHeaderCell>Status</TableHeaderCell>
+          </tr>
+        </TableHead>
+        <tbody>
+          {loading && (
             <tr>
-              <th className="px-4 py-2">Name</th>
-              <th className="px-4 py-2">Email</th>
-              <th className="px-4 py-2">Department</th>
-              <th className="px-4 py-2">Role</th>
-              <th className="px-4 py-2">Status</th>
+              <td colSpan={5} className="py-12">
+                <div className="flex justify-center">
+                  <Spinner />
+                </div>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {loading && (
-              <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-slate-400">
-                  Loading...
-                </td>
-              </tr>
-            )}
-            {!loading && result?.items.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-slate-400">
-                  No employees found.
-                </td>
-              </tr>
-            )}
-            {!loading &&
-              result?.items.map((employee) => (
-                <tr key={employee.id} className="border-t border-slate-100 hover:bg-slate-50">
-                  <td className="px-4 py-2">
-                    <Link to={`/employees/${employee.id}`} className="text-slate-900 font-medium">
-                      {employee.firstName} {employee.lastName}
-                    </Link>
-                    <div className="text-xs text-slate-400">{employee.employeeCode}</div>
-                  </td>
-                  <td className="px-4 py-2 text-slate-600">{employee.email}</td>
-                  <td className="px-4 py-2 text-slate-600">{employee.departmentName ?? "—"}</td>
-                  <td className="px-4 py-2 text-slate-600">{employee.role ?? "—"}</td>
-                  <td className="px-4 py-2">
-                    <span
-                      className={
-                        employee.status === "Active"
-                          ? "text-green-700 bg-green-50 px-2 py-0.5 rounded text-xs"
-                          : "text-slate-500 bg-slate-100 px-2 py-0.5 rounded text-xs"
-                      }
-                    >
-                      {employee.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
-      </div>
+          )}
+          {!loading && result?.items.length === 0 && (
+            <tr>
+              <td colSpan={5}>
+                <EmptyState title="No employees found" description="Try adjusting your search or filters." />
+              </td>
+            </tr>
+          )}
+          {!loading &&
+            result?.items.map((employee) => (
+              <TableRow key={employee.id}>
+                <TableCell>
+                  <Link to={`/employees/${employee.id}`} className="flex items-center gap-3 group">
+                    <Avatar name={`${employee.firstName} ${employee.lastName}`} size="sm" />
+                    <div>
+                      <div className="font-medium text-slate-900 group-hover:text-brand-600">
+                        {employee.firstName} {employee.lastName}
+                      </div>
+                      <div className="text-xs text-slate-400">{employee.employeeCode}</div>
+                    </div>
+                  </Link>
+                </TableCell>
+                <TableCell>{employee.email}</TableCell>
+                <TableCell>{employee.departmentName ?? "—"}</TableCell>
+                <TableCell>{employee.role ?? "—"}</TableCell>
+                <TableCell>
+                  <StatusPill status={employee.status} />
+                </TableCell>
+              </TableRow>
+            ))}
+        </tbody>
+      </Table>
 
       <div className="flex items-center justify-between text-sm text-slate-500">
         <span>{result?.total ?? 0} total employees</span>
-        <div className="flex gap-2">
-          <button
-            disabled={page <= 1}
-            onClick={() => setPage((p) => p - 1)}
-            className="px-3 py-1 border border-slate-300 rounded disabled:opacity-40"
-          >
+        <div className="flex items-center gap-2">
+          <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
             Previous
-          </button>
+          </Button>
           <span>
             Page {page} of {totalPages}
           </span>
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             disabled={page >= totalPages}
             onClick={() => setPage((p) => p + 1)}
-            className="px-3 py-1 border border-slate-300 rounded disabled:opacity-40"
           >
             Next
-          </button>
+          </Button>
         </div>
       </div>
     </div>

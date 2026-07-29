@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { DepartmentDto, EmployeeDto } from "@hrm-plus/shared";
+import { Avatar, Button, Card, Field, Input, Select, Spinner, StatusPill } from "@hrm-plus/ui";
 import { getEmployee, updateEmployee } from "../../api/employees";
 import { listDepartments } from "../../api/departments";
 
@@ -24,7 +26,11 @@ export default function EmployeeDetail() {
   }, [id]);
 
   if (!employee) {
-    return <p className="text-slate-400">Loading...</p>;
+    return (
+      <div className="flex justify-center py-24">
+        <Spinner />
+      </div>
+    );
   }
 
   async function handleSave() {
@@ -58,114 +64,95 @@ export default function EmployeeDetail() {
 
   return (
     <div className="max-w-xl space-y-4">
-      <button onClick={() => navigate(-1)} className="text-sm text-slate-500">
-        ← Back
+      <button
+        onClick={() => navigate(-1)}
+        className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back
       </button>
 
-      <div className="bg-white border border-slate-200 rounded-lg p-6 space-y-4">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-slate-900">
-              {employee.firstName} {employee.lastName}
-            </h1>
-            <p className="text-sm text-slate-500">
-              {employee.employeeCode} · {employee.email}
-            </p>
+      <Card>
+        <div className="space-y-4">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-4">
+              <Avatar name={`${employee.firstName} ${employee.lastName}`} size="lg" />
+              <div>
+                <h1 className="text-xl font-semibold text-slate-900">
+                  {employee.firstName} {employee.lastName}
+                </h1>
+                <p className="text-sm text-slate-500">
+                  {employee.employeeCode} · {employee.email}
+                </p>
+              </div>
+            </div>
+            <StatusPill status={employee.status} />
           </div>
-          <span
-            className={
-              employee.status === "Active"
-                ? "text-green-700 bg-green-50 px-2 py-0.5 rounded text-xs h-fit"
-                : "text-slate-500 bg-slate-100 px-2 py-0.5 rounded text-xs h-fit"
-            }
-          >
-            {employee.status}
-          </span>
-        </div>
 
-        {error && (
-          <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">
-            {error}
-          </div>
-        )}
-
-        {!editing ? (
-          <dl className="grid grid-cols-2 gap-y-2 text-sm">
-            <dt className="text-slate-500">Job title</dt>
-            <dd className="text-slate-900">{employee.jobTitle ?? "—"}</dd>
-            <dt className="text-slate-500">Department</dt>
-            <dd className="text-slate-900">{employee.departmentName ?? "—"}</dd>
-            <dt className="text-slate-500">Manager</dt>
-            <dd className="text-slate-900">{employee.managerName ?? "—"}</dd>
-            <dt className="text-slate-500">Role</dt>
-            <dd className="text-slate-900">{employee.role ?? "—"}</dd>
-            <dt className="text-slate-500">Start date</dt>
-            <dd className="text-slate-900">{employee.startDate.slice(0, 10)}</dd>
-          </dl>
-        ) : (
-          <div className="space-y-3">
-            <label className="block text-sm">
-              <span className="text-slate-700 font-medium">Job title</span>
-              <input
-                value={form.jobTitle}
-                onChange={(e) => setForm((f) => ({ ...f, jobTitle: e.target.value }))}
-                className="mt-1 w-full border border-slate-300 rounded px-3 py-2"
-              />
-            </label>
-            <label className="block text-sm">
-              <span className="text-slate-700 font-medium">Department</span>
-              <select
-                value={form.departmentId}
-                onChange={(e) => setForm((f) => ({ ...f, departmentId: e.target.value }))}
-                className="mt-1 w-full border border-slate-300 rounded px-3 py-2"
-              >
-                <option value="">None</option>
-                {departments.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-        )}
-
-        <div className="flex gap-3 pt-2">
-          {editing ? (
-            <>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="bg-slate-900 text-white rounded px-4 py-2 text-sm font-medium disabled:opacity-50"
-              >
-                Save
-              </button>
-              <button
-                onClick={() => setEditing(false)}
-                className="border border-slate-300 rounded px-4 py-2 text-sm"
-              >
-                Cancel
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={() => setEditing(true)}
-                className="bg-slate-900 text-white rounded px-4 py-2 text-sm font-medium"
-              >
-                Edit
-              </button>
-              <button
-                onClick={handleToggleStatus}
-                disabled={saving}
-                className="border border-slate-300 rounded px-4 py-2 text-sm disabled:opacity-50"
-              >
-                {employee.status === "Active" ? "Deactivate" : "Reactivate"}
-              </button>
-            </>
+          {error && (
+            <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+              {error}
+            </div>
           )}
+
+          {!editing ? (
+            <dl className="grid grid-cols-2 gap-y-3 text-sm">
+              <dt className="text-slate-500">Job title</dt>
+              <dd className="text-slate-900">{employee.jobTitle ?? "—"}</dd>
+              <dt className="text-slate-500">Department</dt>
+              <dd className="text-slate-900">{employee.departmentName ?? "—"}</dd>
+              <dt className="text-slate-500">Manager</dt>
+              <dd className="text-slate-900">{employee.managerName ?? "—"}</dd>
+              <dt className="text-slate-500">Role</dt>
+              <dd className="text-slate-900">{employee.role ?? "—"}</dd>
+              <dt className="text-slate-500">Start date</dt>
+              <dd className="text-slate-900">{employee.startDate.slice(0, 10)}</dd>
+            </dl>
+          ) : (
+            <div className="space-y-3">
+              <Field label="Job title">
+                <Input
+                  value={form.jobTitle}
+                  onChange={(e) => setForm((f) => ({ ...f, jobTitle: e.target.value }))}
+                />
+              </Field>
+              <Field label="Department">
+                <Select
+                  value={form.departmentId}
+                  onChange={(e) => setForm((f) => ({ ...f, departmentId: e.target.value }))}
+                >
+                  <option value="">None</option>
+                  {departments.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-2">
+            {editing ? (
+              <>
+                <Button onClick={handleSave} isLoading={saving}>
+                  Save
+                </Button>
+                <Button variant="secondary" onClick={() => setEditing(false)}>
+                  Cancel
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button onClick={() => setEditing(true)}>Edit</Button>
+                <Button variant="secondary" onClick={handleToggleStatus} isLoading={saving}>
+                  {employee.status === "Active" ? "Deactivate" : "Reactivate"}
+                </Button>
+              </>
+            )}
+          </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

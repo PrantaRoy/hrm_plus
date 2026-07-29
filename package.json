@@ -12,7 +12,7 @@
     "dev:frontend": "npm run dev --workspace=apps/frontend",
     "dev:saas-frontend": "npm run dev --workspace=apps/saas-frontend",
     "build": "npm run build --workspace=packages/shared && npm run build --workspace=apps/backend && npm run build --workspace=apps/frontend && npm run build --workspace=apps/saas-frontend",
-    "typecheck": "npm run typecheck --workspace=apps/backend && npm run typecheck --workspace=apps/frontend && npm run typecheck --workspace=apps/saas-frontend",
+    "typecheck": "npm run typecheck --workspace=packages/ui && npm run typecheck --workspace=apps/backend && npm run typecheck --workspace=apps/frontend && npm run typecheck --workspace=apps/saas-frontend",
     "lint": "npm run lint --workspace=apps/backend && npm run lint --workspace=apps/frontend && npm run lint --workspace=apps/saas-frontend",
     "test": "npm run test --workspace=apps/backend",
     "migrate:control": "npm run migrate:control --workspace=apps/backend",

@@ -7,6 +7,6 @@ export default defineConfig({
     port: 5173,
   },
   optimizeDeps: {
-    include: ["@hrm-plus/shared"],
+    include: ["@hrm-plus/shared", "@hrm-plus/ui"],
   },
 });

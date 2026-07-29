@@ -1,5 +1,6 @@
 import { FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Button, Card, Field, Input, Logo } from "@hrm-plus/ui";
 import { useAuth } from "../auth/AuthContext";
 
 export default function ChangePassword() {
@@ -23,7 +24,7 @@ export default function ChangePassword() {
     setSubmitting(true);
     try {
       await changePassword(currentPassword, newPassword);
-      navigate("/employees");
+      navigate("/");
     } catch (err: any) {
       setError(err.response?.data?.error?.message ?? "Failed to change password");
     } finally {
@@ -32,60 +33,61 @@ export default function ChangePassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm bg-white rounded-lg shadow p-8 space-y-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Set a new password</h1>
-          <p className="text-sm text-slate-500">
-            You're using a temporary password. Choose a new one to continue.
-          </p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-8">
+      <div className="w-full max-w-sm space-y-5">
+        <Logo size="md" className="justify-center" />
+        <Card>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <h1 className="text-xl font-semibold text-slate-900">Set a new password</h1>
+              <p className="text-sm text-slate-500">
+                You're using a temporary password. Choose a new one to continue.
+              </p>
+            </div>
 
-        {error && (
-          <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">
-            {error}
-          </div>
-        )}
+            {error && (
+              <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+                {error}
+              </div>
+            )}
 
-        <Field label="Current password" value={currentPassword} onChange={setCurrentPassword} />
-        <Field label="New password" value={newPassword} onChange={setNewPassword} />
-        <Field label="Confirm new password" value={confirmPassword} onChange={setConfirmPassword} />
+            <Field label="Current password">
+              <Input
+                type="password"
+                required
+                minLength={8}
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+              />
+            </Field>
+            <Field label="New password">
+              <Input
+                type="password"
+                required
+                minLength={8}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+            </Field>
+            <Field label="Confirm new password">
+              <Input
+                type="password"
+                required
+                minLength={8}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </Field>
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full bg-slate-900 text-white rounded py-2 font-medium disabled:opacity-50"
-        >
-          {submitting ? "Saving..." : "Set password"}
-        </button>
-        <button type="button" onClick={logout} className="w-full text-sm text-slate-500 underline">
-          Sign out
-        </button>
-      </form>
+            <Button type="submit" isLoading={submitting} className="w-full">
+              Set password
+            </Button>
+            <Button type="button" variant="ghost" onClick={logout} className="w-full">
+              Sign out
+            </Button>
+          </form>
+        </Card>
+      </div>
     </div>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <label className="block text-sm">
-      <span className="text-slate-700 font-medium">{label}</span>
-      <input
-        type="password"
-        required
-        minLength={8}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full border border-slate-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-400"
-      />
-    </label>
   );
 }

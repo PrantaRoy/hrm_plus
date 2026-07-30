@@ -111,12 +111,13 @@ export default function EmployeeList() {
             <TableHeaderCell>Department</TableHeaderCell>
             <TableHeaderCell>Role</TableHeaderCell>
             <TableHeaderCell>Status</TableHeaderCell>
+            <TableHeaderCell>Action</TableHeaderCell>
           </tr>
         </TableHead>
         <tbody>
           {loading && (
             <tr>
-              <td colSpan={5} className="py-12">
+              <td colSpan={6} className="py-12">
                 <div className="flex justify-center">
                   <Spinner />
                 </div>
@@ -125,7 +126,7 @@ export default function EmployeeList() {
           )}
           {!loading && result?.items.length === 0 && (
             <tr>
-              <td colSpan={5}>
+              <td colSpan={6}>
                 <EmptyState title="No employees found" description="Try adjusting your search or filters." />
               </td>
             </tr>
@@ -153,6 +154,14 @@ export default function EmployeeList() {
                 <TableCell>{employee.role ?? "—"}</TableCell>
                 <TableCell>
                   <StatusPill status={employee.status} />
+                </TableCell>
+                <TableCell>
+                  <Link
+                    to={`/employees/${employee.id}?edit=true`}
+                    className="text-sm text-brand-600 hover:underline"
+                  >
+                    Edit
+                  </Link>
                 </TableCell>
               </TableRow>
             ))}

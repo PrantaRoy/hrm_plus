@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Camera } from "lucide-react";
 import {
   DepartmentDto,
@@ -20,11 +20,12 @@ import { EmployeeDocumentsPanel } from "./EmployeeDocumentsPanel";
 export default function EmployeeDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [employee, setEmployee] = useState<EmployeeDto | null>(null);
   const [departments, setDepartments] = useState<DepartmentDto[]>([]);
   const [designations, setDesignations] = useState<DesignationDto[]>([]);
   const [managers, setManagers] = useState<EmployeeDto[]>([]);
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(() => searchParams.get("edit") === "true");
   const [form, setForm] = useState({
     phoneNumber: "",
     gender: "" as Gender | "",

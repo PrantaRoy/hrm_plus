@@ -2,6 +2,7 @@ import {
   CreateEmployeeInput,
   EmployeeDto,
   PaginatedResult,
+  ResetEmployeePasswordResponse,
   UpdateEmployeeInput,
 } from "@hrm-plus/shared";
 import { apiClient } from "./client";
@@ -32,6 +33,11 @@ export async function createEmployee(input: CreateEmployeeInput): Promise<Employ
 
 export async function updateEmployee(id: number, input: UpdateEmployeeInput): Promise<EmployeeDto> {
   const res = await apiClient.patch<EmployeeDto>(`/employees/${id}`, input);
+  return res.data;
+}
+
+export async function resetEmployeePassword(id: number): Promise<ResetEmployeePasswordResponse> {
+  const res = await apiClient.post<ResetEmployeePasswordResponse>(`/employees/${id}/reset-password`);
   return res.data;
 }
 

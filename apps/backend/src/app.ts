@@ -18,6 +18,7 @@ import { weekDayRouter } from "./modules/weekdays/weekday.routes";
 import { leaveTypeRouter } from "./modules/leave-types/leaveType.routes";
 import { designationRouter } from "./modules/designations/designation.routes";
 import { roleRouter } from "./modules/roles/role.routes";
+import { leaveRequestRouter } from "./modules/leave-requests/leaveRequest.routes";
 import { saasAuthRouter } from "./modules/saas/saasAuth/saasAuth.routes";
 import { publicPackageRouter, adminPackageRouter } from "./modules/saas/packages/package.routes";
 import { publicApplicationRouter, adminApplicationRouter } from "./modules/saas/applications/application.routes";
@@ -51,6 +52,7 @@ export function createApp(): Express {
   app.use("/api/leave-types", tenantResolver, leaveTypeRouter);
   app.use("/api/designations", tenantResolver, designationRouter);
   app.use("/api/roles", tenantResolver, roleRouter);
+  app.use("/api/leave-requests", tenantResolver, leaveRequestRouter);
 
   // SaaS control-plane API (public landing/signup + super-admin portal)
   app.use("/saas/admin/auth", saasAuthRouter);

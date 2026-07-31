@@ -94,3 +94,14 @@ export async function getMySchedule(params: { startDate?: string; endDate?: stri
   const res = await apiClient.get<DutyScheduleAssignmentDto[]>("/rosters/my-schedule", { params });
   return res.data;
 }
+
+export async function getEmployeeSchedule(
+  employeeId: number,
+  params: { startDate?: string; endDate?: string }
+): Promise<DutyScheduleAssignmentDto[]> {
+  const res = await apiClient.get<DutyScheduleAssignmentDto[]>(
+    `/rosters/employees/${employeeId}/schedule`,
+    { params }
+  );
+  return res.data;
+}

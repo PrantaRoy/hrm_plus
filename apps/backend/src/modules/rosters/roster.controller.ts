@@ -30,6 +30,17 @@ export const getMyScheduleHandler: RequestHandler = async (req, res, next) => {
   }
 };
 
+export const getEmployeeScheduleHandler: RequestHandler = async (req, res, next) => {
+  try {
+    const employeeId = Number(req.params.employeeId);
+    if (Number.isNaN(employeeId)) throw ApiError.badRequest("Invalid employee id");
+    const { startDate, endDate } = req.query as { startDate?: string; endDate?: string };
+    res.json(await rosterService.getMyScheduleForEmployee(req.prisma!, employeeId, { startDate, endDate }));
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const getRosterHandler: RequestHandler = async (req, res, next) => {
   try {
     res.json(await rosterService.getRosterById(req.prisma!, Number(req.params.id)));

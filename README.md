@@ -35,15 +35,23 @@ cp apps/saas-frontend/.env.example apps/saas-frontend/.env
 # Create the control-plane database schema
 npm run migrate:control
 
-# Create the first SaaS super-admin login
-npm run create-saas-admin -- --email you@hrmplus.test --password <password>
-
-# (Optional) provision a demo tenant directly via CLI, bypassing the signup/approval flow
-npm run provision-tenant -- --name "Acme Ltd" --slug acme
+# Seed the fixed demo credentials below (SaaS super-admin + "Acme Ltd" tenant + admin user)
+# Safe to re-run any time — it always resets these credentials back to the values below
+# instead of leaving behind a random or stale password.
+npm run db:seed
 
 # Run all three apps
 npm run dev
 ```
+
+To create your own SaaS admin or tenant with different credentials instead of (or in addition to) the demo ones:
+
+```bash
+npm run create-saas-admin -- --email you@hrmplus.test --password <password>
+npm run provision-tenant -- --name "Acme Ltd" --slug acme --admin-password <password>
+```
+
+`create-saas-admin` and `provision-tenant --slug <existing>` fail if the target already exists, since they're meant for provisioning something new — use `npm run db:seed` (optionally overriding `SEED_SAAS_ADMIN_EMAIL` / `SEED_SAAS_ADMIN_PASSWORD` / `SEED_TENANT_ADMIN_EMAIL` / `SEED_TENANT_ADMIN_PASSWORD`) whenever you just want the demo login to reliably work again.
 
 - Backend: http://localhost:4000
 - Tenant employee portal: http://localhost:5173
@@ -57,21 +65,21 @@ Credentials for the currently-seeded local dev database (see `apps/backend/.env`
 
 | Field | Value |
 |---|---|
-| Email | `owner@hrmplus.test` |
-| Password | `SuperAdmin123!` |
+| Email | `saas@hrmplus.test` |
+| Password | `1234abcd` |
 
-Created via `npm run create-saas-admin -- --email owner@hrmplus.test --password SuperAdmin123!`. Manages packages, reviews/approves tenant applications, and can activate/deactivate any company.
+Manages packages, reviews/approves tenant applications, and can activate/deactivate any company.
 
 ### Demo tenant "Acme Ltd" — http://localhost:5173/login
 
 | Field | Value |
 |---|---|
 | Organisation slug | `acme` |
-| Email | `admin@acme.hrmplus.test` |
-| Password | `PUxoBkUueckZ` |
+| Email | `acme@hrmplus.test` |
+| Password | `1234abcd` |
 | Role | Admin |
 
-Provisioned via `npm run provision-tenant -- --name "Acme Ltd" --slug acme`. This is an `Admin` login for the Employee Directory (create/search/edit employees and departments).
+This is an `Admin` login for the Employee Directory (create/search/edit employees and departments).
 
 ### Demo packages (seeded for the SaaS landing page)
 
@@ -109,8 +117,3 @@ Runs Jest + Supertest integration tests against real ephemeral tenant databases:
 ## Multi-tenancy model
 
 Each tenant gets its own MySQL database. A separate control-plane database (`hrm_control`) stores the tenant registry, packages, and applications. Every tenant-scoped API request must include an `X-Tenant-Slug` header (or, in production, a subdomain) so the backend can resolve which tenant database to use before authenticating the request. The SaaS control-plane routes (`/saas/*`) use a separately-secreted JWT so a tenant login token can never be used against the super-admin API.
-
-Confirmed-working credentials right now:
-
-SaaS super-admin: owner@hrmplus.test / SuperAdmin123!
-Tenant acme: admin@acme.hrmplus.test / PUxoBkUueckZ

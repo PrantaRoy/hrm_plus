@@ -1,7 +1,14 @@
 import bcrypt from "bcrypt";
 import { nanoid } from "nanoid";
 import { PrismaClient, Prisma } from "../../../generated/tenant";
-import { CreateEmployeeInput, EmployeeDto, PaginatedResult, UpdateEmployeeInput } from "@hrm-plus/shared";
+import {
+  CreateEmployeeInput,
+  DEFAULT_RESET_PASSWORD,
+  EmployeeDto,
+  PaginatedResult,
+  ResetEmployeePasswordResponse,
+  UpdateEmployeeInput,
+} from "@hrm-plus/shared";
 import { ApiError } from "../../utils/ApiError";
 import { getStorageDriver } from "../../storage";
 import { employeeInclude, toEmployeeDto } from "./employee.mapper";
@@ -143,6 +150,27 @@ export async function updateEmployee(
   }
 
   return toEmployeeDto(employee);
+}
+
+export async function resetEmployeePassword(
+  prisma: PrismaClient,
+  id: number
+): Promise<ResetEmployeePasswordResponse> {
+  const employee = await prisma.employee.findUnique({ where: { id } });
+  if (!employee) {
+    throw ApiError.notFound("Employee not found");
+  }
+  if (!employee.userId) {
+    throw ApiError.badRequest("This employee has no login account");
+  }
+
+  const passwordHash = await bcrypt.hash(DEFAULT_RESET_PASSWORD, 10);
+  await prisma.user.update({
+    where: { id: employee.userId },
+    data: { passwordHash, mustChangePassword: true },
+  });
+
+  return { newPassword: DEFAULT_RESET_PASSWORD };
 }
 
 export async function setEmployeeAvatar(

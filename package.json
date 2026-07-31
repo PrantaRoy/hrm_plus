@@ -17,7 +17,8 @@
     "test": "npm run test --workspace=apps/backend",
     "migrate:control": "npm run migrate:control --workspace=apps/backend",
     "provision-tenant": "npm run provision-tenant --workspace=apps/backend",
-    "create-saas-admin": "npm run create-saas-admin --workspace=apps/backend"
+    "create-saas-admin": "npm run create-saas-admin --workspace=apps/backend",
+    "db:seed": "npm run db:seed --workspace=apps/backend"
   },
   "devDependencies": {
     "typescript": "^5.6.3"

@@ -18,12 +18,12 @@
     },
     {
       "key": "tenantEmail",
-      "value": "admin@acme.hrmplus.test",
+      "value": "acme@hrmplus.test",
       "type": "string"
     },
     {
       "key": "tenantPassword",
-      "value": "PUxoBkUueckZ",
+      "value": "1234abcd",
       "type": "string"
     },
     {
@@ -48,12 +48,12 @@
     },
     {
       "key": "saasAdminEmail",
-      "value": "owner@hrmplus.test",
+      "value": "saas@hrmplus.test",
       "type": "string"
     },
     {
       "key": "saasAdminPassword",
-      "value": "SuperAdmin123!",
+      "value": "1234abcd",
       "type": "string"
     },
     {
@@ -98,6 +98,16 @@
     },
     {
       "key": "leaveTypeId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "leaveAllocationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "leaveRequestId",
       "value": "",
       "type": "string"
     },
@@ -2210,6 +2220,610 @@
                   ]
                 },
                 "description": "Requires Admin or HR role."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Leave Allocations",
+          "item": [
+            {
+              "name": "List Leave Allocations",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/employees/{{employeeId}}/leave-allocations",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "employees",
+                    "{{employeeId}}",
+                    "leave-allocations"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Leave Allocation",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/employees/{{employeeId}}/leave-allocations/{{leaveAllocationId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "employees",
+                    "{{employeeId}}",
+                    "leave-allocations",
+                    "{{leaveAllocationId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Leave Allocation",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      "  const json = pm.response.json();",
+                      "  pm.collectionVariables.set('leaveAllocationId', json.id);",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"leaveTypeId\": \"{{leaveTypeId}}\",\n  \"year\": 2026,\n  \"allocatedDays\": 12,\n  \"approvalSteps\": [\n    {\n      \"approverType\": \"ReportingManager\"\n    },\n    {\n      \"approverType\": \"Role\",\n      \"roleId\": \"{{roleId}}\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/employees/{{employeeId}}/leave-allocations",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "employees",
+                    "{{employeeId}}",
+                    "leave-allocations"
+                  ]
+                },
+                "description": "Requires Admin or HR role. Saves the new id into {{leaveAllocationId}}. approvalSteps is ordered: step 1 first."
+              },
+              "response": []
+            },
+            {
+              "name": "Update Leave Allocation",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"allocatedDays\": 14,\n  \"approvalSteps\": [\n    {\n      \"approverType\": \"ReportingManager\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/employees/{{employeeId}}/leave-allocations/{{leaveAllocationId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "employees",
+                    "{{employeeId}}",
+                    "leave-allocations",
+                    "{{leaveAllocationId}}"
+                  ]
+                },
+                "description": "Requires Admin or HR role. Blocked while a Pending leave request references this allocation."
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Leave Allocation",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/employees/{{employeeId}}/leave-allocations/{{leaveAllocationId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "employees",
+                    "{{employeeId}}",
+                    "leave-allocations",
+                    "{{leaveAllocationId}}"
+                  ]
+                },
+                "description": "Requires Admin or HR role. Blocked if any Pending or Approved leave request references it; set status to Inactive instead."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Leave Requests",
+          "item": [
+            {
+              "name": "Apply For Leave",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      "  const json = pm.response.json();",
+                      "  pm.collectionVariables.set('leaveRequestId', json.id);",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"leaveTypeId\": \"{{leaveTypeId}}\",\n  \"startDate\": \"2026-08-10\",\n  \"endDate\": \"2026-08-12\",\n  \"reason\": \"Family event\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/leave-requests",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "leave-requests"
+                  ]
+                },
+                "description": "Applies as the currently authenticated user. Saves the new id into {{leaveRequestId}}."
+              },
+              "response": []
+            },
+            {
+              "name": "List My Leave Requests",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/leave-requests/my",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "leave-requests",
+                    "my"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "List My Active Allocations",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/leave-requests/my-allocations",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "leave-requests",
+                    "my-allocations"
+                  ]
+                },
+                "description": "Populates the leave-type dropdown for Apply For Leave."
+              },
+              "response": []
+            },
+            {
+              "name": "List Pending My Approval",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/leave-requests/pending-my-approval",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "leave-requests",
+                    "pending-my-approval"
+                  ]
+                },
+                "description": "Requests whose current approval step this user (or Admin) can decide."
+              },
+              "response": []
+            },
+            {
+              "name": "List Leave Requests (Admin)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/leave-requests?status=Pending",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "leave-requests"
+                  ],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "Pending"
+                    }
+                  ]
+                },
+                "description": "Requires Admin or HR role."
+              },
+              "response": []
+            },
+            {
+              "name": "Get Leave Request",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/leave-requests/{{leaveRequestId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "leave-requests",
+                    "{{leaveRequestId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Approve Leave Request",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"comment\": \"Looks good\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/leave-requests/{{leaveRequestId}}/approve",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "leave-requests",
+                    "{{leaveRequestId}}",
+                    "approve"
+                  ]
+                },
+                "description": "Approves the current pending step if the caller is eligible (or is Admin, which can always act)."
+              },
+              "response": []
+            },
+            {
+              "name": "Reject Leave Request",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"comment\": \"Not enough coverage\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/leave-requests/{{leaveRequestId}}/reject",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "leave-requests",
+                    "{{leaveRequestId}}",
+                    "reject"
+                  ]
+                },
+                "description": "Rejects the current pending step and stops the chain."
+              },
+              "response": []
+            },
+            {
+              "name": "Cancel Leave Request",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "X-Tenant-Slug",
+                    "value": "{{tenantSlug}}"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tenantAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/leave-requests/{{leaveRequestId}}/cancel",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "leave-requests",
+                    "{{leaveRequestId}}",
+                    "cancel"
+                  ]
+                },
+                "description": "Only while the request is Pending; by the requester or Admin/HR."
               },
               "response": []
             }

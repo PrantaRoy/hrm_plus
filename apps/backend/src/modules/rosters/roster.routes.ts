@@ -5,6 +5,7 @@ import {
   autoGenerateRosterHandler,
   createRosterHandler,
   deleteRosterHandler,
+  getEmployeeScheduleHandler,
   getMyScheduleHandler,
   getRosterHandler,
   listRostersHandler,
@@ -17,6 +18,7 @@ export const rosterRouter = Router();
 rosterRouter.use(requireAuth);
 
 rosterRouter.get("/my-schedule", getMyScheduleHandler);
+rosterRouter.get("/employees/:employeeId/schedule", getEmployeeScheduleHandler);
 rosterRouter.get("/", listRostersHandler);
 rosterRouter.get("/:id", getRosterHandler);
 rosterRouter.post("/", requireRole("Admin", "HR", "Manager"), createRosterHandler);

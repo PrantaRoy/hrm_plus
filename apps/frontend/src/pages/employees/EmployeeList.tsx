@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Search, UserPlus } from "lucide-react";
-import { DepartmentDto, EmployeeDto, PaginatedResult } from "@hrm-plus/shared";
+import { DEFAULT_RESET_PASSWORD, DepartmentDto, EmployeeDto, PaginatedResult } from "@hrm-plus/shared";
 import {
   Avatar,
   Button,
@@ -17,7 +17,7 @@ import {
   TableHeaderCell,
   TableRow,
 } from "@hrm-plus/ui";
-import { listEmployees } from "../../api/employees";
+import { listEmployees, resetEmployeePassword } from "../../api/employees";
 import { listDepartments } from "../../api/departments";
 import { resolveFileUrl } from "../../utils/fileUrl";
 
@@ -30,6 +30,7 @@ export default function EmployeeList() {
   const [departmentId, setDepartmentId] = useState<string>("");
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [resettingId, setResettingId] = useState<number | null>(null);
 
   useEffect(() => {
     listDepartments().then(setDepartments).catch(() => setDepartments([]));
@@ -56,6 +57,24 @@ export default function EmployeeList() {
   }, [search, departmentId, page]);
 
   const totalPages = result ? Math.max(1, Math.ceil(result.total / PAGE_SIZE)) : 1;
+
+  async function handleResetPassword(employee: EmployeeDto) {
+    const confirmed = window.confirm(
+      `Reset password for ${employee.firstName} ${employee.lastName}?\n\n` +
+        `Their new password will be "${DEFAULT_RESET_PASSWORD}". They will be asked to change it the next time they sign in.`
+    );
+    if (!confirmed) return;
+
+    setResettingId(employee.id);
+    try {
+      const { newPassword } = await resetEmployeePassword(employee.id);
+      window.alert(`Password reset. New password: ${newPassword}`);
+    } catch (err: any) {
+      window.alert(err.response?.data?.error?.message ?? "Failed to reset password");
+    } finally {
+      setResettingId(null);
+    }
+  }
 
   return (
     <div className="space-y-5">
@@ -156,12 +175,22 @@ export default function EmployeeList() {
                   <StatusPill status={employee.status} />
                 </TableCell>
                 <TableCell>
-                  <Link
-                    to={`/employees/${employee.id}?edit=true`}
-                    className="text-sm text-brand-600 hover:underline"
-                  >
-                    Edit
-                  </Link>
+                  <div className="flex items-center gap-3">
+                    <Link
+                      to={`/employees/${employee.id}?edit=true`}
+                      className="text-sm text-brand-600 hover:underline"
+                    >
+                      Edit
+                    </Link>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      isLoading={resettingId === employee.id}
+                      onClick={() => handleResetPassword(employee)}
+                    >
+                      Reset Password
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

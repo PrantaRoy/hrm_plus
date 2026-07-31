@@ -16,9 +16,9 @@ Postman → **Import** → select `HRM_PLUS.postman_collection.json`. No separat
 | Variable | Value |
 |---|---|
 | `baseUrl` | `http://localhost:4000` |
-| `saasAdminEmail` / `saasAdminPassword` | `owner@hrmplus.test` / `SuperAdmin123!` |
+| `saasAdminEmail` / `saasAdminPassword` | `saas@hrmplus.test` / `1234abcd` |
 | `tenantSlug` | `acme` |
-| `tenantEmail` / `tenantPassword` | `admin@acme.hrmplus.test` / `PUxoBkUueckZ` |
+| `tenantEmail` / `tenantPassword` | `acme@hrmplus.test` / `1234abcd` |
 
 These match the seeded local dev database — see the root `README.md` → "Demo login details" for the full list, including how to create a brand new tenant through the actual signup/approval flow instead of the CLI.
 

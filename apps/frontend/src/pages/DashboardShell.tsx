@@ -1,5 +1,15 @@
 import { Outlet } from "react-router-dom";
-import { LayoutDashboard, Users, Settings, CalendarClock, CalendarDays, CalendarCheck } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  Settings,
+  CalendarClock,
+  CalendarDays,
+  CalendarCheck,
+  CalendarOff,
+  ClipboardCheck,
+  CheckSquare,
+} from "lucide-react";
 import { Logo, Sidebar, SidebarNavItem, Topbar } from "@hrm-plus/ui";
 import { useAuth } from "../auth/AuthContext";
 
@@ -10,6 +20,9 @@ export default function DashboardShell() {
     { key: "dashboard", label: "Dashboard", to: "/", icon: LayoutDashboard, end: true },
     { key: "employees", label: "Employees", to: "/employees", icon: Users },
     { key: "my-schedule", label: "My Schedule", to: "/my-schedule", icon: CalendarCheck },
+    { key: "leave-apply", label: "Apply for Leave", to: "/leave/apply", icon: CalendarOff },
+    { key: "leave-my-requests", label: "My Leave Requests", to: "/leave/my-requests", icon: ClipboardCheck },
+    { key: "leave-approvals", label: "Leave Approvals", to: "/leave/approvals", icon: CheckSquare },
   ];
   if (user?.role === "Admin" || user?.role === "HR") {
     items.push({ key: "duty-schedules", label: "Duty Schedules", to: "/duty-schedules", icon: CalendarClock });

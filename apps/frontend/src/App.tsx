@@ -10,6 +10,9 @@ import EmployeeList from "./pages/employees/EmployeeList";
 import EmployeeCreate from "./pages/employees/EmployeeCreate";
 import EmployeeDetail from "./pages/employees/EmployeeDetail";
 import MySchedule from "./pages/MySchedule";
+import ApplyLeave from "./pages/leave/ApplyLeave";
+import MyLeaveRequests from "./pages/leave/MyLeaveRequests";
+import LeaveApprovals from "./pages/leave/LeaveApprovals";
 import DutyScheduleList from "./pages/duty-schedules/DutyScheduleList";
 import DutyScheduleCreate from "./pages/duty-schedules/DutyScheduleCreate";
 import DutyScheduleEdit from "./pages/duty-schedules/DutyScheduleEdit";
@@ -48,6 +51,10 @@ export default function App() {
           <Route path="/employees/:id" element={<EmployeeDetail />} />
 
           <Route path="/my-schedule" element={<MySchedule />} />
+
+          <Route path="/leave/apply" element={<ApplyLeave />} />
+          <Route path="/leave/my-requests" element={<MyLeaveRequests />} />
+          <Route path="/leave/approvals" element={<LeaveApprovals />} />
 
           <Route element={<RequireAuth roles={["Admin", "HR"]} />}>
             <Route path="/duty-schedules" element={<DutyScheduleList />} />

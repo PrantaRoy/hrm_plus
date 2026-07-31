@@ -16,6 +16,8 @@ import { listDepartments } from "../../api/departments";
 import { listDesignations } from "../../api/designations";
 import { resolveFileUrl } from "../../utils/fileUrl";
 import { EmployeeDocumentsPanel } from "./EmployeeDocumentsPanel";
+import { EmployeeLeaveAllocationsPanel } from "./EmployeeLeaveAllocationsPanel";
+import { DutyScheduleMonthCalendar } from "../../components/DutyScheduleMonthCalendar";
 
 export default function EmployeeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -126,7 +128,7 @@ export default function EmployeeDetail() {
   }
 
   return (
-    <div className="max-w-2xl space-y-4">
+    <div className="max-w-6xl space-y-4">
       <button
         onClick={() => navigate(-1)}
         className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700"
@@ -135,7 +137,9 @@ export default function EmployeeDetail() {
         Back
       </button>
 
-      <Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-4">
+          <Card>
         <div className="space-y-4">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
@@ -328,9 +332,17 @@ export default function EmployeeDetail() {
             )}
           </div>
         </div>
-      </Card>
+          </Card>
 
-      <EmployeeDocumentsPanel employeeId={employee.id} />
+          <EmployeeDocumentsPanel employeeId={employee.id} />
+
+          <EmployeeLeaveAllocationsPanel employeeId={employee.id} />
+        </div>
+
+        <div className="lg:col-span-1">
+          <DutyScheduleMonthCalendar employeeId={employee.id} compact />
+        </div>
+      </div>
     </div>
   );
 }

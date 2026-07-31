@@ -1,7 +1,7 @@
 export { ROLES, isRoleName } from "./roles";
 export type { RoleName } from "./roles";
 
-export { GENDERS, EMPLOYMENT_TYPES } from "./employee";
+export { GENDERS, EMPLOYMENT_TYPES, DEFAULT_RESET_PASSWORD } from "./employee";
 export type {
   EmployeeStatus,
   SettingStatus,
@@ -14,6 +14,7 @@ export type {
   CreateEmployeeInput,
   UpdateEmployeeInput,
   PaginatedResult,
+  ResetEmployeePasswordResponse,
 } from "./employee";
 
 export { DOCUMENT_TYPES } from "./employeeDocument";
@@ -78,6 +79,23 @@ export type {
   UpdateAssignmentInput,
   ListAssignmentsQuery,
 } from "./roster";
+
+export { APPROVER_TYPES, LEAVE_REQUEST_STATUSES, LEAVE_APPROVAL_STATUSES } from "./leave";
+export type {
+  ApproverType,
+  LeaveRequestStatus,
+  LeaveApprovalStatus,
+  ApprovalStepInput,
+  ApprovalStepDto,
+  EmployeeLeaveAllocationDto,
+  CreateLeaveAllocationInput,
+  UpdateLeaveAllocationInput,
+  LeaveRequestApprovalDto,
+  LeaveRequestDto,
+  CreateLeaveRequestInput,
+  DecideLeaveRequestInput,
+  ListLeaveRequestsQuery,
+} from "./leave";
 
 export type {
   PackageDto,

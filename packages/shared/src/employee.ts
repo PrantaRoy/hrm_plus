@@ -4,6 +4,12 @@ export type EmployeeStatus = "Active" | "Inactive";
 
 export type SettingStatus = "Active" | "Inactive";
 
+export const DEFAULT_RESET_PASSWORD = "12345678";
+
+export interface ResetEmployeePasswordResponse {
+  newPassword: string;
+}
+
 export const GENDERS = ["Male", "Female", "Other"] as const;
 export type Gender = (typeof GENDERS)[number];
 

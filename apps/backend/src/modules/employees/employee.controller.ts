@@ -50,6 +50,17 @@ export const updateEmployeeHandler: RequestHandler = async (req, res, next) => {
   }
 };
 
+export const resetEmployeePasswordHandler: RequestHandler = async (req, res, next) => {
+  try {
+    const id = Number(req.params.id);
+    if (Number.isNaN(id)) throw ApiError.badRequest("Invalid employee id");
+    const result = await employeeService.resetEmployeePassword(req.prisma!, id);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const uploadEmployeeAvatarHandler: RequestHandler = async (req, res, next) => {
   try {
     const id = Number(req.params.id);

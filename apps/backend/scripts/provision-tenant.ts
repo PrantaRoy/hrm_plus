@@ -1,5 +1,4 @@
 import "dotenv/config";
-import bcrypt from "bcrypt";
 import { nanoid } from "nanoid";
 import { controlClient } from "../src/db/controlClient";
 import { getTenantClient } from "../src/db/tenantClientPool";
@@ -9,12 +8,14 @@ import {
   runTenantMigrations,
   seedDefaultRoles,
   seedDefaultWeekDays,
+  provisionTenantAdmin,
 } from "../src/modules/tenants/tenantProvisioning";
 
 interface Args {
   name: string;
   slug: string;
   adminEmail: string;
+  adminPassword?: string;
 }
 
 function parseArgs(): Args {
@@ -27,9 +28,12 @@ function parseArgs(): Args {
   const name = get("--name");
   const slug = get("--slug");
   const adminEmail = get("--admin-email") ?? `admin@${slug ?? "tenant"}.hrmplus.test`;
+  const adminPassword = get("--admin-password");
 
   if (!name || !slug) {
-    console.error('Usage: provision-tenant --name "Acme Ltd" --slug acme [--admin-email admin@acme.com]');
+    console.error(
+      'Usage: provision-tenant --name "Acme Ltd" --slug acme [--admin-email admin@acme.com] [--admin-password <password>]'
+    );
     process.exit(1);
   }
 
@@ -38,11 +42,11 @@ function parseArgs(): Args {
     process.exit(1);
   }
 
-  return { name, slug, adminEmail };
+  return { name, slug, adminEmail, adminPassword };
 }
 
 async function main() {
-  const { name, slug, adminEmail } = parseArgs();
+  const { name, slug, adminEmail, adminPassword } = parseArgs();
 
   const existing = await controlClient.tenant.findUnique({ where: { slug } });
   if (existing) {
@@ -68,28 +72,17 @@ async function main() {
   const roleIds = await seedDefaultRoles(tenantClient);
   await seedDefaultWeekDays(tenantClient);
 
-  const adminPassword = nanoid(12);
-  const passwordHash = await bcrypt.hash(adminPassword, 10);
-
-  const adminUser = await tenantClient.user.create({
-    data: { email: adminEmail, passwordHash, roleId: roleIds.Admin },
-  });
-
-  await tenantClient.employee.create({
-    data: {
-      employeeCode: `EMP-${nanoid(6).toUpperCase()}`,
-      firstName: "Tenant",
-      lastName: "Admin",
-      email: adminEmail,
-      joiningDate: new Date(),
-      userId: adminUser.id,
-    },
+  const finalPassword = adminPassword ?? nanoid(12);
+  await provisionTenantAdmin(tenantClient, {
+    email: adminEmail,
+    password: finalPassword,
+    roleId: roleIds.Admin,
   });
 
   console.log("\nTenant provisioned successfully:");
   console.log(`  Tenant slug:    ${slug}`);
   console.log(`  Admin email:    ${adminEmail}`);
-  console.log(`  Admin password: ${adminPassword}`);
+  console.log(`  Admin password: ${finalPassword}`);
   console.log(`\nSend header "X-Tenant-Slug: ${slug}" with login requests.\n`);
 }
 

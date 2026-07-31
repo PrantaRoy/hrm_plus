@@ -14,6 +14,7 @@ model Role {
   status           String   @default("Active")
   shortDescription String?
   users            User[]
+  leaveApprovalSteps LeaveApprovalStep[]
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
@@ -35,6 +36,11 @@ model User {
   assignmentsCreated DutyScheduleAssignment[] @relation("AssignmentCreatedBy")
   assignmentsUpdated DutyScheduleAssignment[] @relation("AssignmentUpdatedBy")
   passwordResetTokens PasswordResetToken[]
+  leaveAllocationsCreated EmployeeLeaveAllocation[] @relation("LeaveAllocationCreatedBy")
+  leaveAllocationsUpdated EmployeeLeaveAllocation[] @relation("LeaveAllocationUpdatedBy")
+  leaveRequestsCreated    LeaveRequest[]            @relation("LeaveRequestCreatedBy")
+  leaveRequestsUpdated    LeaveRequest[]            @relation("LeaveRequestUpdatedBy")
+  leaveApprovalsDecided   LeaveRequestApproval[]    @relation("LeaveApprovalDecidedBy")
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 }
@@ -77,6 +83,7 @@ model LeaveType {
   name         String
   assignedDays Int
   status       String   @default("Active")
+  allocations  EmployeeLeaveAllocation[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -118,6 +125,8 @@ model Employee {
   user            User?        @relation(fields: [userId], references: [id])
   documents       EmployeeDocument[]
   dutyAssignments DutyScheduleAssignment[]
+  leaveAllocations EmployeeLeaveAllocation[]
+  leaveRequests    LeaveRequest[]
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 }
@@ -230,4 +239,88 @@ model PasswordResetToken {
   createdAt DateTime  @default(now())
 
   @@index([userId])
+}
+
+model EmployeeLeaveAllocation {
+  id            Int      @id @default(autoincrement())
+  employeeId    Int
+  employee      Employee  @relation(fields: [employeeId], references: [id])
+  leaveTypeId   Int
+  leaveType     LeaveType @relation(fields: [leaveTypeId], references: [id])
+  year          Int
+  allocatedDays Int
+  daysUsed      Int      @default(0)
+  status        String   @default("Active") // "Active" | "Inactive"
+  approvalSteps LeaveApprovalStep[]
+  leaveRequests LeaveRequest[]
+  createdById   Int
+  createdBy     User      @relation("LeaveAllocationCreatedBy", fields: [createdById], references: [id])
+  updatedById   Int?
+  updatedBy     User?     @relation("LeaveAllocationUpdatedBy", fields: [updatedById], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([employeeId, leaveTypeId, year])
+  @@index([employeeId])
+  @@index([leaveTypeId])
+}
+
+model LeaveApprovalStep {
+  id           Int      @id @default(autoincrement())
+  allocationId Int
+  allocation   EmployeeLeaveAllocation @relation(fields: [allocationId], references: [id], onDelete: Cascade)
+  stepOrder    Int
+  approverType String   // "ReportingManager" | "Role"
+  roleId       Int?
+  role         Role?    @relation(fields: [roleId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([allocationId, stepOrder])
+  @@index([allocationId])
+}
+
+model LeaveRequest {
+  id               Int      @id @default(autoincrement())
+  employeeId       Int
+  employee         Employee @relation(fields: [employeeId], references: [id])
+  allocationId     Int
+  allocation       EmployeeLeaveAllocation @relation(fields: [allocationId], references: [id])
+  startDate        DateTime
+  endDate          DateTime
+  daysRequested    Int
+  reason           String?
+  status           String   @default("Pending") // "Pending" | "Approved" | "Rejected" | "Cancelled"
+  currentStepOrder Int      @default(1)
+  approvals        LeaveRequestApproval[]
+  createdById      Int
+  createdBy        User     @relation("LeaveRequestCreatedBy", fields: [createdById], references: [id])
+  updatedById      Int?
+  updatedBy        User?    @relation("LeaveRequestUpdatedBy", fields: [updatedById], references: [id])
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([employeeId])
+  @@index([allocationId])
+  @@index([status])
+}
+
+model LeaveRequestApproval {
+  id              Int      @id @default(autoincrement())
+  leaveRequestId  Int
+  leaveRequest    LeaveRequest @relation(fields: [leaveRequestId], references: [id], onDelete: Cascade)
+  stepOrder       Int
+  approverType    String   // snapshot of the step's type at submission time
+  roleId          Int?
+  roleName        String?  // snapshot label, survives later role rename/deletion
+  status          String   @default("Pending") // "Pending" | "Approved" | "Rejected"
+  decidedByUserId Int?
+  decidedBy       User?    @relation("LeaveApprovalDecidedBy", fields: [decidedByUserId], references: [id])
+  decidedAt       DateTime?
+  comment         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([leaveRequestId, stepOrder])
+  @@index([leaveRequestId])
 }

@@ -15,7 +15,8 @@
     "migrate:control:deploy": "prisma migrate deploy --schema=prisma/control/schema.prisma",
     "migrate:tenant:dev": "prisma migrate dev --schema=prisma/tenant/schema.prisma",
     "provision-tenant": "tsx scripts/provision-tenant.ts",
-    "create-saas-admin": "tsx scripts/create-saas-admin.ts"
+    "create-saas-admin": "tsx scripts/create-saas-admin.ts",
+    "db:seed": "tsx scripts/seed-demo.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1097.0",

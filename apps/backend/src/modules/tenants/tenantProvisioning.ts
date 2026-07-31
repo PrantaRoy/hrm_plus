@@ -1,8 +1,10 @@
 import { execFileSync } from "node:child_process";
 import path from "node:path";
+import bcrypt from "bcrypt";
 import mysql from "mysql2/promise";
+import { nanoid } from "nanoid";
 import { ROLES } from "@hrm-plus/shared";
-import { PrismaClient as TenantPrismaClient } from "../../../generated/tenant";
+import { PrismaClient as TenantPrismaClient, User as TenantUser } from "../../../generated/tenant";
 import { env } from "../../config/env";
 
 async function withAdminConnection<T>(fn: (conn: mysql.Connection) => Promise<T>): Promise<T> {
@@ -70,4 +72,37 @@ export async function seedDefaultWeekDays(tenantClient: TenantPrismaClient): Pro
     return;
   }
   await tenantClient.weekDay.createMany({ data: WEEK_DAYS });
+}
+
+/**
+ * Idempotently ensures a tenant admin user (+ linked employee) exists with the
+ * given plaintext password. Re-running this always resets the password back
+ * to `params.password` instead of leaving behind a previously-generated one.
+ */
+export async function provisionTenantAdmin(
+  tenantClient: TenantPrismaClient,
+  params: { email: string; password: string; roleId: number }
+): Promise<TenantUser> {
+  const passwordHash = await bcrypt.hash(params.password, 10);
+
+  const adminUser = await tenantClient.user.upsert({
+    where: { email: params.email },
+    update: { passwordHash, roleId: params.roleId, mustChangePassword: false },
+    create: { email: params.email, passwordHash, roleId: params.roleId },
+  });
+
+  await tenantClient.employee.upsert({
+    where: { userId: adminUser.id },
+    update: {},
+    create: {
+      employeeCode: `EMP-${nanoid(6).toUpperCase()}`,
+      firstName: "Tenant",
+      lastName: "Admin",
+      email: params.email,
+      joiningDate: new Date(),
+      userId: adminUser.id,
+    },
+  });
+
+  return adminUser;
 }

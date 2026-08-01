@@ -19,6 +19,7 @@ import { leaveTypeRouter } from "./modules/leave-types/leaveType.routes";
 import { designationRouter } from "./modules/designations/designation.routes";
 import { roleRouter } from "./modules/roles/role.routes";
 import { leaveRequestRouter } from "./modules/leave-requests/leaveRequest.routes";
+import { attendanceRouter } from "./modules/attendance/attendance.routes";
 import { saasAuthRouter } from "./modules/saas/saasAuth/saasAuth.routes";
 import { publicPackageRouter, adminPackageRouter } from "./modules/saas/packages/package.routes";
 import { publicApplicationRouter, adminApplicationRouter } from "./modules/saas/applications/application.routes";
@@ -53,6 +54,7 @@ export function createApp(): Express {
   app.use("/api/designations", tenantResolver, designationRouter);
   app.use("/api/roles", tenantResolver, roleRouter);
   app.use("/api/leave-requests", tenantResolver, leaveRequestRouter);
+  app.use("/api/attendance", tenantResolver, attendanceRouter);
 
   // SaaS control-plane API (public landing/signup + super-admin portal)
   app.use("/saas/admin/auth", saasAuthRouter);

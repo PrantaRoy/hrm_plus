@@ -9,6 +9,7 @@ import {
   CalendarOff,
   ClipboardCheck,
   CheckSquare,
+  Fingerprint,
 } from "lucide-react";
 import { Logo, Sidebar, SidebarNavItem, Topbar } from "@hrm-plus/ui";
 import { useAuth } from "../auth/AuthContext";
@@ -29,6 +30,7 @@ export default function DashboardShell() {
   }
   if (user?.role === "Admin" || user?.role === "HR" || user?.role === "Manager") {
     items.push({ key: "rosters", label: "Rosters", to: "/rosters", icon: CalendarDays });
+    items.push({ key: "attendance-records", label: "Attendance", to: "/attendance/records", icon: Fingerprint });
   }
   if (user?.role === "Admin" || user?.role === "HR") {
     items.push({ key: "settings", label: "Settings", to: "/settings", icon: Settings });

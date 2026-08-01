@@ -320,6 +320,16 @@ export async function decideLeaveRequest(
           where: { id: request.allocationId },
           data: { daysUsed: { increment: request.daysRequested } },
         });
+        // Reflect the approved leave on the roster so attendance check-in is blocked
+        // and the assignment displays "On Leave" instead of a stale "Scheduled".
+        await tx.dutyScheduleAssignment.updateMany({
+          where: {
+            employeeId: request.employeeId,
+            status: "Scheduled",
+            date: { gte: request.startDate, lte: request.endDate },
+          },
+          data: { isLeave: true, status: "OnLeave" },
+        });
       }
     }
 

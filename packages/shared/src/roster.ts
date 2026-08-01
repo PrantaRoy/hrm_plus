@@ -4,7 +4,14 @@ export type RosterPeriodType = (typeof ROSTER_PERIOD_TYPES)[number];
 export const ROSTER_STATUSES = ["Draft", "Pending", "Approved"] as const;
 export type RosterStatus = (typeof ROSTER_STATUSES)[number];
 
-export const ASSIGNMENT_STATUSES = ["Scheduled", "Cancelled"] as const;
+export const ASSIGNMENT_STATUSES = [
+  "Scheduled",
+  "CheckedIn",
+  "Completed",
+  "OnLeave",
+  "Incomplete",
+  "Cancelled",
+] as const;
 export type AssignmentStatus = (typeof ASSIGNMENT_STATUSES)[number];
 
 export interface RosterDto {

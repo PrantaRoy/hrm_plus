@@ -26,6 +26,8 @@ import LeaveTypeSettings from "./pages/settings/LeaveTypeSettings";
 import DepartmentSettings from "./pages/settings/DepartmentSettings";
 import DesignationSettings from "./pages/settings/DesignationSettings";
 import RoleSettings from "./pages/settings/RoleSettings";
+import AttendanceSettings from "./pages/settings/AttendanceSettings";
+import AttendanceList from "./pages/attendance/AttendanceList";
 
 export default function App() {
   return (
@@ -77,7 +79,12 @@ export default function App() {
               <Route path="departments" element={<DepartmentSettings />} />
               <Route path="designations" element={<DesignationSettings />} />
               <Route path="roles" element={<RoleSettings />} />
+              <Route path="attendance" element={<AttendanceSettings />} />
             </Route>
+          </Route>
+
+          <Route element={<RequireAuth roles={["Admin", "HR", "Manager"]} />}>
+            <Route path="/attendance/records" element={<AttendanceList />} />
           </Route>
         </Route>
       </Route>

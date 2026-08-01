@@ -80,6 +80,22 @@ export type {
   ListAssignmentsQuery,
 } from "./roster";
 
+export { ATTENDANCE_METHODS } from "./attendance";
+export type {
+  AttendanceMethod,
+  AttendanceSettingsDto,
+  UpdateAttendanceSettingsInput,
+  EmployeeAttendanceMethodsDto,
+  SetEmployeeAttendanceMethodsInput,
+  BreakLogDto,
+  AttendanceDto,
+  CheckInInput,
+  CheckOutInput,
+  TodayAttendanceDto,
+  ListAttendanceQuery,
+  ListAttendanceItemDto,
+} from "./attendance";
+
 export { APPROVER_TYPES, LEAVE_REQUEST_STATUSES, LEAVE_APPROVAL_STATUSES } from "./leave";
 export type {
   ApproverType,

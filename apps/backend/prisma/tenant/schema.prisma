@@ -41,6 +41,7 @@ model User {
   leaveRequestsCreated    LeaveRequest[]            @relation("LeaveRequestCreatedBy")
   leaveRequestsUpdated    LeaveRequest[]            @relation("LeaveRequestUpdatedBy")
   leaveApprovalsDecided   LeaveRequestApproval[]    @relation("LeaveApprovalDecidedBy")
+  attendanceSettingsUpdated AttendanceSettings[]    @relation("AttendanceSettingsUpdatedBy")
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 }
@@ -127,6 +128,8 @@ model Employee {
   dutyAssignments DutyScheduleAssignment[]
   leaveAllocations EmployeeLeaveAllocation[]
   leaveRequests    LeaveRequest[]
+  attendances         Attendance[]
+  attendanceMethods   EmployeeAttendanceMethod[]
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 }
@@ -210,7 +213,7 @@ model DutyScheduleAssignment {
   departmentId   Int
   department     Department   @relation(fields: [departmentId], references: [id])
   date           DateTime
-  status         String       @default("Scheduled") // "Scheduled" | "Cancelled"
+  status         String       @default("Scheduled") // "Scheduled" | "CheckedIn" | "Completed" | "OnLeave" | "Incomplete" | "Cancelled"
   comment        String?
   isLeave        Boolean      @default(false)
   isHoliday      Boolean      @default(false)
@@ -220,6 +223,7 @@ model DutyScheduleAssignment {
   createdBy      User         @relation("AssignmentCreatedBy", fields: [createdById], references: [id])
   updatedById    Int?
   updatedBy      User?        @relation("AssignmentUpdatedBy", fields: [updatedById], references: [id])
+  attendance     Attendance?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
@@ -227,6 +231,60 @@ model DutyScheduleAssignment {
   @@index([rosterId])
   @@index([departmentId, date])
   @@index([dutyScheduleId])
+}
+
+model AttendanceSettings {
+  id                  Int      @id @default(autoincrement())
+  pressAndHoldEnabled Boolean  @default(true)
+  updatedById         Int?
+  updatedBy           User?    @relation("AttendanceSettingsUpdatedBy", fields: [updatedById], references: [id])
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model EmployeeAttendanceMethod {
+  id         Int      @id @default(autoincrement())
+  employeeId Int
+  employee   Employee @relation(fields: [employeeId], references: [id])
+  method     String // "PressAndHold"
+  createdAt  DateTime @default(now())
+
+  @@unique([employeeId, method])
+  @@index([employeeId])
+}
+
+model Attendance {
+  id                       Int                    @id @default(autoincrement())
+  employeeId               Int
+  employee                 Employee               @relation(fields: [employeeId], references: [id])
+  dutyScheduleAssignmentId Int                     @unique
+  dutyScheduleAssignment   DutyScheduleAssignment  @relation(fields: [dutyScheduleAssignmentId], references: [id])
+  date                     DateTime
+  checkInAt                DateTime?
+  checkInMethod            String?
+  isLate                   Boolean                @default(false)
+  lateReason               String?
+  checkOutAt               DateTime?
+  checkOutMethod           String?
+  isEarlyCheckout          Boolean                @default(false)
+  earlyCheckoutReason      String?
+  breaks                   BreakLog[]
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime               @updatedAt
+
+  @@index([employeeId, date])
+}
+
+model BreakLog {
+  id           Int        @id @default(autoincrement())
+  attendanceId Int
+  attendance   Attendance @relation(fields: [attendanceId], references: [id])
+  startAt      DateTime
+  endAt        DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([attendanceId])
 }
 
 model PasswordResetToken {

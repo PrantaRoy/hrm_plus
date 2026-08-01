@@ -7,6 +7,7 @@ import { listEmployees } from "../api/employees";
 import { listDepartments } from "../api/departments";
 import { getMySchedule } from "../api/rosters";
 import { useAuth } from "../auth/AuthContext";
+import { AttendanceWidget } from "../components/attendance/AttendanceWidget";
 
 function toDateInput(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -54,6 +55,8 @@ export default function Dashboard() {
         title={`Welcome back, ${user?.firstName ?? ""}`}
         description="Here's what's happening across your organisation."
       />
+
+      <AttendanceWidget />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard label="Total employees" value={employees.length} icon={Users} />
@@ -108,11 +111,14 @@ export default function Dashboard() {
                 <span className="font-medium text-slate-900">
                   {assignment.isWeekend
                     ? "Weekly Off"
-                    : assignment.isLeave
+                    : assignment.isLeave || assignment.status === "OnLeave"
                       ? "Leave"
                       : assignment.isHoliday
                         ? "Holiday"
                         : (assignment.dutyScheduleName ?? "—")}
+                  {assignment.status === "CheckedIn" && " · Checked In"}
+                  {assignment.status === "Completed" && " · Completed"}
+                  {assignment.status === "Incomplete" && " · Incomplete"}
                 </span>
               </div>
             ))}

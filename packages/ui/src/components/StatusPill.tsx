@@ -27,11 +27,17 @@ const statusColor: Record<KnownStatus, BadgeColor> = {
   Cancelled: "red",
 };
 
+const statusLabel: Partial<Record<KnownStatus, string>> = {
+  OnLeave: "Leave",
+  CheckedIn: "Checked In",
+};
+
 export interface StatusPillProps {
   status: string;
 }
 
 export function StatusPill({ status }: StatusPillProps) {
   const color = statusColor[status as KnownStatus] ?? "slate";
-  return <Badge color={color}>{status}</Badge>;
+  const label = statusLabel[status as KnownStatus] ?? status;
+  return <Badge color={color}>{label}</Badge>;
 }

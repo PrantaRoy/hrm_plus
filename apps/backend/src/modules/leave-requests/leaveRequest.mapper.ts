@@ -3,7 +3,7 @@ import { LeaveRequestDto } from "@hrm-plus/shared";
 
 const requestWithRelations = Prisma.validator<Prisma.LeaveRequestDefaultArgs>()({
   include: {
-    employee: true,
+    employee: { include: { department: true } },
     allocation: { include: { leaveType: true } },
     approvals: {
       include: { decidedBy: { include: { employee: true } } },
@@ -28,6 +28,8 @@ export function toLeaveRequestDto(request: LeaveRequestWithRelations): LeaveRequ
     id: request.id,
     employeeId: request.employeeId,
     employeeName: `${request.employee.firstName} ${request.employee.lastName}`,
+    departmentId: request.employee.departmentId,
+    departmentName: request.employee.department?.name ?? null,
     allocationId: request.allocationId,
     leaveTypeId: request.allocation.leaveTypeId,
     leaveTypeName: request.allocation.leaveType.name,

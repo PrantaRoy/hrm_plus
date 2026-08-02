@@ -118,6 +118,10 @@ export interface ListLeaveRequestsOptions {
   pageSize: number;
   status?: string;
   employeeId?: number;
+  departmentId?: number;
+  leaveTypeId?: number;
+  startDate?: string;
+  endDate?: string;
 }
 
 export async function listLeaveRequests(
@@ -127,6 +131,11 @@ export async function listLeaveRequests(
   const where: Prisma.LeaveRequestWhereInput = {
     ...(options.status ? { status: options.status } : {}),
     ...(options.employeeId ? { employeeId: options.employeeId } : {}),
+    ...(options.departmentId ? { employee: { departmentId: options.departmentId } } : {}),
+    ...(options.leaveTypeId ? { allocation: { leaveTypeId: options.leaveTypeId } } : {}),
+    // Overlap check: any request whose range touches the requested window.
+    ...(options.startDate ? { endDate: { gte: new Date(options.startDate) } } : {}),
+    ...(options.endDate ? { startDate: { lte: new Date(options.endDate) } } : {}),
   };
 
   const [items, total] = await Promise.all([

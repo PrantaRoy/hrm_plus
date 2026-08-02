@@ -9,6 +9,8 @@ const TABS = [
   { to: "/settings/designations", label: "Designations" },
   { to: "/settings/roles", label: "Roles" },
   { to: "/settings/attendance", label: "Attendance" },
+  { to: "/settings/attendance-ip-rules", label: "IP Rules" },
+  { to: "/settings/attendance-locations", label: "Locations" },
 ];
 
 export default function SettingsLayout() {

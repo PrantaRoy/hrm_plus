@@ -10,10 +10,18 @@ import {
   SetEmployeeAttendanceMethodsInput,
   TodayAttendanceDto,
   UpdateAttendanceSettingsInput,
+  WorksheetQuery,
+  WorksheetRowDto,
 } from "@hrm-plus/shared";
 import { ApiError } from "../../utils/ApiError";
 import { toAssignmentDto } from "../rosters/assignment.mapper";
-import { toAttendanceDto, toAttendanceSettingsDto, toListAttendanceItemDto } from "./attendance.mapper";
+import {
+  toAttendanceDto,
+  toAttendanceSettingsDto,
+  toListAttendanceItemDto,
+  totalBreakMinutes,
+} from "./attendance.mapper";
+import { enforceAttendanceRestrictions } from "./attendanceRestrictions.service";
 
 const assignmentWithAttendance = Prisma.validator<Prisma.DutyScheduleAssignmentDefaultArgs>()({
   include: {
@@ -124,7 +132,16 @@ export async function setEmployeeMethods(
   return getEmployeeMethods(prisma, employeeId);
 }
 
-function buildTodayDto(assignment: AssignmentWithAttendance | null, availableMethods: AttendanceMethod[]): TodayAttendanceDto {
+interface RestrictionFlags {
+  requiresLocationBinding: boolean;
+  requiresIpBinding: boolean;
+}
+
+function buildTodayDto(
+  assignment: AssignmentWithAttendance | null,
+  availableMethods: AttendanceMethod[],
+  restrictionFlags: RestrictionFlags
+): TodayAttendanceDto {
   if (!assignment) {
     return {
       assignment: null,
@@ -140,6 +157,8 @@ function buildTodayDto(assignment: AssignmentWithAttendance | null, availableMet
       canCheckOut: false,
       canStartBreak: false,
       canEndBreak: false,
+      canResumeAfterCheckout: false,
+      ...restrictionFlags,
       blockedReason: "No duty schedule assigned for today",
     };
   }
@@ -159,6 +178,12 @@ function buildTodayDto(assignment: AssignmentWithAttendance | null, availableMet
   const canStartBreak = !!attendance?.checkInAt && !attendance?.checkOutAt && !openBreak;
   const canEndBreak = !!openBreak;
 
+  let canResumeAfterCheckout = false;
+  if (!blockedReason && attendance?.checkOutAt && assignment.dutySchedule) {
+    const scheduledEnd = combineDateAndTimeUTC(assignment.date, assignment.dutySchedule.endTime);
+    canResumeAfterCheckout = new Date() < scheduledEnd && availableMethods.length > 0;
+  }
+
   return {
     assignment: toAssignmentDto(assignment),
     dutyScheduleName: assignment.dutySchedule?.name ?? null,
@@ -173,22 +198,37 @@ function buildTodayDto(assignment: AssignmentWithAttendance | null, availableMet
     canCheckOut,
     canStartBreak,
     canEndBreak,
+    canResumeAfterCheckout,
+    ...restrictionFlags,
     blockedReason,
+  };
+}
+
+async function getRestrictionFlags(prisma: PrismaClient, employeeId: number): Promise<RestrictionFlags> {
+  const rules = await prisma.employeeAttendanceRules.findUnique({ where: { employeeId } });
+  return {
+    requiresLocationBinding: rules?.locationBindingEnabled ?? false,
+    requiresIpBinding: rules?.ipBindingEnabled ?? false,
   };
 }
 
 export async function getTodayForEmployee(prisma: PrismaClient, employeeId: number): Promise<TodayAttendanceDto> {
   await markIncompleteAssignments(prisma, { employeeId, lookbackDays: 14 });
 
-  const [assignment, availableMethods] = await Promise.all([
+  const [assignment, availableMethods, restrictionFlags] = await Promise.all([
     findTodayAssignment(prisma, employeeId),
     getAvailableMethods(prisma, employeeId),
+    getRestrictionFlags(prisma, employeeId),
   ]);
 
-  return buildTodayDto(assignment, availableMethods);
+  return buildTodayDto(assignment, availableMethods, restrictionFlags);
 }
 
-export async function checkIn(prisma: PrismaClient, employeeId: number, input: CheckInInput): Promise<TodayAttendanceDto> {
+export interface CheckInServiceInput extends CheckInInput {
+  clientIp: string | null;
+}
+
+export async function checkIn(prisma: PrismaClient, employeeId: number, input: CheckInServiceInput): Promise<TodayAttendanceDto> {
   const assignment = await findTodayAssignment(prisma, employeeId);
   if (!assignment) throw ApiError.badRequest("No duty schedule assigned for today");
   if (assignment.status === "Cancelled") throw ApiError.badRequest("This day's assignment has been cancelled");
@@ -200,14 +240,52 @@ export async function checkIn(prisma: PrismaClient, employeeId: number, input: C
   if (!assignment.dutySchedule) {
     throw ApiError.badRequest("No duty schedule time configured for today's assignment");
   }
-  if (assignment.attendance?.checkInAt) {
+
+  const existingAttendance = assignment.attendance;
+  const isResume = !!existingAttendance?.checkInAt && !!existingAttendance?.checkOutAt;
+  if (existingAttendance?.checkInAt && !existingAttendance.checkOutAt) {
     throw ApiError.conflict("Already checked in today");
   }
 
   await assertMethodAllowed(prisma, employeeId, input.method);
+  await enforceAttendanceRestrictions(prisma, employeeId, {
+    ip: input.clientIp,
+    deviceToken: input.deviceToken,
+    latitude: input.latitude,
+    longitude: input.longitude,
+  });
 
   const now = new Date();
   const scheduledStart = combineDateAndTimeUTC(assignment.date, assignment.dutySchedule.startTime);
+
+  if (isResume) {
+    // Correcting an accidental checkout: resume is allowed any number of times as
+    // long as the shift isn't over yet. The checkout→checkin gap is logged as an
+    // automatic break; the day's original checkInAt/isLate/lateReason are untouched.
+    const scheduledEnd = combineDateAndTimeUTC(assignment.date, assignment.dutySchedule.endTime);
+    if (now > scheduledEnd) {
+      throw ApiError.badRequest("Cannot check in again — today's shift has ended");
+    }
+
+    await prisma.$transaction([
+      prisma.breakLog.create({
+        data: {
+          attendanceId: existingAttendance!.id,
+          startAt: existingAttendance!.checkOutAt!,
+          endAt: now,
+          isAutomatic: true,
+        },
+      }),
+      prisma.attendance.update({
+        where: { id: existingAttendance!.id },
+        data: { checkOutAt: null, checkOutMethod: null, isEarlyCheckout: false, earlyCheckoutReason: null },
+      }),
+      prisma.dutyScheduleAssignment.update({ where: { id: assignment.id }, data: { status: "CheckedIn" } }),
+    ]);
+
+    return getTodayForEmployee(prisma, employeeId);
+  }
+
   const earliestAllowed = addMinutes(scheduledStart, -assignment.dutySchedule.earlyCheckinBufferMinutes);
   if (now < earliestAllowed) {
     throw ApiError.badRequest("Too early to check in for today's duty");
@@ -245,7 +323,11 @@ export async function checkIn(prisma: PrismaClient, employeeId: number, input: C
   return getTodayForEmployee(prisma, employeeId);
 }
 
-export async function checkOut(prisma: PrismaClient, employeeId: number, input: CheckOutInput): Promise<TodayAttendanceDto> {
+export interface CheckOutServiceInput extends CheckOutInput {
+  clientIp: string | null;
+}
+
+export async function checkOut(prisma: PrismaClient, employeeId: number, input: CheckOutServiceInput): Promise<TodayAttendanceDto> {
   const assignment = await findTodayAssignment(prisma, employeeId);
   if (!assignment || !assignment.dutySchedule) {
     throw ApiError.badRequest("No duty schedule assigned for today");
@@ -263,6 +345,12 @@ export async function checkOut(prisma: PrismaClient, employeeId: number, input: 
   }
 
   await assertMethodAllowed(prisma, employeeId, input.method);
+  await enforceAttendanceRestrictions(prisma, employeeId, {
+    ip: input.clientIp,
+    deviceToken: input.deviceToken,
+    latitude: input.latitude,
+    longitude: input.longitude,
+  });
 
   const now = new Date();
   const scheduledEnd = combineDateAndTimeUTC(assignment.date, assignment.dutySchedule.endTime);
@@ -386,6 +474,7 @@ export async function listAttendance(prisma: PrismaClient, query: ListAttendance
   const where: Prisma.DutyScheduleAssignmentWhereInput = {
     ...(query.employeeId ? { employeeId: query.employeeId } : {}),
     ...(query.departmentId ? { departmentId: query.departmentId } : {}),
+    ...(query.dutyScheduleId ? { dutyScheduleId: query.dutyScheduleId } : {}),
     ...(query.startDate || query.endDate
       ? {
           date: {
@@ -403,4 +492,55 @@ export async function listAttendance(prisma: PrismaClient, query: ListAttendance
   });
 
   return assignments.map(toListAttendanceItemDto);
+}
+
+export async function getWorksheet(prisma: PrismaClient, query: WorksheetQuery): Promise<WorksheetRowDto[]> {
+  await markIncompleteAssignments(prisma, {
+    employeeId: query.employeeId,
+    departmentId: query.departmentId,
+    startDate: new Date(query.startDate),
+    endDate: new Date(query.endDate),
+  });
+
+  const where: Prisma.DutyScheduleAssignmentWhereInput = {
+    ...(query.employeeId ? { employeeId: query.employeeId } : {}),
+    ...(query.departmentId ? { departmentId: query.departmentId } : {}),
+    date: { gte: new Date(query.startDate), lte: new Date(query.endDate) },
+  };
+
+  const assignments = await prisma.dutyScheduleAssignment.findMany({
+    where,
+    include: { employee: { include: { department: true } }, attendance: { include: { breaks: true } } },
+    orderBy: [{ employeeId: "asc" }, { date: "asc" }],
+  });
+
+  const rowsByEmployee = new Map<number, WorksheetRowDto>();
+  for (const assignment of assignments) {
+    const attendance = assignment.attendance;
+    if (!attendance?.checkInAt || !attendance.checkOutAt) continue;
+
+    const grossMinutes = Math.round((attendance.checkOutAt.getTime() - attendance.checkInAt.getTime()) / 60000);
+    const breakMinutes = totalBreakMinutes(attendance.breaks);
+
+    const existing = rowsByEmployee.get(assignment.employeeId);
+    if (existing) {
+      existing.daysPresent += 1;
+      existing.totalMinutes += grossMinutes;
+      existing.totalBreakMinutes += breakMinutes;
+      existing.workingMinutes += grossMinutes - breakMinutes;
+    } else {
+      rowsByEmployee.set(assignment.employeeId, {
+        employeeId: assignment.employeeId,
+        employeeName: `${assignment.employee.firstName} ${assignment.employee.lastName}`,
+        employeeCode: assignment.employee.employeeCode,
+        departmentName: assignment.employee.department?.name ?? null,
+        daysPresent: 1,
+        totalMinutes: grossMinutes,
+        totalBreakMinutes: breakMinutes,
+        workingMinutes: grossMinutes - breakMinutes,
+      });
+    }
+  }
+
+  return Array.from(rowsByEmployee.values()).sort((a, b) => a.employeeName.localeCompare(b.employeeName));
 }

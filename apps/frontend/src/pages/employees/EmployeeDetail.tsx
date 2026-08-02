@@ -18,6 +18,7 @@ import { resolveFileUrl } from "../../utils/fileUrl";
 import { EmployeeDocumentsPanel } from "./EmployeeDocumentsPanel";
 import { EmployeeLeaveAllocationsPanel } from "./EmployeeLeaveAllocationsPanel";
 import { EmployeeAttendanceMethodsPanel } from "./EmployeeAttendanceMethodsPanel";
+import { EmployeeAttendanceRestrictionsPanel } from "./EmployeeAttendanceRestrictionsPanel";
 import { DutyScheduleMonthCalendar } from "../../components/DutyScheduleMonthCalendar";
 
 export default function EmployeeDetail() {
@@ -340,6 +341,8 @@ export default function EmployeeDetail() {
           <EmployeeLeaveAllocationsPanel employeeId={employee.id} />
 
           <EmployeeAttendanceMethodsPanel employeeId={employee.id} />
+
+          <EmployeeAttendanceRestrictionsPanel employeeId={employee.id} />
         </div>
 
         <div className="lg:col-span-1">

@@ -8,7 +8,7 @@ const envSchema = z.object({
   TENANT_DB_USER: z.string().min(1),
   TENANT_DB_PASSWORD: z.string().default(""),
   JWT_ACCESS_SECRET: z.string().min(1),
-  JWT_ACCESS_TTL: z.string().default("15m"),
+  JWT_ACCESS_TTL: z.string().default("30m"),
   JWT_REFRESH_SECRET: z.string().min(1),
   JWT_REFRESH_TTL: z.string().default("7d"),
   JWT_SAAS_ACCESS_SECRET: z.string().min(1),

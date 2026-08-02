@@ -21,4 +21,8 @@ export const listLeaveRequestsQuerySchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(100).default(10),
   status: z.enum(LEAVE_REQUEST_STATUSES).optional(),
   employeeId: z.coerce.number().int().optional(),
+  departmentId: z.coerce.number().int().optional(),
+  leaveTypeId: z.coerce.number().int().optional(),
+  startDate: z.string().min(1).optional(),
+  endDate: z.string().min(1).optional(),
 });

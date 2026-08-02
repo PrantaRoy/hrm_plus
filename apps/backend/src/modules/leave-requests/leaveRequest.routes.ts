@@ -19,7 +19,7 @@ leaveRequestRouter.use(requireAuth);
 leaveRequestRouter.get("/my", listMyLeaveRequestsHandler);
 leaveRequestRouter.get("/my-allocations", listMyAllocationsHandler);
 leaveRequestRouter.get("/pending-my-approval", listPendingMyApprovalHandler);
-leaveRequestRouter.get("/", requireRole("Admin", "HR"), listLeaveRequestsHandler);
+leaveRequestRouter.get("/", requireRole("Admin", "HR", "Manager"), listLeaveRequestsHandler);
 leaveRequestRouter.get("/:id", getLeaveRequestHandler);
 leaveRequestRouter.post("/", createLeaveRequestHandler);
 leaveRequestRouter.post("/:id/approve", approveLeaveRequestHandler);

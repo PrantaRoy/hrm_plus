@@ -1,5 +1,12 @@
 import { Prisma } from "../../../generated/tenant";
-import { AttendanceDto, AttendanceMethod, AttendanceSettingsDto, ListAttendanceItemDto } from "@hrm-plus/shared";
+import {
+  AttendanceDto,
+  AttendanceMethod,
+  AttendanceSettingsDto,
+  EmployeeAttendanceDeviceDto,
+  EmployeeAttendanceRulesDto,
+  ListAttendanceItemDto,
+} from "@hrm-plus/shared";
 
 const attendanceWithBreaks = Prisma.validator<Prisma.AttendanceDefaultArgs>()({
   include: { breaks: true },
@@ -44,6 +51,46 @@ export function toAttendanceSettingsDto(settings: {
     pressAndHoldEnabled: settings.pressAndHoldEnabled,
     updatedById: settings.updatedById,
     updatedAt: settings.updatedAt.toISOString(),
+  };
+}
+
+export function toEmployeeAttendanceRulesDto(
+  employeeId: number,
+  rules: { ipBindingEnabled: boolean; locationBindingEnabled: boolean; deviceBindingEnabled: boolean } | null,
+  ipRuleIds: number[],
+  locationIds: number[]
+): EmployeeAttendanceRulesDto {
+  return {
+    employeeId,
+    ipBindingEnabled: rules?.ipBindingEnabled ?? false,
+    locationBindingEnabled: rules?.locationBindingEnabled ?? false,
+    deviceBindingEnabled: rules?.deviceBindingEnabled ?? false,
+    ipRuleIds,
+    locationIds,
+  };
+}
+
+export function toEmployeeAttendanceDeviceDto(device: {
+  id: number;
+  employeeId: number;
+  deviceToken: string;
+  label: string | null;
+  status: string;
+  lastSeenAt: Date | null;
+  lastSeenIp: string | null;
+  requestedAt: Date;
+  approvedAt: Date | null;
+}): EmployeeAttendanceDeviceDto {
+  return {
+    id: device.id,
+    employeeId: device.employeeId,
+    deviceToken: device.deviceToken,
+    label: device.label,
+    status: device.status as EmployeeAttendanceDeviceDto["status"],
+    lastSeenAt: device.lastSeenAt?.toISOString() ?? null,
+    lastSeenIp: device.lastSeenIp,
+    requestedAt: device.requestedAt.toISOString(),
+    approvedAt: device.approvedAt?.toISOString() ?? null,
   };
 }
 

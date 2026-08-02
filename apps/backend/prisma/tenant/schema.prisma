@@ -42,6 +42,7 @@ model User {
   leaveRequestsUpdated    LeaveRequest[]            @relation("LeaveRequestUpdatedBy")
   leaveApprovalsDecided   LeaveRequestApproval[]    @relation("LeaveApprovalDecidedBy")
   attendanceSettingsUpdated AttendanceSettings[]    @relation("AttendanceSettingsUpdatedBy")
+  attendanceDevicesApproved EmployeeAttendanceDevice[] @relation("AttendanceDeviceApprovedBy")
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 }
@@ -130,6 +131,10 @@ model Employee {
   leaveRequests    LeaveRequest[]
   attendances         Attendance[]
   attendanceMethods   EmployeeAttendanceMethod[]
+  attendanceIpRules     EmployeeAttendanceIpRule[]
+  attendanceLocations   EmployeeAttendanceLocation[]
+  attendanceDevices     EmployeeAttendanceDevice[]
+  attendanceRules       EmployeeAttendanceRules?
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 }
@@ -281,10 +286,85 @@ model BreakLog {
   attendance   Attendance @relation(fields: [attendanceId], references: [id])
   startAt      DateTime
   endAt        DateTime?
+  isAutomatic  Boolean    @default(false)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
   @@index([attendanceId])
+}
+
+model AttendanceIpRule {
+  id            Int      @id @default(autoincrement())
+  label         String
+  cidr          String
+  status        String   @default("Active")
+  employeeRules EmployeeAttendanceIpRule[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model AttendanceLocation {
+  id            Int      @id @default(autoincrement())
+  name          String
+  latitude      Float
+  longitude     Float
+  radiusMeters  Int
+  status        String   @default("Active")
+  employeeRules EmployeeAttendanceLocation[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model EmployeeAttendanceIpRule {
+  id         Int              @id @default(autoincrement())
+  employeeId Int
+  employee   Employee         @relation(fields: [employeeId], references: [id])
+  ipRuleId   Int
+  ipRule     AttendanceIpRule @relation(fields: [ipRuleId], references: [id])
+  createdAt  DateTime         @default(now())
+
+  @@unique([employeeId, ipRuleId])
+  @@index([employeeId])
+}
+
+model EmployeeAttendanceLocation {
+  id         Int                @id @default(autoincrement())
+  employeeId Int
+  employee   Employee           @relation(fields: [employeeId], references: [id])
+  locationId Int
+  location   AttendanceLocation @relation(fields: [locationId], references: [id])
+  createdAt  DateTime           @default(now())
+
+  @@unique([employeeId, locationId])
+  @@index([employeeId])
+}
+
+model EmployeeAttendanceDevice {
+  id           Int       @id @default(autoincrement())
+  employeeId   Int
+  employee     Employee  @relation(fields: [employeeId], references: [id])
+  deviceToken  String    @unique
+  label        String?
+  status       String    @default("Pending") // "Pending" | "Approved" | "Rejected"
+  lastSeenAt   DateTime?
+  lastSeenIp   String?
+  requestedAt  DateTime  @default(now())
+  approvedAt   DateTime?
+  approvedById Int?
+  approvedBy   User?     @relation("AttendanceDeviceApprovedBy", fields: [approvedById], references: [id])
+
+  @@index([employeeId])
+}
+
+model EmployeeAttendanceRules {
+  id                     Int      @id @default(autoincrement())
+  employeeId             Int      @unique
+  employee               Employee @relation(fields: [employeeId], references: [id])
+  ipBindingEnabled       Boolean  @default(false)
+  locationBindingEnabled Boolean  @default(false)
+  deviceBindingEnabled   Boolean  @default(false)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 }
 
 model PasswordResetToken {

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Card, Textarea, cn } from "@hrm-plus/ui";
-import { TodayAttendanceDto } from "@hrm-plus/shared";
+import { CheckInInput, TodayAttendanceDto } from "@hrm-plus/shared";
 import { checkIn, checkOut, endBreak, getTodayAttendance, startBreak } from "../../api/attendance";
 import { useAuth } from "../../auth/AuthContext";
 import { useLongPress } from "../../hooks/useLongPress";
+import { getDeviceToken } from "../../utils/deviceToken";
 
 const HOLD_MS = 2000;
 const METHOD = "PressAndHold" as const;
@@ -38,11 +39,11 @@ interface HoldButtonProps {
   onComplete: () => void;
   disabled?: boolean;
   tone: "brand" | "slate";
+  size?: number;
 }
 
-function HoldButton({ label, subLabel, onComplete, disabled, tone }: HoldButtonProps) {
+function HoldButton({ label, subLabel, onComplete, disabled, tone, size = 132 }: HoldButtonProps) {
   const { progress, isPressing, handlers } = useLongPress(onComplete, { thresholdMs: HOLD_MS, disabled });
-  const size = 132;
   const strokeWidth = 6;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -94,6 +95,11 @@ export function AttendanceWidget() {
   const [earlyReason, setEarlyReason] = useState("");
   const [busy, setBusy] = useState(false);
 
+  const [deviceToken] = useState(() => getDeviceToken());
+  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
   function refresh() {
     setLoading(true);
     getTodayAttendance()
@@ -109,6 +115,29 @@ export function AttendanceWidget() {
     const timer = window.setTimeout(() => setBanner(null), 5000);
     return () => window.clearTimeout(timer);
   }, [banner]);
+
+  // Only prompt for real GPS access when this employee actually has location
+  // binding enabled — most staff never see a permission prompt at all.
+  useEffect(() => {
+    if (!today?.requiresLocationBinding || coords || locating) return;
+    if (!navigator.geolocation) {
+      setLocationError("Location access is not available in this browser");
+      return;
+    }
+    setLocating(true);
+    setLocationError(null);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setCoords({ latitude: position.coords.latitude, longitude: position.coords.longitude });
+        setLocating(false);
+      },
+      (geoError) => {
+        setLocationError(geoError.message || "Could not get your current location");
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }, [today?.requiresLocationBinding, coords, locating]);
 
   if (loading) {
     return (
@@ -137,11 +166,14 @@ export function AttendanceWidget() {
     today.checkoutConsiderMinutes !== null &&
     nowMinutes < endMinutes - today.checkoutConsiderMinutes;
 
-  async function handleCheckIn() {
+  const locationBlocked = today.requiresLocationBinding && !coords;
+  const geoFields = coords ? { latitude: coords.latitude, longitude: coords.longitude } : {};
+
+  async function submitCheckIn(extra: Partial<CheckInInput> = {}) {
     setBusy(true);
     setError(null);
     try {
-      const result = await checkIn({ method: METHOD, reason: lateReason.trim() || undefined });
+      const result = await checkIn({ method: METHOD, deviceToken, ...geoFields, ...extra });
       setToday(result);
       setLateReason("");
       const lateNote = result.attendance?.isLate ? " You're marked late for today." : "";
@@ -157,11 +189,24 @@ export function AttendanceWidget() {
     }
   }
 
+  async function handleCheckIn() {
+    await submitCheckIn({ reason: lateReason.trim() || undefined });
+  }
+
+  async function handleResume() {
+    await submitCheckIn();
+  }
+
   async function handleCheckOut() {
     setBusy(true);
     setError(null);
     try {
-      const result = await checkOut({ method: METHOD, reason: earlyReason.trim() || undefined });
+      const result = await checkOut({
+        method: METHOD,
+        reason: earlyReason.trim() || undefined,
+        deviceToken,
+        ...geoFields,
+      });
       setToday(result);
       setEarlyReason("");
       setBanner(
@@ -206,6 +251,18 @@ export function AttendanceWidget() {
           </div>
         )}
 
+        {today.requiresIpBinding && (
+          <p className="text-xs text-slate-400">Attendance from this account is restricted to approved networks.</p>
+        )}
+        {today.requiresLocationBinding && locating && (
+          <p className="text-xs text-slate-400">Getting your location…</p>
+        )}
+        {today.requiresLocationBinding && locationError && (
+          <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+            {locationError} — location access is required to check in/out.
+          </div>
+        )}
+
         {today.blockedReason && !today.attendance?.checkInAt && (
           <p className="text-sm text-slate-500">{today.blockedReason}</p>
         )}
@@ -234,7 +291,7 @@ export function AttendanceWidget() {
               label="Hold to check in"
               subLabel={`${HOLD_MS / 1000}s`}
               tone="brand"
-              disabled={busy || (isLikelyLate && !lateReason.trim())}
+              disabled={busy || locationBlocked || (isLikelyLate && !lateReason.trim())}
               onComplete={handleCheckIn}
             />
           </div>
@@ -291,7 +348,7 @@ export function AttendanceWidget() {
                   label="Hold to check out"
                   subLabel={`${HOLD_MS / 1000}s`}
                   tone="slate"
-                  disabled={busy || (isLikelyEarlyCheckout && !earlyReason.trim())}
+                  disabled={busy || locationBlocked || (isLikelyEarlyCheckout && !earlyReason.trim())}
                   onComplete={handleCheckOut}
                 />
               </div>
@@ -299,9 +356,9 @@ export function AttendanceWidget() {
           </div>
         )}
 
-        {/* Completed */}
+        {/* Checked out */}
         {today.attendance?.checkOutAt && (
-          <div className="space-y-1 text-sm">
+          <div className="space-y-3 text-sm">
             <div className="flex items-center justify-between">
               <span className="text-slate-500">Checked in</span>
               <span className="font-medium text-slate-900">{formatTime(today.attendance.checkInAt)}</span>
@@ -313,7 +370,24 @@ export function AttendanceWidget() {
                 {today.attendance.isEarlyCheckout && <span className="ml-1 text-amber-600">(early)</span>}
               </span>
             </div>
-            <p className="pt-2 text-center text-xs text-slate-400">You're all done for today.</p>
+
+            {today.canResumeAfterCheckout ? (
+              <div className="flex flex-col items-center gap-2 pt-2">
+                <p className="text-center text-xs text-slate-400">
+                  Checked out by mistake? You can still check in again before your shift ends.
+                </p>
+                <HoldButton
+                  label="Hold to check in again"
+                  subLabel={`${HOLD_MS / 1000}s`}
+                  tone="slate"
+                  size={104}
+                  disabled={busy || locationBlocked}
+                  onComplete={handleResume}
+                />
+              </div>
+            ) : (
+              <p className="pt-2 text-center text-xs text-slate-400">You're all done for today.</p>
+            )}
           </div>
         )}
       </div>

@@ -67,6 +67,8 @@ export interface LeaveRequestDto {
   id: number;
   employeeId: number;
   employeeName: string;
+  departmentId: number | null;
+  departmentName: string | null;
   allocationId: number;
   leaveTypeId: number;
   leaveTypeName: string;
@@ -95,6 +97,10 @@ export interface DecideLeaveRequestInput {
 export interface ListLeaveRequestsQuery {
   status?: LeaveRequestStatus;
   employeeId?: number;
+  departmentId?: number;
+  leaveTypeId?: number;
+  startDate?: string;
+  endDate?: string;
   page?: number;
   pageSize?: number;
 }

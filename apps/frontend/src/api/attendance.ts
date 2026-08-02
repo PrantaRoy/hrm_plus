@@ -2,12 +2,17 @@ import {
   AttendanceSettingsDto,
   CheckInInput,
   CheckOutInput,
+  EmployeeAttendanceDeviceDto,
   EmployeeAttendanceMethodsDto,
+  EmployeeAttendanceRulesDto,
   ListAttendanceItemDto,
   ListAttendanceQuery,
   SetEmployeeAttendanceMethodsInput,
+  SetEmployeeAttendanceRulesInput,
   TodayAttendanceDto,
   UpdateAttendanceSettingsInput,
+  WorksheetQuery,
+  WorksheetRowDto,
 } from "@hrm-plus/shared";
 import { apiClient } from "./client";
 
@@ -46,6 +51,11 @@ export async function listAttendance(query: ListAttendanceQuery): Promise<ListAt
   return res.data;
 }
 
+export async function getWorksheet(query: WorksheetQuery): Promise<WorksheetRowDto[]> {
+  const res = await apiClient.get<WorksheetRowDto[]>("/attendance/worksheet", { params: query });
+  return res.data;
+}
+
 export async function getAttendanceSettings(): Promise<AttendanceSettingsDto> {
   const res = await apiClient.get<AttendanceSettingsDto>("/attendance/settings");
   return res.data;
@@ -66,5 +76,37 @@ export async function setEmployeeAttendanceMethods(
   input: SetEmployeeAttendanceMethodsInput
 ): Promise<EmployeeAttendanceMethodsDto> {
   const res = await apiClient.put<EmployeeAttendanceMethodsDto>(`/attendance/employees/${employeeId}/methods`, input);
+  return res.data;
+}
+
+export async function getEmployeeAttendanceRules(employeeId: number): Promise<EmployeeAttendanceRulesDto> {
+  const res = await apiClient.get<EmployeeAttendanceRulesDto>(`/attendance/employees/${employeeId}/rules`);
+  return res.data;
+}
+
+export async function setEmployeeAttendanceRules(
+  employeeId: number,
+  input: SetEmployeeAttendanceRulesInput
+): Promise<EmployeeAttendanceRulesDto> {
+  const res = await apiClient.put<EmployeeAttendanceRulesDto>(`/attendance/employees/${employeeId}/rules`, input);
+  return res.data;
+}
+
+export async function listEmployeeAttendanceDevices(employeeId: number): Promise<EmployeeAttendanceDeviceDto[]> {
+  const res = await apiClient.get<EmployeeAttendanceDeviceDto[]>(`/attendance/employees/${employeeId}/devices`);
+  return res.data;
+}
+
+export async function approveAttendanceDevice(employeeId: number, deviceId: number): Promise<EmployeeAttendanceDeviceDto> {
+  const res = await apiClient.post<EmployeeAttendanceDeviceDto>(
+    `/attendance/employees/${employeeId}/devices/${deviceId}/approve`
+  );
+  return res.data;
+}
+
+export async function rejectAttendanceDevice(employeeId: number, deviceId: number): Promise<EmployeeAttendanceDeviceDto> {
+  const res = await apiClient.post<EmployeeAttendanceDeviceDto>(
+    `/attendance/employees/${employeeId}/devices/${deviceId}/reject`
+  );
   return res.data;
 }

@@ -1,4 +1,5 @@
 import { AssignmentStatus, DutyScheduleAssignmentDto } from "./roster";
+import { SettingStatus } from "./employee";
 
 export const ATTENDANCE_METHODS = ["PressAndHold"] as const;
 export type AttendanceMethod = (typeof ATTENDANCE_METHODS)[number];
@@ -48,11 +49,17 @@ export interface AttendanceDto {
 export interface CheckInInput {
   method: AttendanceMethod;
   reason?: string;
+  deviceToken?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface CheckOutInput {
   method: AttendanceMethod;
   reason?: string;
+  deviceToken?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface TodayAttendanceDto {
@@ -69,7 +76,76 @@ export interface TodayAttendanceDto {
   canCheckOut: boolean;
   canStartBreak: boolean;
   canEndBreak: boolean;
+  canResumeAfterCheckout: boolean;
+  requiresLocationBinding: boolean;
+  requiresIpBinding: boolean;
   blockedReason: string | null;
+}
+
+export interface AttendanceIpRuleDto {
+  id: number;
+  label: string;
+  cidr: string;
+  status: SettingStatus;
+}
+
+export interface CreateAttendanceIpRuleInput {
+  label: string;
+  cidr: string;
+  status?: SettingStatus;
+}
+
+export type UpdateAttendanceIpRuleInput = Partial<CreateAttendanceIpRuleInput>;
+
+export interface AttendanceLocationDto {
+  id: number;
+  name: string;
+  latitude: number;
+  longitude: number;
+  radiusMeters: number;
+  status: SettingStatus;
+}
+
+export interface CreateAttendanceLocationInput {
+  name: string;
+  latitude: number;
+  longitude: number;
+  radiusMeters: number;
+  status?: SettingStatus;
+}
+
+export type UpdateAttendanceLocationInput = Partial<CreateAttendanceLocationInput>;
+
+export const ATTENDANCE_DEVICE_STATUSES = ["Pending", "Approved", "Rejected"] as const;
+export type AttendanceDeviceStatus = (typeof ATTENDANCE_DEVICE_STATUSES)[number];
+
+export interface EmployeeAttendanceDeviceDto {
+  id: number;
+  employeeId: number;
+  deviceToken: string;
+  label: string | null;
+  status: AttendanceDeviceStatus;
+  lastSeenAt: string | null;
+  lastSeenIp: string | null;
+  requestedAt: string;
+  approvedAt: string | null;
+}
+
+export interface EmployeeAttendanceRulesDto {
+  employeeId: number;
+  ipBindingEnabled: boolean;
+  locationBindingEnabled: boolean;
+  deviceBindingEnabled: boolean;
+  ipRuleIds: number[];
+  locationIds: number[];
+}
+
+export interface SetEmployeeAttendanceRulesInput {
+  ipBindingEnabled: boolean;
+  locationBindingEnabled: boolean;
+  deviceBindingEnabled: boolean;
+  ipRuleIds: number[];
+  locationIds: number[];
 }
 
 export interface ListAttendanceQuery {
@@ -77,6 +153,25 @@ export interface ListAttendanceQuery {
   endDate?: string;
   employeeId?: number;
   departmentId?: number;
+  dutyScheduleId?: number;
+}
+
+export interface WorksheetQuery {
+  startDate: string;
+  endDate: string;
+  employeeId?: number;
+  departmentId?: number;
+}
+
+export interface WorksheetRowDto {
+  employeeId: number;
+  employeeName: string;
+  employeeCode: string | null;
+  departmentName: string | null;
+  daysPresent: number;
+  totalMinutes: number;
+  totalBreakMinutes: number;
+  workingMinutes: number;
 }
 
 export interface ListAttendanceItemDto {

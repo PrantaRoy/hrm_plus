@@ -27,7 +27,14 @@ import DepartmentSettings from "./pages/settings/DepartmentSettings";
 import DesignationSettings from "./pages/settings/DesignationSettings";
 import RoleSettings from "./pages/settings/RoleSettings";
 import AttendanceSettings from "./pages/settings/AttendanceSettings";
-import AttendanceList from "./pages/attendance/AttendanceList";
+import AttendanceIpRuleSettings from "./pages/settings/AttendanceIpRuleSettings";
+import AttendanceLocationList from "./pages/attendance/AttendanceLocationList";
+import AttendanceLocationCreate from "./pages/attendance/AttendanceLocationCreate";
+import AttendanceLocationEdit from "./pages/attendance/AttendanceLocationEdit";
+import RecordsLayout from "./pages/records/RecordsLayout";
+import AttendanceReport from "./pages/records/AttendanceReport";
+import LeaveReport from "./pages/records/LeaveReport";
+import Worksheet from "./pages/records/Worksheet";
 
 export default function App() {
   return (
@@ -80,11 +87,20 @@ export default function App() {
               <Route path="designations" element={<DesignationSettings />} />
               <Route path="roles" element={<RoleSettings />} />
               <Route path="attendance" element={<AttendanceSettings />} />
+              <Route path="attendance-ip-rules" element={<AttendanceIpRuleSettings />} />
+              <Route path="attendance-locations" element={<AttendanceLocationList />} />
+              <Route path="attendance-locations/new" element={<AttendanceLocationCreate />} />
+              <Route path="attendance-locations/:id/edit" element={<AttendanceLocationEdit />} />
             </Route>
           </Route>
 
           <Route element={<RequireAuth roles={["Admin", "HR", "Manager"]} />}>
-            <Route path="/attendance/records" element={<AttendanceList />} />
+            <Route path="/records" element={<RecordsLayout />}>
+              <Route index element={<Navigate to="/records/attendance" replace />} />
+              <Route path="attendance" element={<AttendanceReport />} />
+              <Route path="leave" element={<LeaveReport />} />
+              <Route path="worksheet" element={<Worksheet />} />
+            </Route>
           </Route>
         </Route>
       </Route>

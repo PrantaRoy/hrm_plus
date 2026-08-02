@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { ListAttendanceItemDto } from "@hrm-plus/shared";
+import { DepartmentDto, DutyScheduleDto, EmployeeDto, ListAttendanceItemDto } from "@hrm-plus/shared";
 import {
   EmptyState,
   Field,
   Input,
-  PageHeader,
+  Select,
   Spinner,
   StatusPill,
   Table,
@@ -14,6 +14,9 @@ import {
   TableRow,
 } from "@hrm-plus/ui";
 import { listAttendance } from "../../api/attendance";
+import { listDepartments } from "../../api/departments";
+import { listEmployees } from "../../api/employees";
+import { listDutySchedules } from "../../api/dutySchedules";
 
 function toDateInput(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -24,36 +27,89 @@ function formatTime(iso: string | null): string {
   return new Date(iso).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
 }
 
-export default function AttendanceList() {
+export default function AttendanceReport() {
   const today = new Date();
   const weekAgo = new Date(today);
   weekAgo.setDate(weekAgo.getDate() - 6);
 
   const [startDate, setStartDate] = useState(toDateInput(weekAgo));
   const [endDate, setEndDate] = useState(toDateInput(today));
+  const [departmentId, setDepartmentId] = useState("");
+  const [employeeId, setEmployeeId] = useState("");
+  const [dutyScheduleId, setDutyScheduleId] = useState("");
+
+  const [departments, setDepartments] = useState<DepartmentDto[]>([]);
+  const [employees, setEmployees] = useState<EmployeeDto[]>([]);
+  const [dutySchedules, setDutySchedules] = useState<DutyScheduleDto[]>([]);
   const [items, setItems] = useState<ListAttendanceItemDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    listDepartments().then(setDepartments).catch(() => setDepartments([]));
+    listDutySchedules({ pageSize: 200 }).then((res) => setDutySchedules(res.items)).catch(() => setDutySchedules([]));
+  }, []);
+
+  useEffect(() => {
+    listEmployees({ pageSize: 500, departmentId: departmentId ? Number(departmentId) : undefined })
+      .then((res) => setEmployees(res.items))
+      .catch(() => setEmployees([]));
+    setEmployeeId("");
+  }, [departmentId]);
+
+  useEffect(() => {
     setLoading(true);
     setError(null);
-    listAttendance({ startDate, endDate })
+    listAttendance({
+      startDate,
+      endDate,
+      departmentId: departmentId ? Number(departmentId) : undefined,
+      employeeId: employeeId ? Number(employeeId) : undefined,
+      dutyScheduleId: dutyScheduleId ? Number(dutyScheduleId) : undefined,
+    })
       .then(setItems)
       .catch((err) => setError(err.response?.data?.error?.message ?? "Failed to load attendance records"))
       .finally(() => setLoading(false));
-  }, [startDate, endDate]);
+  }, [startDate, endDate, departmentId, employeeId, dutyScheduleId]);
 
   return (
     <div className="space-y-5">
-      <PageHeader title="Attendance Records" description="Daily check-in/check-out history across your organisation." />
-
       <div className="flex flex-wrap items-end gap-3">
         <Field label="From">
           <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
         </Field>
         <Field label="To">
           <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+        </Field>
+        <Field label="Department">
+          <Select value={departmentId} onChange={(e) => setDepartmentId(e.target.value)}>
+            <option value="">All departments</option>
+            {departments.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        <Field label="Employee">
+          <Select value={employeeId} onChange={(e) => setEmployeeId(e.target.value)}>
+            <option value="">All employees</option>
+            {employees.map((e) => (
+              <option key={e.id} value={e.id}>
+                {e.firstName} {e.lastName}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        <Field label="Duty schedule">
+          <Select value={dutyScheduleId} onChange={(e) => setDutyScheduleId(e.target.value)}>
+            <option value="">All duty schedules</option>
+            {dutySchedules.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+          </Select>
         </Field>
       </div>
 
@@ -87,7 +143,7 @@ export default function AttendanceList() {
           {!loading && items.length === 0 && (
             <tr>
               <td colSpan={8}>
-                <EmptyState title="No attendance records" description="No records found for the selected range." />
+                <EmptyState title="No attendance records" description="No records found for the selected filters." />
               </td>
             </tr>
           )}

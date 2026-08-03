@@ -141,6 +141,16 @@ export type {
 } from "./leave";
 
 export type {
+  DashboardSummaryDto,
+  DashboardTrendsQuery,
+  DashboardTrendPointDto,
+  DashboardLeaveStatusCountDto,
+  DashboardTrendsDto,
+  DashboardCalendarQuery,
+  DashboardCalendarDayDto,
+} from "./dashboard";
+
+export type {
   PackageDto,
   CreatePackageInput,
   UpdatePackageInput,

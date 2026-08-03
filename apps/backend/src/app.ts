@@ -23,6 +23,7 @@ import { leaveRequestRouter } from "./modules/leave-requests/leaveRequest.routes
 import { attendanceRouter } from "./modules/attendance/attendance.routes";
 import { ipRuleRouter } from "./modules/attendance-ip-rules/ipRule.routes";
 import { locationRouter } from "./modules/attendance-locations/location.routes";
+import { dashboardRouter } from "./modules/dashboard/dashboard.routes";
 import { saasAuthRouter } from "./modules/saas/saasAuth/saasAuth.routes";
 import { publicPackageRouter, adminPackageRouter } from "./modules/saas/packages/package.routes";
 import { publicApplicationRouter, adminApplicationRouter } from "./modules/saas/applications/application.routes";
@@ -61,6 +62,7 @@ export function createApp(): Express {
   app.use("/api/attendance", tenantResolver, attendanceRouter);
   app.use("/api/attendance-ip-rules", tenantResolver, ipRuleRouter);
   app.use("/api/attendance-locations", tenantResolver, locationRouter);
+  app.use("/api/dashboard", tenantResolver, dashboardRouter);
 
   // SaaS control-plane API (public landing/signup + super-admin portal)
   app.use("/saas/admin/auth", saasAuthRouter);

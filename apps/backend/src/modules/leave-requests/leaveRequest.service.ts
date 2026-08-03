@@ -8,6 +8,7 @@ import {
 import { ApiError } from "../../utils/ApiError";
 import { requestInclude, toLeaveRequestDto } from "./leaveRequest.mapper";
 import { listAllocationsForEmployee } from "../leave-allocations/leaveAllocation.service";
+import { isWeekendDate, loadWeekendNames } from "../../utils/weekday";
 
 export interface ActingUser {
   id: number;
@@ -19,25 +20,14 @@ interface ApprovalStepLike {
   roleName: string | null;
 }
 
-const JS_WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
 async function countLeaveDays(prisma: PrismaClient, startDate: Date, endDate: Date): Promise<number> {
-  const weekDays = await prisma.weekDay.findMany();
-  const weekendNames = new Set(weekDays.filter((w) => w.isWeekend).map((w) => w.name));
-
-  const isWeekendDate = (date: Date): boolean => {
-    const name = JS_WEEKDAY_NAMES[date.getUTCDay()];
-    if (weekDays.length > 0) {
-      return weekendNames.has(name);
-    }
-    return date.getUTCDay() === 0 || date.getUTCDay() === 6;
-  };
+  const weekendNames = await loadWeekendNames(prisma);
 
   let count = 0;
   const cursor = new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), startDate.getUTCDate()));
   const end = new Date(Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth(), endDate.getUTCDate()));
   while (cursor <= end) {
-    if (!isWeekendDate(cursor)) count += 1;
+    if (!isWeekendDate(weekendNames, cursor)) count += 1;
     cursor.setUTCDate(cursor.getUTCDate() + 1);
   }
   return count;

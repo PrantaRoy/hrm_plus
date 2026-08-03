@@ -16,6 +16,7 @@ import {
   WorksheetRowDto,
 } from "@hrm-plus/shared";
 import { ApiError } from "../../utils/ApiError";
+import { addMinutes, toDateOnlyUTC } from "../../utils/date";
 import { toAssignmentDto } from "../rosters/assignment.mapper";
 import {
   toAttendanceDto,
@@ -34,17 +35,9 @@ const assignmentWithAttendance = Prisma.validator<Prisma.DutyScheduleAssignmentD
 });
 type AssignmentWithAttendance = Prisma.DutyScheduleAssignmentGetPayload<typeof assignmentWithAttendance>;
 
-function toDateOnlyUTC(date: Date): Date {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-}
-
 function combineDateAndTimeUTC(date: Date, hhmm: string): Date {
   const [hours, minutes] = hhmm.split(":").map(Number);
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), hours, minutes, 0, 0));
-}
-
-function addMinutes(date: Date, minutes: number): Date {
-  return new Date(date.getTime() + minutes * 60_000);
 }
 
 async function findAssignmentForDate(

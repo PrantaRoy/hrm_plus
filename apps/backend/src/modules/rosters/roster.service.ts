@@ -11,6 +11,7 @@ import { rosterInclude, toRosterDto } from "./roster.mapper";
 import { toAssignmentDto } from "./assignment.mapper";
 import { DutyScheduleAssignmentDto } from "@hrm-plus/shared";
 import { getPublishedHolidaysInRange } from "../holidays/holiday.service";
+import { isWeekendDate, loadWeekendNames } from "../../utils/weekday";
 
 export interface ListRostersOptions {
   page: number;
@@ -183,8 +184,6 @@ function enumerateDates(startDate: Date, endDate: Date): Date[] {
   return dates;
 }
 
-const JS_WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
 export async function autoGenerateRoster(
   prisma: PrismaClient,
   id: number,
@@ -220,16 +219,7 @@ export async function autoGenerateRoster(
     throw ApiError.badRequest("Create at least one active duty schedule before generating a roster");
   }
 
-  const weekDays = await prisma.weekDay.findMany();
-  const weekendNames = new Set(weekDays.filter((w) => w.isWeekend).map((w) => w.name));
-
-  const isWeekendDate = (date: Date): boolean => {
-    const name = JS_WEEKDAY_NAMES[date.getUTCDay()];
-    if (weekDays.length > 0) {
-      return weekendNames.has(name);
-    }
-    return date.getUTCDay() === 0 || date.getUTCDay() === 6;
-  };
+  const weekendNames = await loadWeekendNames(prisma);
 
   const holidaysByDate = await getPublishedHolidaysInRange(prisma, roster.startDate, roster.endDate);
 
@@ -245,7 +235,7 @@ export async function autoGenerateRoster(
       const employee = employees[e];
       for (let d = 0; d < dates.length; d += 1) {
         const date = dates[d];
-        const weekend = isWeekendDate(date);
+        const weekend = isWeekendDate(weekendNames, date);
         const holiday = holidaysByDate.get(date.toISOString().slice(0, 10));
         try {
           await tx.dutyScheduleAssignment.create({

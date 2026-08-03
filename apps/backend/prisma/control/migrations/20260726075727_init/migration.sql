@@ -45,7 +45,7 @@ CREATE TABLE `Package` (
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- CreateTable
+-- CreateTables for TenantApplication
 CREATE TABLE `TenantApplication` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `companyName` VARCHAR(191) NOT NULL,

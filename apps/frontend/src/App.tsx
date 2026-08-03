@@ -19,6 +19,7 @@ import DutyScheduleEdit from "./pages/duty-schedules/DutyScheduleEdit";
 import RosterList from "./pages/rosters/RosterList";
 import RosterCreate from "./pages/rosters/RosterCreate";
 import RosterCalendar from "./pages/rosters/RosterCalendar";
+import HolidayList from "./pages/holidays/HolidayList";
 import SettingsLayout from "./pages/settings/SettingsLayout";
 import ShiftSettings from "./pages/settings/ShiftSettings";
 import WeekDaySettings from "./pages/settings/WeekDaySettings";
@@ -35,6 +36,7 @@ import RecordsLayout from "./pages/records/RecordsLayout";
 import AttendanceReport from "./pages/records/AttendanceReport";
 import LeaveReport from "./pages/records/LeaveReport";
 import Worksheet from "./pages/records/Worksheet";
+import ManualAttendanceEntry from "./pages/records/ManualAttendanceEntry";
 
 export default function App() {
   return (
@@ -69,6 +71,7 @@ export default function App() {
             <Route path="/duty-schedules" element={<DutyScheduleList />} />
             <Route path="/duty-schedules/new" element={<DutyScheduleCreate />} />
             <Route path="/duty-schedules/:id/edit" element={<DutyScheduleEdit />} />
+            <Route path="/holidays" element={<HolidayList />} />
           </Route>
 
           <Route element={<RequireAuth roles={["Admin", "HR", "Manager"]} />}>
@@ -101,6 +104,10 @@ export default function App() {
               <Route path="leave" element={<LeaveReport />} />
               <Route path="worksheet" element={<Worksheet />} />
             </Route>
+          </Route>
+
+          <Route element={<RequireAuth roles={["Admin", "HR"]} />}>
+            <Route path="/records/attendance/manual" element={<ManualAttendanceEntry />} />
           </Route>
         </Route>
       </Route>

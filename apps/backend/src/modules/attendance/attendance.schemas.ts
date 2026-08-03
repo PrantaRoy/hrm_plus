@@ -49,3 +49,15 @@ export const setEmployeeRulesSchema = z.object({
   ipRuleIds: z.array(z.number().int()),
   locationIds: z.array(z.number().int()),
 });
+
+const timeString = z
+  .string()
+  .trim()
+  .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Time must be in HH:mm 24-hour format");
+
+export const manualAttendanceSchema = z.object({
+  date: z.string().min(1),
+  checkInTime: timeString,
+  checkOutTime: timeString.optional(),
+  note: z.string().trim().max(500).optional(),
+});

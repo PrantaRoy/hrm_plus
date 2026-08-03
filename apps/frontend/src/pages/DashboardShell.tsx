@@ -10,6 +10,7 @@ import {
   ClipboardCheck,
   CheckSquare,
   FileBarChart,
+  PartyPopper,
 } from "lucide-react";
 import { Logo, Sidebar, SidebarNavItem, Topbar } from "@hrm-plus/ui";
 import { useAuth } from "../auth/AuthContext";
@@ -27,6 +28,7 @@ export default function DashboardShell() {
   ];
   if (user?.role === "Admin" || user?.role === "HR") {
     items.push({ key: "duty-schedules", label: "Duty Schedules", to: "/duty-schedules", icon: CalendarClock });
+    items.push({ key: "holidays", label: "Holidays", to: "/holidays", icon: PartyPopper });
   }
   if (user?.role === "Admin" || user?.role === "HR" || user?.role === "Manager") {
     items.push({ key: "rosters", label: "Rosters", to: "/rosters", icon: CalendarDays });

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { DutyScheduleAssignmentDto } from "@hrm-plus/shared";
+import { DutyScheduleAssignmentDto, HolidayDto } from "@hrm-plus/shared";
 import { Button, Card, Spinner } from "@hrm-plus/ui";
 import { getEmployeeSchedule, getMySchedule } from "../api/rosters";
+import { getHolidayCalendar } from "../api/holidays";
 
 function toDateKey(iso: string): string {
   return iso.slice(0, 10);
@@ -20,10 +21,10 @@ function toDateInput(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-function assignmentLabel(assignment: DutyScheduleAssignmentDto): string {
+function assignmentLabel(assignment: DutyScheduleAssignmentDto, holidayName?: string): string {
   if (assignment.isWeekend) return "Weekly Off";
   if (assignment.isLeave) return "Leave";
-  if (assignment.isHoliday) return "Holiday";
+  if (assignment.isHoliday) return holidayName ? `Holiday: ${holidayName}` : "Holiday";
   return assignment.dutyScheduleName ?? "—";
 }
 
@@ -36,6 +37,7 @@ export interface DutyScheduleMonthCalendarProps {
 export function DutyScheduleMonthCalendar({ employeeId, compact }: DutyScheduleMonthCalendarProps) {
   const [monthAnchor, setMonthAnchor] = useState(() => startOfMonth(new Date()));
   const [assignments, setAssignments] = useState<DutyScheduleAssignmentDto[]>([]);
+  const [holidays, setHolidays] = useState<HolidayDto[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,9 +46,14 @@ export function DutyScheduleMonthCalendar({ employeeId, compact }: DutyScheduleM
     const end = endOfMonth(monthAnchor);
     const params = { startDate: toDateInput(start), endDate: toDateInput(end) };
     const request = employeeId ? getEmployeeSchedule(employeeId, params) : getMySchedule(params);
-    request
-      .then(setAssignments)
-      .catch(() => setAssignments([]))
+    Promise.all([
+      request.catch(() => []),
+      getHolidayCalendar(params).catch(() => []),
+    ])
+      .then(([assignmentList, holidayList]) => {
+        setAssignments(assignmentList);
+        setHolidays(holidayList);
+      })
       .finally(() => setLoading(false));
   }, [monthAnchor, employeeId]);
 
@@ -57,6 +64,14 @@ export function DutyScheduleMonthCalendar({ employeeId, compact }: DutyScheduleM
     }
     return map;
   }, [assignments]);
+
+  const holidaysByDate = useMemo(() => {
+    const map = new Map<string, HolidayDto>();
+    for (const holiday of holidays) {
+      map.set(toDateKey(holiday.date), holiday);
+    }
+    return map;
+  }, [holidays]);
 
   const cells = useMemo(() => {
     const first = startOfMonth(monthAnchor);
@@ -115,7 +130,12 @@ export function DutyScheduleMonthCalendar({ employeeId, compact }: DutyScheduleM
           {cells.map((date, idx) => {
             if (!date) return <div key={`blank-${idx}`} />;
             const assignment = assignmentsByDate.get(date);
-            const label = assignment ? assignmentLabel(assignment) : null;
+            const holiday = holidaysByDate.get(date);
+            const label = assignment
+              ? assignmentLabel(assignment, holiday?.name)
+              : holiday
+                ? `Holiday: ${holiday.name}`
+                : null;
             return (
               <div
                 key={date}

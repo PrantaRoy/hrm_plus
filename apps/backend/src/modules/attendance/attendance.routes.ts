@@ -16,6 +16,7 @@ import {
   rejectDeviceHandler,
   setEmployeeMethodsHandler,
   setEmployeeRulesHandler,
+  setManualAttendanceHandler,
   startBreakHandler,
   updateSettingsHandler,
 } from "./attendance.controller";
@@ -35,6 +36,11 @@ attendanceRouter.get("/", requireRole("Admin", "HR", "Manager"), listAttendanceH
 attendanceRouter.get("/worksheet", requireRole("Admin", "HR", "Manager"), getWorksheetHandler);
 attendanceRouter.get("/settings", requireRole("Admin", "HR"), getSettingsHandler);
 attendanceRouter.patch("/settings", requireRole("Admin", "HR"), updateSettingsHandler);
+attendanceRouter.put(
+  "/employees/:employeeId/manual-entry",
+  requireRole("Admin", "HR"),
+  setManualAttendanceHandler
+);
 attendanceRouter.get("/employees/:employeeId/methods", requireRole("Admin", "HR"), getEmployeeMethodsHandler);
 attendanceRouter.put("/employees/:employeeId/methods", requireRole("Admin", "HR"), setEmployeeMethodsHandler);
 attendanceRouter.get("/employees/:employeeId/rules", requireRole("Admin", "HR"), getEmployeeRulesHandler);

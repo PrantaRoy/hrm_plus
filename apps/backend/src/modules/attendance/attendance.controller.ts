@@ -5,6 +5,7 @@ import {
   checkInSchema,
   checkOutSchema,
   listAttendanceQuerySchema,
+  manualAttendanceSchema,
   setEmployeeMethodsSchema,
   setEmployeeRulesSchema,
   updateAttendanceSettingsSchema,
@@ -174,6 +175,17 @@ export const rejectDeviceHandler: RequestHandler = async (req, res, next) => {
     const deviceId = Number(req.params.deviceId);
     if (Number.isNaN(employeeId) || Number.isNaN(deviceId)) throw ApiError.badRequest("Invalid id");
     res.json(await restrictionsService.rejectDevice(req.prisma!, employeeId, deviceId));
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const setManualAttendanceHandler: RequestHandler = async (req, res, next) => {
+  try {
+    const employeeId = Number(req.params.employeeId);
+    if (Number.isNaN(employeeId)) throw ApiError.badRequest("Invalid employee id");
+    const input = manualAttendanceSchema.parse(req.body);
+    res.json(await attendanceService.setManualAttendance(req.prisma!, employeeId, input, req.user!.id));
   } catch (err) {
     next(err);
   }

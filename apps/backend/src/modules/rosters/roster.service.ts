@@ -10,6 +10,7 @@ import { ApiError } from "../../utils/ApiError";
 import { rosterInclude, toRosterDto } from "./roster.mapper";
 import { toAssignmentDto } from "./assignment.mapper";
 import { DutyScheduleAssignmentDto } from "@hrm-plus/shared";
+import { getPublishedHolidaysInRange } from "../holidays/holiday.service";
 
 export interface ListRostersOptions {
   page: number;
@@ -230,6 +231,8 @@ export async function autoGenerateRoster(
     return date.getUTCDay() === 0 || date.getUTCDay() === 6;
   };
 
+  const holidaysByDate = await getPublishedHolidaysInRange(prisma, roster.startDate, roster.endDate);
+
   const dates = enumerateDates(roster.startDate, roster.endDate);
 
   const assignmentsCreated = await prisma.$transaction(async (tx) => {
@@ -243,16 +246,18 @@ export async function autoGenerateRoster(
       for (let d = 0; d < dates.length; d += 1) {
         const date = dates[d];
         const weekend = isWeekendDate(date);
+        const holiday = holidaysByDate.get(date.toISOString().slice(0, 10));
         try {
           await tx.dutyScheduleAssignment.create({
             data: {
               rosterId: id,
               employeeId: employee.id,
-              dutyScheduleId: weekend ? null : dutySchedules[(e + d) % dutySchedules.length].id,
+              dutyScheduleId: weekend || holiday ? null : dutySchedules[(e + d) % dutySchedules.length].id,
               departmentId: roster.departmentId,
               date,
               status: "Scheduled",
               isWeekend: weekend,
+              isHoliday: Boolean(holiday),
               createdById: generatedById,
             },
           });

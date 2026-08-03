@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { Plus } from "lucide-react";
 import { DepartmentDto, DutyScheduleDto, EmployeeDto, ListAttendanceItemDto } from "@hrm-plus/shared";
 import {
+  Badge,
   EmptyState,
   Field,
   Input,
@@ -17,6 +20,7 @@ import { listAttendance } from "../../api/attendance";
 import { listDepartments } from "../../api/departments";
 import { listEmployees } from "../../api/employees";
 import { listDutySchedules } from "../../api/dutySchedules";
+import { useAuth } from "../../auth/AuthContext";
 
 function toDateInput(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -28,6 +32,7 @@ function formatTime(iso: string | null): string {
 }
 
 export default function AttendanceReport() {
+  const { user } = useAuth();
   const today = new Date();
   const weekAgo = new Date(today);
   weekAgo.setDate(weekAgo.getDate() - 6);
@@ -74,6 +79,18 @@ export default function AttendanceReport() {
 
   return (
     <div className="space-y-5">
+      {(user?.role === "Admin" || user?.role === "HR") && (
+        <div className="flex justify-end">
+          <Link
+            to="/records/attendance/manual"
+            className="inline-flex items-center gap-1.5 rounded-md bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700"
+          >
+            <Plus className="h-4 w-4" />
+            Add Manual Entry
+          </Link>
+        </div>
+      )}
+
       <div className="flex flex-wrap items-end gap-3">
         <Field label="From">
           <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
@@ -164,7 +181,10 @@ export default function AttendanceReport() {
                 </TableCell>
                 <TableCell>{item.dutyScheduleName ?? "—"}</TableCell>
                 <TableCell>
-                  <StatusPill status={item.status} />
+                  <div className="flex items-center gap-1.5">
+                    <StatusPill status={item.status} />
+                    {item.isManualEntry && <Badge color="brand">Manual</Badge>}
+                  </div>
                 </TableCell>
                 <TableCell>
                   {formatTime(item.checkInAt)}
@@ -176,7 +196,7 @@ export default function AttendanceReport() {
                 </TableCell>
                 <TableCell>{item.totalBreakMinutes}</TableCell>
                 <TableCell className="max-w-xs truncate text-xs text-slate-500">
-                  {item.lateReason ?? item.earlyCheckoutReason ?? "—"}
+                  {item.manualEntryNote ?? item.lateReason ?? item.earlyCheckoutReason ?? "—"}
                 </TableCell>
               </TableRow>
             ))}

@@ -43,7 +43,16 @@ export interface AttendanceDto {
   checkOutMethod: AttendanceMethod | null;
   isEarlyCheckout: boolean;
   earlyCheckoutReason: string | null;
+  isManualEntry: boolean;
+  manualEntryNote: string | null;
   breaks: BreakLogDto[];
+}
+
+export interface ManualAttendanceInput {
+  date: string;
+  checkInTime: string;
+  checkOutTime?: string;
+  note?: string;
 }
 
 export interface CheckInInput {
@@ -189,4 +198,6 @@ export interface ListAttendanceItemDto {
   isEarlyCheckout: boolean;
   earlyCheckoutReason: string | null;
   totalBreakMinutes: number;
+  isManualEntry: boolean;
+  manualEntryNote: string | null;
 }

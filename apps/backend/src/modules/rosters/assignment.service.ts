@@ -2,6 +2,7 @@ import { PrismaClient, Prisma } from "../../../generated/tenant";
 import { CreateAssignmentInput, DutyScheduleAssignmentDto, UpdateAssignmentInput } from "@hrm-plus/shared";
 import { ApiError } from "../../utils/ApiError";
 import { assignmentInclude, toAssignmentDto } from "./assignment.mapper";
+import { getPublishedHolidayForDate } from "../holidays/holiday.service";
 
 export interface ListAssignmentsOptions {
   startDate?: string;
@@ -74,17 +75,20 @@ export async function createAssignment(
     throw ApiError.badRequest("date must fall within the roster's date range");
   }
 
+  const dutyScheduleId = input.dutyScheduleId ?? null;
+  const holiday = await getPublishedHolidayForDate(prisma, date);
+
   try {
     const assignment = await prisma.dutyScheduleAssignment.create({
       data: {
         rosterId,
         employeeId: input.employeeId,
-        dutyScheduleId: input.dutyScheduleId ?? null,
+        dutyScheduleId,
         departmentId: roster.departmentId,
         date,
         comment: input.comment ?? null,
         isLeave: input.isLeave ?? false,
-        isHoliday: input.isHoliday ?? false,
+        isHoliday: Boolean(holiday) && dutyScheduleId === null,
         createdById,
       },
       include: assignmentInclude,
@@ -119,12 +123,16 @@ export async function updateAssignment(
     await assertEmployeeInDepartment(prisma, input.employeeId, roster.departmentId);
   }
 
+  let resolvedDate = existing.date;
   if (input.date !== undefined) {
-    const date = new Date(input.date);
-    if (date < roster.startDate || date > roster.endDate) {
+    resolvedDate = new Date(input.date);
+    if (resolvedDate < roster.startDate || resolvedDate > roster.endDate) {
       throw ApiError.badRequest("date must fall within the roster's date range");
     }
   }
+
+  const resolvedDutyScheduleId = input.dutyScheduleId !== undefined ? input.dutyScheduleId : existing.dutyScheduleId;
+  const holiday = await getPublishedHolidayForDate(prisma, resolvedDate);
 
   try {
     const assignment = await prisma.dutyScheduleAssignment.update({
@@ -132,11 +140,11 @@ export async function updateAssignment(
       data: {
         employeeId: input.employeeId,
         dutyScheduleId: input.dutyScheduleId,
-        date: input.date ? new Date(input.date) : undefined,
+        date: input.date ? resolvedDate : undefined,
         status: input.status,
         comment: input.comment,
         isLeave: input.isLeave,
-        isHoliday: input.isHoliday,
+        isHoliday: Boolean(holiday) && resolvedDutyScheduleId === null,
         changeRequest: input.changeRequest,
         updatedById,
       },

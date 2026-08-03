@@ -14,6 +14,7 @@ import { departmentRouter } from "./modules/departments/department.routes";
 import { shiftRouter } from "./modules/shifts/shift.routes";
 import { dutyScheduleRouter } from "./modules/duty-schedules/dutySchedule.routes";
 import { rosterRouter } from "./modules/rosters/roster.routes";
+import { holidayRouter } from "./modules/holidays/holiday.routes";
 import { weekDayRouter } from "./modules/weekdays/weekday.routes";
 import { leaveTypeRouter } from "./modules/leave-types/leaveType.routes";
 import { designationRouter } from "./modules/designations/designation.routes";
@@ -51,6 +52,7 @@ export function createApp(): Express {
   app.use("/api/shifts", tenantResolver, shiftRouter);
   app.use("/api/duty-schedules", tenantResolver, dutyScheduleRouter);
   app.use("/api/rosters", tenantResolver, rosterRouter);
+  app.use("/api/holidays", tenantResolver, holidayRouter);
   app.use("/api/weekdays", tenantResolver, weekDayRouter);
   app.use("/api/leave-types", tenantResolver, leaveTypeRouter);
   app.use("/api/designations", tenantResolver, designationRouter);

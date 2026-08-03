@@ -81,7 +81,6 @@ export interface CreateAssignmentInput {
   date: string;
   comment?: string | null;
   isLeave?: boolean;
-  isHoliday?: boolean;
 }
 
 export interface UpdateAssignmentInput {
@@ -91,7 +90,6 @@ export interface UpdateAssignmentInput {
   status?: AssignmentStatus;
   comment?: string | null;
   isLeave?: boolean;
-  isHoliday?: boolean;
   changeRequest?: string | null;
 }
 

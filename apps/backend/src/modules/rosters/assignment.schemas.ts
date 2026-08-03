@@ -13,7 +13,6 @@ export const createAssignmentSchema = z.object({
   date: z.string().min(1),
   comment: z.string().trim().nullable().optional(),
   isLeave: z.boolean().optional(),
-  isHoliday: z.boolean().optional(),
 });
 
 export const updateAssignmentSchema = z.object({
@@ -23,6 +22,5 @@ export const updateAssignmentSchema = z.object({
   status: z.enum(ASSIGNMENT_STATUSES).optional(),
   comment: z.string().trim().nullable().optional(),
   isLeave: z.boolean().optional(),
-  isHoliday: z.boolean().optional(),
   changeRequest: z.string().trim().nullable().optional(),
 });

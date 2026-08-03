@@ -106,7 +106,22 @@ export type {
   SetEmployeeAttendanceRulesInput,
   WorksheetQuery,
   WorksheetRowDto,
+  ManualAttendanceInput,
 } from "./attendance";
+
+export { HOLIDAY_SOURCES, HOLIDAY_STATUSES } from "./holiday";
+export type {
+  HolidaySource,
+  HolidayStatus,
+  HolidayDto,
+  CreateHolidayInput,
+  UpdateHolidayInput,
+  ImportHolidaysInput,
+  ImportHolidaysResult,
+  PublishYearInput,
+  PublishYearResult,
+  ListHolidaysQuery,
+} from "./holiday";
 
 export { APPROVER_TYPES, LEAVE_REQUEST_STATUSES, LEAVE_APPROVAL_STATUSES } from "./leave";
 export type {

@@ -1,5 +1,6 @@
 import { PrismaClient, Prisma } from "../../../generated/tenant";
 import {
+  AttendanceDto,
   AttendanceMethod,
   AttendanceSettingsDto,
   CheckInInput,
@@ -7,6 +8,7 @@ import {
   EmployeeAttendanceMethodsDto,
   ListAttendanceItemDto,
   ListAttendanceQuery,
+  ManualAttendanceInput,
   SetEmployeeAttendanceMethodsInput,
   TodayAttendanceDto,
   UpdateAttendanceSettingsInput,
@@ -45,12 +47,19 @@ function addMinutes(date: Date, minutes: number): Date {
   return new Date(date.getTime() + minutes * 60_000);
 }
 
-async function findTodayAssignment(prisma: PrismaClient, employeeId: number): Promise<AssignmentWithAttendance | null> {
-  const today = toDateOnlyUTC(new Date());
+async function findAssignmentForDate(
+  prisma: PrismaClient,
+  employeeId: number,
+  date: Date
+): Promise<AssignmentWithAttendance | null> {
   return prisma.dutyScheduleAssignment.findUnique({
-    where: { employeeId_date: { employeeId, date: today } },
+    where: { employeeId_date: { employeeId, date: toDateOnlyUTC(date) } },
     include: assignmentWithAttendance.include,
   });
+}
+
+async function findTodayAssignment(prisma: PrismaClient, employeeId: number): Promise<AssignmentWithAttendance | null> {
+  return findAssignmentForDate(prisma, employeeId, new Date());
 }
 
 // AttendanceSettings is a tenant-wide singleton; there is no dedicated "settings"
@@ -375,6 +384,84 @@ export async function checkOut(prisma: PrismaClient, employeeId: number, input: 
   ]);
 
   return getTodayForEmployee(prisma, employeeId);
+}
+
+// Admin/HR override for a missed or incorrect punch. Requires a pre-existing
+// roster/duty-schedule assignment for that employee+date (the roster stays the
+// single source of truth for who's scheduled where); this just records the
+// actual times against it, bypassing method/reason/IP/location/device checks
+// since it's an explicit administrative action, not a self-service one.
+export async function setManualAttendance(
+  prisma: PrismaClient,
+  employeeId: number,
+  input: ManualAttendanceInput,
+  enteredById: number
+): Promise<AttendanceDto> {
+  const assignment = await findAssignmentForDate(prisma, employeeId, new Date(input.date));
+  if (!assignment) {
+    throw ApiError.badRequest("No duty schedule assignment found for this employee on this date");
+  }
+  if (!assignment.dutySchedule) {
+    throw ApiError.badRequest("No duty schedule time configured for this assignment");
+  }
+  if (assignment.status === "Cancelled") {
+    throw ApiError.badRequest("This day's assignment has been cancelled");
+  }
+
+  const checkInAt = combineDateAndTimeUTC(assignment.date, input.checkInTime);
+  const checkOutAt = input.checkOutTime ? combineDateAndTimeUTC(assignment.date, input.checkOutTime) : null;
+  if (checkOutAt && checkOutAt <= checkInAt) {
+    throw ApiError.badRequest("Check-out time must be after check-in time");
+  }
+
+  const scheduledStart = combineDateAndTimeUTC(assignment.date, assignment.dutySchedule.startTime);
+  const lateThreshold = addMinutes(scheduledStart, assignment.dutySchedule.checkinConsiderMinutes);
+  const isLate = checkInAt > lateThreshold;
+
+  let isEarlyCheckout = false;
+  if (checkOutAt) {
+    const scheduledEnd = combineDateAndTimeUTC(assignment.date, assignment.dutySchedule.endTime);
+    const earlyThreshold = addMinutes(scheduledEnd, -assignment.dutySchedule.checkoutConsiderMinutes);
+    isEarlyCheckout = checkOutAt < earlyThreshold;
+  }
+
+  const note = input.note?.trim() || null;
+  const newStatus = checkOutAt ? "Completed" : "CheckedIn";
+
+  const [attendance] = await prisma.$transaction([
+    prisma.attendance.upsert({
+      where: { dutyScheduleAssignmentId: assignment.id },
+      create: {
+        employeeId,
+        dutyScheduleAssignmentId: assignment.id,
+        date: assignment.date,
+        checkInAt,
+        isLate,
+        lateReason: isLate ? note : null,
+        checkOutAt,
+        isEarlyCheckout,
+        earlyCheckoutReason: isEarlyCheckout ? note : null,
+        isManualEntry: true,
+        manualEntryById: enteredById,
+        manualEntryNote: note,
+      },
+      update: {
+        checkInAt,
+        isLate,
+        lateReason: isLate ? note : null,
+        checkOutAt,
+        isEarlyCheckout,
+        earlyCheckoutReason: isEarlyCheckout ? note : null,
+        isManualEntry: true,
+        manualEntryById: enteredById,
+        manualEntryNote: note,
+      },
+      include: { breaks: true },
+    }),
+    prisma.dutyScheduleAssignment.update({ where: { id: assignment.id }, data: { status: newStatus } }),
+  ]);
+
+  return toAttendanceDto(attendance);
 }
 
 async function todayAttendanceOrThrow(prisma: PrismaClient, employeeId: number) {

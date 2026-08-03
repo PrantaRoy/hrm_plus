@@ -29,6 +29,8 @@ export function toAttendanceDto(attendance: AttendanceWithBreaks): AttendanceDto
     checkOutMethod: (attendance.checkOutMethod as AttendanceMethod | null) ?? null,
     isEarlyCheckout: attendance.isEarlyCheckout,
     earlyCheckoutReason: attendance.earlyCheckoutReason,
+    isManualEntry: attendance.isManualEntry,
+    manualEntryNote: attendance.manualEntryNote,
     breaks: attendance.breaks
       .slice()
       .sort((a, b) => a.startAt.getTime() - b.startAt.getTime())
@@ -128,5 +130,7 @@ export function toListAttendanceItemDto(assignment: AssignmentForListing): ListA
     isEarlyCheckout: attendance?.isEarlyCheckout ?? false,
     earlyCheckoutReason: attendance?.earlyCheckoutReason ?? null,
     totalBreakMinutes: attendance ? totalBreakMinutes(attendance.breaks) : 0,
+    isManualEntry: attendance?.isManualEntry ?? false,
+    manualEntryNote: attendance?.manualEntryNote ?? null,
   };
 }

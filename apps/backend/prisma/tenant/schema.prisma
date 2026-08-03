@@ -43,6 +43,10 @@ model User {
   leaveApprovalsDecided   LeaveRequestApproval[]    @relation("LeaveApprovalDecidedBy")
   attendanceSettingsUpdated AttendanceSettings[]    @relation("AttendanceSettingsUpdatedBy")
   attendanceDevicesApproved EmployeeAttendanceDevice[] @relation("AttendanceDeviceApprovedBy")
+  attendanceManualEntries   Attendance[]               @relation("AttendanceManualEntryBy")
+  holidaysCreated    Holiday[]                @relation("HolidayCreatedBy")
+  holidaysUpdated    Holiday[]                @relation("HolidayUpdatedBy")
+  holidaysPublished  Holiday[]                @relation("HolidayPublishedBy")
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 }
@@ -273,6 +277,10 @@ model Attendance {
   checkOutMethod           String?
   isEarlyCheckout          Boolean                @default(false)
   earlyCheckoutReason      String?
+  isManualEntry            Boolean                @default(false)
+  manualEntryById          Int?
+  manualEntryBy            User?                  @relation("AttendanceManualEntryBy", fields: [manualEntryById], references: [id])
+  manualEntryNote          String?
   breaks                   BreakLog[]
   createdAt                DateTime               @default(now())
   updatedAt                DateTime               @updatedAt
@@ -461,4 +469,27 @@ model LeaveRequestApproval {
 
   @@unique([leaveRequestId, stepOrder])
   @@index([leaveRequestId])
+}
+
+model Holiday {
+  id            Int       @id @default(autoincrement())
+  name          String
+  date          DateTime
+  year          Int
+  source        String    @default("Manual") // "Manual" | "NZ" | "AU"
+  status        String    @default("Draft")  // "Draft" | "Published"
+  notes         String?
+  createdById   Int
+  createdBy     User      @relation("HolidayCreatedBy", fields: [createdById], references: [id])
+  updatedById   Int?
+  updatedBy     User?     @relation("HolidayUpdatedBy", fields: [updatedById], references: [id])
+  publishedById Int?
+  publishedBy   User?     @relation("HolidayPublishedBy", fields: [publishedById], references: [id])
+  publishedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([date])
+  @@index([year])
+  @@index([status])
 }

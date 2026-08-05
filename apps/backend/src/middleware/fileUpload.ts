@@ -29,3 +29,10 @@ export const documentUpload = createUploadMiddleware({
   allowedMimeTypes: ["image/png", "image/jpeg", "image/webp", "application/pdf"],
   maxSizeBytes: 10 * 1024 * 1024,
 });
+
+// PNG/WebP only (not JPEG) so signature stamps keep a transparent background when
+// composited onto rendered documents.
+export const signatureUpload = createUploadMiddleware({
+  allowedMimeTypes: ["image/png", "image/webp"],
+  maxSizeBytes: 1 * 1024 * 1024,
+});

@@ -24,6 +24,10 @@ import { attendanceRouter } from "./modules/attendance/attendance.routes";
 import { ipRuleRouter } from "./modules/attendance-ip-rules/ipRule.routes";
 import { locationRouter } from "./modules/attendance-locations/location.routes";
 import { dashboardRouter } from "./modules/dashboard/dashboard.routes";
+import { documentCategoryRouter } from "./modules/document-templates/documentCategory.routes";
+import { documentTemplateRouter } from "./modules/document-templates/documentTemplate.routes";
+import { documentRequestRouter } from "./modules/document-requests/documentRequest.routes";
+import { documentVerifyRouter } from "./modules/document-verify/documentVerify.routes";
 import { saasAuthRouter } from "./modules/saas/saasAuth/saasAuth.routes";
 import { publicPackageRouter, adminPackageRouter } from "./modules/saas/packages/package.routes";
 import { publicApplicationRouter, adminApplicationRouter } from "./modules/saas/applications/application.routes";
@@ -63,6 +67,10 @@ export function createApp(): Express {
   app.use("/api/attendance-ip-rules", tenantResolver, ipRuleRouter);
   app.use("/api/attendance-locations", tenantResolver, locationRouter);
   app.use("/api/dashboard", tenantResolver, dashboardRouter);
+  app.use("/api/document-categories", tenantResolver, documentCategoryRouter);
+  app.use("/api/document-templates", tenantResolver, documentTemplateRouter);
+  app.use("/api/document-requests", tenantResolver, documentRequestRouter);
+  app.use("/api/document-verify", tenantResolver, documentVerifyRouter); // public — no requireAuth
 
   // SaaS control-plane API (public landing/signup + super-admin portal)
   app.use("/saas/admin/auth", saasAuthRouter);

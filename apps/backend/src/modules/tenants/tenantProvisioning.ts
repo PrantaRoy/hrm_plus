@@ -74,6 +74,35 @@ export async function seedDefaultWeekDays(tenantClient: TenantPrismaClient): Pro
   await tenantClient.weekDay.createMany({ data: WEEK_DAYS });
 }
 
+const DOCUMENT_CATEGORIES: Array<{ code: string; name: string }> = [
+  { code: "SALARY_CERT", name: "Salary Certificate" },
+  { code: "PAYSLIP", name: "Payslip" },
+  { code: "EXP_LETTER", name: "Experience Letter" },
+  { code: "APPOINT_LETTER", name: "Appointment Letter" },
+  { code: "LEAVE_APPROVAL", name: "Leave Approval Letter" },
+  { code: "APPRECIATION_LETTER", name: "Appreciation Letter" },
+  { code: "SALARY_INCREMENT", name: "Salary Increment Letter" },
+  { code: "AWARD_LETTER", name: "Award Letter" },
+];
+
+/**
+ * Kept in sync with the seed INSERT embedded in migration
+ * `20260805125453_add_document_builder/migration.sql` (which is what actually
+ * seeds already-provisioned tenants when their migrations run). This helper
+ * exists for new-tenant provisioning parity and test setup.
+ */
+export async function seedDefaultDocumentCategories(tenantClient: TenantPrismaClient): Promise<void> {
+  await Promise.all(
+    DOCUMENT_CATEGORIES.map((category) =>
+      tenantClient.documentCategory.upsert({
+        where: { code: category.code },
+        update: { name: category.name },
+        create: category,
+      })
+    )
+  );
+}
+
 /**
  * Idempotently ensures a tenant admin user (+ linked employee) exists with the
  * given plaintext password. Re-running this always resets the password back

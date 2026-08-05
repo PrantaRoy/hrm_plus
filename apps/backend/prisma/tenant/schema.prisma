@@ -15,6 +15,7 @@ model Role {
   shortDescription String?
   users            User[]
   leaveApprovalSteps LeaveApprovalStep[]
+  documentTemplateApprovalSteps DocumentTemplateApprovalStep[]
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
@@ -47,6 +48,14 @@ model User {
   holidaysCreated    Holiday[]                @relation("HolidayCreatedBy")
   holidaysUpdated    Holiday[]                @relation("HolidayUpdatedBy")
   holidaysPublished  Holiday[]                @relation("HolidayPublishedBy")
+  documentTemplatesCreated DocumentTemplate[]       @relation("DocumentTemplateCreatedBy")
+  documentTemplatesUpdated DocumentTemplate[]       @relation("DocumentTemplateUpdatedBy")
+  documentRequestsCreated  DocumentRequest[]        @relation("DocumentRequestCreatedBy")
+  documentRequestsUpdated  DocumentRequest[]        @relation("DocumentRequestUpdatedBy")
+  documentApprovalsDecided DocumentRequestApproval[] @relation("DocumentApprovalDecidedBy")
+  signatureImageUrl  String?
+  signatureImageKey  String?
+  signatureUpdatedAt DateTime?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 }
@@ -139,6 +148,7 @@ model Employee {
   attendanceLocations   EmployeeAttendanceLocation[]
   attendanceDevices     EmployeeAttendanceDevice[]
   attendanceRules       EmployeeAttendanceRules?
+  documentRequests      DocumentRequest[]
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 }
@@ -492,4 +502,102 @@ model Holiday {
   @@unique([date])
   @@index([year])
   @@index([status])
+}
+
+model DocumentCategory {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique // "SALARY_CERT" | "PAYSLIP" | "EXP_LETTER" | "APPOINT_LETTER" |
+                              // "LEAVE_APPROVAL" | "APPRECIATION_LETTER" | "SALARY_INCREMENT" | "AWARD_LETTER"
+  name      String
+  status    String   @default("Active") // "Active" | "Inactive"
+  templates DocumentTemplate[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DocumentTemplate {
+  id                 Int      @id @default(autoincrement())
+  shortCode          String   @unique
+  name               String
+  categoryId         Int
+  category           DocumentCategory @relation(fields: [categoryId], references: [id])
+  bodyHtml           String   @db.Text // HTML/CSS with {{placeholder}} and {{signature:Role}} tokens
+  isStaffRequestable Boolean  @default(false)
+  status             String   @default("Active") // "Active" | "Inactive"
+  approvalSteps      DocumentTemplateApprovalStep[]
+  requests           DocumentRequest[]
+  createdById        Int
+  createdBy          User     @relation("DocumentTemplateCreatedBy", fields: [createdById], references: [id])
+  updatedById        Int?
+  updatedBy          User?    @relation("DocumentTemplateUpdatedBy", fields: [updatedById], references: [id])
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([categoryId])
+}
+
+model DocumentTemplateApprovalStep {
+  id           Int      @id @default(autoincrement())
+  templateId   Int
+  template     DocumentTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  stepOrder    Int
+  approverType String   // "ReportingManager" | "Role"
+  roleId       Int?
+  role         Role?    @relation(fields: [roleId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([templateId, stepOrder])
+  @@index([templateId])
+}
+
+model DocumentRequest {
+  id                Int      @id @default(autoincrement())
+  employeeId        Int
+  employee          Employee @relation(fields: [employeeId], references: [id])
+  templateId        Int
+  template          DocumentTemplate @relation(fields: [templateId], references: [id])
+  reason            String?
+  priority          String   @default("Medium") // "Low" | "Medium" | "High" | "Urgent"
+  deadlineDate      DateTime?
+  attachmentFileUrl String?
+  attachmentFileKey String?
+  fieldValues       Json?    // generic per-template manual data (e.g. payslip basic/allowances/deductions/netPay)
+  status            String   @default("Pending") // "Pending" | "Approved" | "Issued" | "Rejected" | "Cancelled"
+  currentStepOrder  Int      @default(1)
+  referenceNumber   String?  @unique // set at issuance, e.g. "DOC-9F3KQJ2X"
+  finalFileUrl      String?
+  finalFileKey      String?
+  issuedAt          DateTime?
+  approvals         DocumentRequestApproval[]
+  createdById       Int
+  createdBy         User     @relation("DocumentRequestCreatedBy", fields: [createdById], references: [id])
+  updatedById       Int?
+  updatedBy         User?    @relation("DocumentRequestUpdatedBy", fields: [updatedById], references: [id])
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([employeeId])
+  @@index([templateId])
+  @@index([status])
+}
+
+model DocumentRequestApproval {
+  id                Int      @id @default(autoincrement())
+  documentRequestId Int
+  documentRequest   DocumentRequest @relation(fields: [documentRequestId], references: [id], onDelete: Cascade)
+  stepOrder         Int
+  approverType      String   // snapshot of the step's type at submission time
+  roleId            Int?
+  roleName          String?  // snapshot label, survives later role rename/deletion
+  status            String   @default("Pending") // "Pending" | "Approved" | "Rejected"
+  decidedByUserId   Int?
+  decidedBy         User?    @relation("DocumentApprovalDecidedBy", fields: [decidedByUserId], references: [id])
+  decidedAt         DateTime?
+  comment           String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([documentRequestId, stepOrder])
+  @@index([documentRequestId])
 }

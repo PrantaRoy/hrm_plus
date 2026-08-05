@@ -21,4 +21,8 @@ export class LocalStorageDriver implements StorageDriver {
   async delete(key: string): Promise<void> {
     await fs.rm(path.join(LOCAL_UPLOAD_ROOT, key), { force: true });
   }
+
+  async read(key: string): Promise<Buffer> {
+    return fs.readFile(path.join(LOCAL_UPLOAD_ROOT, key));
+  }
 }

@@ -1,6 +1,6 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Camera } from "lucide-react";
+import { ArrowLeft, Camera, PenTool } from "lucide-react";
 import {
   DepartmentDto,
   DesignationDto,
@@ -11,7 +11,7 @@ import {
   Gender,
 } from "@hrm-plus/shared";
 import { Avatar, Button, Card, Field, Input, Select, Spinner, StatusPill } from "@hrm-plus/ui";
-import { getEmployee, listEmployees, updateEmployee, uploadEmployeeAvatar } from "../../api/employees";
+import { getEmployee, listEmployees, updateEmployee, uploadEmployeeAvatar, uploadEmployeeSignature } from "../../api/employees";
 import { listDepartments } from "../../api/departments";
 import { listDesignations } from "../../api/designations";
 import { resolveFileUrl } from "../../utils/fileUrl";
@@ -45,6 +45,9 @@ export default function EmployeeDetail() {
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingSignature, setUploadingSignature] = useState(false);
+  const [signatureMessage, setSignatureMessage] = useState<string | null>(null);
+  const signatureInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -129,6 +132,22 @@ export default function EmployeeDetail() {
     }
   }
 
+  async function handleSignatureChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingSignature(true);
+    setSignatureMessage(null);
+    try {
+      await uploadEmployeeSignature(employee!.id, file);
+      setSignatureMessage("Signature uploaded — it will be stamped on documents this employee approves.");
+    } catch (err: any) {
+      setSignatureMessage(err.response?.data?.error?.message ?? "Failed to upload signature");
+    } finally {
+      setUploadingSignature(false);
+      e.target.value = "";
+    }
+  }
+
   return (
     <div className="max-w-6xl space-y-4">
       <button
@@ -177,8 +196,28 @@ export default function EmployeeDetail() {
                 </p>
               </div>
             </div>
-            <StatusPill status={employee.status} />
+            <div className="flex flex-col items-end gap-1">
+              <StatusPill status={employee.status} />
+              <button
+                type="button"
+                onClick={() => signatureInputRef.current?.click()}
+                disabled={uploadingSignature}
+                className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 disabled:opacity-50"
+              >
+                <PenTool className="h-3 w-3" />
+                {uploadingSignature ? "Uploading…" : "Upload signature"}
+              </button>
+              <input
+                ref={signatureInputRef}
+                type="file"
+                accept="image/png,image/webp"
+                className="hidden"
+                onChange={handleSignatureChange}
+              />
+            </div>
           </div>
+
+          {signatureMessage && <p className="text-xs text-slate-500">{signatureMessage}</p>}
 
           {error && (
             <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">

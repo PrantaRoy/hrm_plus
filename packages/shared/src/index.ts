@@ -140,6 +140,30 @@ export type {
   ListLeaveRequestsQuery,
 } from "./leave";
 
+export {
+  DOCUMENT_REQUEST_STATUSES,
+  DOCUMENT_APPROVAL_STATUSES,
+  DOCUMENT_PRIORITIES,
+} from "./document";
+export type {
+  DocumentRequestStatus,
+  DocumentApprovalStatus,
+  DocumentPriority,
+  DocumentCategoryDto,
+  DocumentTemplateApprovalStepInput,
+  DocumentTemplateApprovalStepDto,
+  DocumentTemplateDto,
+  CreateDocumentTemplateInput,
+  UpdateDocumentTemplateInput,
+  DocumentRequestApprovalDto,
+  DocumentRequestDto,
+  CreateDocumentRequestInput,
+  DecideDocumentRequestInput,
+  UpdateDocumentRequestFieldValuesInput,
+  ListDocumentRequestsQuery,
+  PublicDocumentVerificationDto,
+} from "./document";
+
 export type {
   DashboardSummaryDto,
   DashboardTrendsQuery,

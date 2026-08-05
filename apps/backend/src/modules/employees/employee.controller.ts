@@ -61,6 +61,22 @@ export const resetEmployeePasswordHandler: RequestHandler = async (req, res, nex
   }
 };
 
+export const uploadEmployeeSignatureHandler: RequestHandler = async (req, res, next) => {
+  try {
+    const id = Number(req.params.id);
+    if (Number.isNaN(id)) throw ApiError.badRequest("Invalid employee id");
+    if (!req.file) throw ApiError.badRequest("Signature file is required");
+    const result = await employeeService.setEmployeeSignature(req.prisma!, id, {
+      buffer: req.file.buffer,
+      originalName: req.file.originalname,
+      mimeType: req.file.mimetype,
+    });
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const uploadEmployeeAvatarHandler: RequestHandler = async (req, res, next) => {
   try {
     const id = Number(req.params.id);

@@ -11,12 +11,14 @@ export type KnownStatus =
   | "Completed"
   | "OnLeave"
   | "Incomplete"
-  | "Cancelled";
+  | "Cancelled"
+  | "Issued";
 
 const statusColor: Record<KnownStatus, BadgeColor> = {
   Active: "green",
   Approved: "green",
   Completed: "green",
+  Issued: "green",
   Inactive: "slate",
   Scheduled: "slate",
   Pending: "amber",

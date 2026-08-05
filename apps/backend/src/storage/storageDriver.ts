@@ -13,4 +13,5 @@ export interface SaveFileInput {
 export interface StorageDriver {
   save(input: SaveFileInput): Promise<StoredFile>;
   delete(key: string): Promise<void>;
+  read(key: string): Promise<Buffer>;
 }

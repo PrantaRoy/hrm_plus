@@ -203,3 +203,46 @@ export async function setEmployeeAvatar(
 
   return toEmployeeDto(employee);
 }
+
+export interface EmployeeSignatureResult {
+  signatureImageUrl: string;
+}
+
+/**
+ * Signatures are stored on User (not Employee) because they're looked up during PDF
+ * rendering via DocumentRequestApproval.decidedByUserId, and not every User is
+ * guaranteed to have a linked Employee row.
+ */
+export async function setEmployeeSignature(
+  prisma: PrismaClient,
+  id: number,
+  file: { buffer: Buffer; originalName: string; mimeType: string }
+): Promise<EmployeeSignatureResult> {
+  const existing = await prisma.employee.findUnique({ where: { id } });
+  if (!existing) {
+    throw ApiError.notFound("Employee not found");
+  }
+  if (!existing.userId) {
+    throw ApiError.badRequest("This employee has no linked user account and cannot hold a signature");
+  }
+
+  const storage = getStorageDriver();
+  const stored = await storage.save({
+    buffer: file.buffer,
+    originalName: file.originalName,
+    mimeType: file.mimeType,
+    folder: "signatures",
+  });
+
+  const existingUser = await prisma.user.findUniqueOrThrow({ where: { id: existing.userId } });
+  if (existingUser.signatureImageKey) {
+    await storage.delete(existingUser.signatureImageKey).catch(() => undefined);
+  }
+
+  const user = await prisma.user.update({
+    where: { id: existing.userId },
+    data: { signatureImageUrl: stored.url, signatureImageKey: stored.key, signatureUpdatedAt: new Date() },
+  });
+
+  return { signatureImageUrl: user.signatureImageUrl! };
+}

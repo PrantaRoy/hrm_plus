@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { requireAuth, requireRole } from "../../middleware/auth";
-import { avatarUpload } from "../../middleware/fileUpload";
+import { avatarUpload, signatureUpload } from "../../middleware/fileUpload";
 import {
   createEmployeeHandler,
   getEmployeeHandler,
@@ -8,6 +8,7 @@ import {
   resetEmployeePasswordHandler,
   updateEmployeeHandler,
   uploadEmployeeAvatarHandler,
+  uploadEmployeeSignatureHandler,
 } from "./employee.controller";
 import { employeeDocumentRouter } from "./employeeDocument.routes";
 import { leaveAllocationRouter } from "../leave-allocations/leaveAllocation.routes";
@@ -26,6 +27,12 @@ employeeRouter.post(
   requireRole("Admin", "HR", "Manager"),
   avatarUpload.single("avatar"),
   uploadEmployeeAvatarHandler
+);
+employeeRouter.post(
+  "/:id/signature",
+  requireRole("Admin", "HR", "Manager"),
+  signatureUpload.single("signature"),
+  uploadEmployeeSignatureHandler
 );
 employeeRouter.use("/:id/documents", employeeDocumentRouter);
 employeeRouter.use("/:id/leave-allocations", leaveAllocationRouter);

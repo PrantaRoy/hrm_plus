@@ -37,6 +37,13 @@ import AttendanceReport from "./pages/records/AttendanceReport";
 import LeaveReport from "./pages/records/LeaveReport";
 import Worksheet from "./pages/records/Worksheet";
 import ManualAttendanceEntry from "./pages/records/ManualAttendanceEntry";
+import DocumentTemplateList from "./pages/document-templates/DocumentTemplateList";
+import DocumentTemplateCreate from "./pages/document-templates/DocumentTemplateCreate";
+import DocumentTemplateEdit from "./pages/document-templates/DocumentTemplateEdit";
+import RequestDocument from "./pages/documents/RequestDocument";
+import MyDocumentRequests from "./pages/documents/MyDocumentRequests";
+import DocumentApprovals from "./pages/documents/DocumentApprovals";
+import VerifyDocument from "./pages/public/VerifyDocument";
 
 export default function App() {
   return (
@@ -44,6 +51,7 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/verify/:tenantSlug/:referenceNumber" element={<VerifyDocument />} />
 
       <Route element={<RequireAuth />}>
         <Route path="/change-password" element={<ChangePassword />} />
@@ -67,11 +75,18 @@ export default function App() {
           <Route path="/leave/my-requests" element={<MyLeaveRequests />} />
           <Route path="/leave/approvals" element={<LeaveApprovals />} />
 
+          <Route path="/documents/request" element={<RequestDocument />} />
+          <Route path="/documents/my-requests" element={<MyDocumentRequests />} />
+          <Route path="/documents/approvals" element={<DocumentApprovals />} />
+
           <Route element={<RequireAuth roles={["Admin", "HR"]} />}>
             <Route path="/duty-schedules" element={<DutyScheduleList />} />
             <Route path="/duty-schedules/new" element={<DutyScheduleCreate />} />
             <Route path="/duty-schedules/:id/edit" element={<DutyScheduleEdit />} />
             <Route path="/holidays" element={<HolidayList />} />
+            <Route path="/document-templates" element={<DocumentTemplateList />} />
+            <Route path="/document-templates/new" element={<DocumentTemplateCreate />} />
+            <Route path="/document-templates/:id/edit" element={<DocumentTemplateEdit />} />
           </Route>
 
           <Route element={<RequireAuth roles={["Admin", "HR", "Manager"]} />}>

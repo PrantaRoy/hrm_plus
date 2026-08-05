@@ -102,3 +102,50 @@ export async function sendApplicationRejectedEmail(
      ${reviewNote ? `<p>Note from our team: ${reviewNote}</p>` : ""}`
   );
 }
+
+export async function sendDocumentStepPendingEmail(
+  to: string,
+  documentTypeName: string,
+  requesterName: string
+): Promise<void> {
+  await send(
+    to,
+    `Document request awaiting your approval: ${documentTypeName}`,
+    `<p>${requesterName} has requested a <strong>${documentTypeName}</strong> and it's now awaiting your approval.</p>
+     <p>Please review it from your Document Approvals queue.</p>`
+  );
+}
+
+export async function sendDocumentApprovedEmail(to: string, documentTypeName: string): Promise<void> {
+  await send(
+    to,
+    `Your ${documentTypeName} request moved forward`,
+    `<p>Your <strong>${documentTypeName}</strong> request has been approved at this step and has moved on to the next approver.</p>`
+  );
+}
+
+export async function sendDocumentRejectedEmail(
+  to: string,
+  documentTypeName: string,
+  comment?: string | null
+): Promise<void> {
+  await send(
+    to,
+    `Your ${documentTypeName} request was rejected`,
+    `<p>Your <strong>${documentTypeName}</strong> request was rejected.</p>
+     ${comment ? `<p>Reason given: ${comment}</p>` : ""}`
+  );
+}
+
+export async function sendDocumentIssuedEmail(
+  to: string,
+  documentTypeName: string,
+  downloadPageUrl: string
+): Promise<void> {
+  await send(
+    to,
+    `Your ${documentTypeName} is ready`,
+    `<p>Your <strong>${documentTypeName}</strong> has been fully approved and is ready to download.</p>
+     <p><a href="${downloadPageUrl}">View and download it here</a></p>`
+  );
+}

@@ -47,3 +47,10 @@ export async function uploadEmployeeAvatar(id: number, file: File): Promise<Empl
   const res = await apiClient.post<EmployeeDto>(`/employees/${id}/avatar`, formData);
   return res.data;
 }
+
+export async function uploadEmployeeSignature(id: number, file: File): Promise<{ signatureImageUrl: string }> {
+  const formData = new FormData();
+  formData.append("signature", file);
+  const res = await apiClient.post<{ signatureImageUrl: string }>(`/employees/${id}/signature`, formData);
+  return res.data;
+}

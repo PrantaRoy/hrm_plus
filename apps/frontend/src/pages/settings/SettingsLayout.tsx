@@ -2,6 +2,7 @@ import { NavLink, Outlet } from "react-router-dom";
 import { cn, PageHeader } from "@hrm-plus/ui";
 
 const TABS = [
+  { to: "/settings/general", label: "General" },
   { to: "/settings/shifts", label: "Shifts" },
   { to: "/settings/weekdays", label: "Week Days" },
   { to: "/settings/leave-types", label: "Leave Types" },

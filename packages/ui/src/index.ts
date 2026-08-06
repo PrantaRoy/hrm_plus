@@ -33,7 +33,7 @@ export { PageHeader } from "./components/PageHeader";
 export type { PageHeaderProps } from "./components/PageHeader";
 
 export { Sidebar, SidebarItem } from "./components/Sidebar";
-export type { SidebarProps, SidebarNavItem } from "./components/Sidebar";
+export type { SidebarProps, SidebarNavItem, SidebarGroup } from "./components/Sidebar";
 
 export { Topbar } from "./components/Topbar";
 export type { TopbarProps } from "./components/Topbar";

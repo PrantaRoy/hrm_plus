@@ -76,6 +76,37 @@ export interface UpdateDesignationInput {
   shortDescription?: string | null;
 }
 
+export const DATE_FORMATS = ["DD/MM/YYYY", "MM/DD/YYYY", "YYYY-MM-DD"] as const;
+export type DateFormat = (typeof DATE_FORMATS)[number];
+
+export const TIME_FORMATS = ["12h", "24h"] as const;
+export type TimeFormat = (typeof TIME_FORMATS)[number];
+
+export interface GeneralSettingsDto {
+  id: number;
+  siteTitle: string;
+  logoUrl: string | null;
+  faviconUrl: string | null;
+  dateFormat: DateFormat;
+  timeFormat: TimeFormat;
+  timezone: string;
+  currency: string;
+  language: string;
+  copyrightText: string | null;
+  updatedById: number | null;
+  updatedAt: string;
+}
+
+export interface UpdateGeneralSettingsInput {
+  siteTitle?: string;
+  dateFormat?: DateFormat;
+  timeFormat?: TimeFormat;
+  timezone?: string;
+  currency?: string;
+  language?: string;
+  copyrightText?: string | null;
+}
+
 export interface RoleDto {
   id: number;
   name: string;

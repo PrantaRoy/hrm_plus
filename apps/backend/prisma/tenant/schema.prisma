@@ -43,6 +43,7 @@ model User {
   leaveRequestsUpdated    LeaveRequest[]            @relation("LeaveRequestUpdatedBy")
   leaveApprovalsDecided   LeaveRequestApproval[]    @relation("LeaveApprovalDecidedBy")
   attendanceSettingsUpdated AttendanceSettings[]    @relation("AttendanceSettingsUpdatedBy")
+  generalSettingsUpdated    GeneralSettings[]       @relation("GeneralSettingsUpdatedBy")
   attendanceDevicesApproved EmployeeAttendanceDevice[] @relation("AttendanceDeviceApprovedBy")
   attendanceManualEntries   Attendance[]               @relation("AttendanceManualEntryBy")
   holidaysCreated    Holiday[]                @relation("HolidayCreatedBy")
@@ -259,6 +260,27 @@ model AttendanceSettings {
   updatedBy           User?    @relation("AttendanceSettingsUpdatedBy", fields: [updatedById], references: [id])
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
+}
+
+// GeneralSettings is a tenant-wide singleton (branding, locale, formatting), following
+// the same get-or-create pattern as AttendanceSettings.
+model GeneralSettings {
+  id            Int      @id @default(autoincrement())
+  siteTitle     String   @default("HRM Plus")
+  logoUrl       String?
+  logoKey       String?
+  faviconUrl    String?
+  faviconKey    String?
+  dateFormat    String   @default("DD/MM/YYYY")
+  timeFormat    String   @default("24h")
+  timezone      String   @default("UTC")
+  currency      String   @default("USD")
+  language      String   @default("en")
+  copyrightText String?
+  updatedById   Int?
+  updatedBy     User?    @relation("GeneralSettingsUpdatedBy", fields: [updatedById], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model EmployeeAttendanceMethod {

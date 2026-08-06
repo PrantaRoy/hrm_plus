@@ -36,3 +36,13 @@ export const signatureUpload = createUploadMiddleware({
   allowedMimeTypes: ["image/png", "image/webp"],
   maxSizeBytes: 1 * 1024 * 1024,
 });
+
+export const logoUpload = createUploadMiddleware({
+  allowedMimeTypes: ["image/png", "image/jpeg", "image/webp", "image/svg+xml"],
+  maxSizeBytes: 2 * 1024 * 1024,
+});
+
+export const faviconUpload = createUploadMiddleware({
+  allowedMimeTypes: ["image/png", "image/webp", "image/svg+xml", "image/x-icon", "image/vnd.microsoft.icon"],
+  maxSizeBytes: 512 * 1024,
+});

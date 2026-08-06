@@ -21,6 +21,7 @@ import RosterCreate from "./pages/rosters/RosterCreate";
 import RosterCalendar from "./pages/rosters/RosterCalendar";
 import HolidayList from "./pages/holidays/HolidayList";
 import SettingsLayout from "./pages/settings/SettingsLayout";
+import GeneralSettings from "./pages/settings/GeneralSettings";
 import ShiftSettings from "./pages/settings/ShiftSettings";
 import WeekDaySettings from "./pages/settings/WeekDaySettings";
 import LeaveTypeSettings from "./pages/settings/LeaveTypeSettings";
@@ -97,7 +98,8 @@ export default function App() {
 
           <Route element={<RequireAuth roles={["Admin", "HR"]} />}>
             <Route path="/settings" element={<SettingsLayout />}>
-              <Route index element={<Navigate to="/settings/shifts" replace />} />
+              <Route index element={<Navigate to="/settings/general" replace />} />
+              <Route path="general" element={<GeneralSettings />} />
               <Route path="shifts" element={<ShiftSettings />} />
               <Route path="weekdays" element={<WeekDaySettings />} />
               <Route path="leave-types" element={<LeaveTypeSettings />} />

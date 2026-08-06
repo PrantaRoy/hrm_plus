@@ -5,6 +5,10 @@ export interface LogoProps {
   size?: "sm" | "md" | "lg";
   className?: string;
   wordmarkClassName?: string;
+  /** Custom uploaded logo image URL — replaces the default inline SVG mark when set. */
+  imageSrc?: string | null;
+  /** Custom site title — replaces the default "HRM Plus" wordmark when set. */
+  wordmark?: string;
 }
 
 const markSizes = {
@@ -19,27 +23,31 @@ const wordmarkSizes = {
   lg: "text-2xl",
 };
 
-export function Logo({ markOnly = false, size = "md", className, wordmarkClassName }: LogoProps) {
+export function Logo({ markOnly = false, size = "md", className, wordmarkClassName, imageSrc, wordmark }: LogoProps) {
   return (
     <div className={cn("flex items-center gap-2.5", className)}>
-      <svg
-        viewBox="0 0 32 32"
-        className={cn(markSizes[size], "shrink-0")}
-        aria-hidden="true"
-      >
-        <rect width="32" height="32" rx="9" className="fill-brand-600" />
-        <path
-          d="M10 9v14M22 9v14M10 16h12"
-          stroke="white"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
-      </svg>
+      {imageSrc ? (
+        <img src={imageSrc} alt={wordmark ?? "Logo"} className={cn(markSizes[size], "shrink-0 object-contain")} />
+      ) : (
+        <svg
+          viewBox="0 0 32 32"
+          className={cn(markSizes[size], "shrink-0")}
+          aria-hidden="true"
+        >
+          <rect width="32" height="32" rx="9" className="fill-brand-600" />
+          <path
+            d="M10 9v14M22 9v14M10 16h12"
+            stroke="white"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          />
+        </svg>
+      )}
       {!markOnly && (
         <span className={cn("font-bold tracking-tight text-slate-900", wordmarkSizes[size], wordmarkClassName)}>
-          HRM Plus
+          {wordmark ?? "HRM Plus"}
         </span>
       )}
     </div>

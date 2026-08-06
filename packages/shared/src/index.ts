@@ -25,6 +25,7 @@ export type {
   UpdateEmployeeDocumentInput,
 } from "./employeeDocument";
 
+export { DATE_FORMATS, TIME_FORMATS } from "./settings";
 export type {
   ShiftDto,
   CreateShiftInput,
@@ -41,6 +42,10 @@ export type {
   RoleDto,
   CreateRoleInput,
   UpdateRoleInput,
+  DateFormat,
+  TimeFormat,
+  GeneralSettingsDto,
+  UpdateGeneralSettingsInput,
 } from "./settings";
 
 export type {

@@ -7,8 +7,9 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspace=apps/backend & npm run dev --workspace=apps/frontend & npm run dev --workspace=apps/saas-frontend & wait",
+    "dev": "npm run dev --workspace=apps/backend & npm run dev:worker --workspace=apps/backend & npm run dev --workspace=apps/frontend & npm run dev --workspace=apps/saas-frontend & wait",
     "dev:backend": "npm run dev --workspace=apps/backend",
+    "dev:worker": "npm run dev:worker --workspace=apps/backend",
     "dev:frontend": "npm run dev --workspace=apps/frontend",
     "dev:saas-frontend": "npm run dev --workspace=apps/saas-frontend",
     "build": "npm run build --workspace=packages/shared && npm run build --workspace=apps/backend && npm run build --workspace=apps/frontend && npm run build --workspace=apps/saas-frontend",

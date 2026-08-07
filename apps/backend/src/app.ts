@@ -29,6 +29,15 @@ import { documentCategoryRouter } from "./modules/document-templates/documentCat
 import { documentTemplateRouter } from "./modules/document-templates/documentTemplate.routes";
 import { documentRequestRouter } from "./modules/document-requests/documentRequest.routes";
 import { documentVerifyRouter } from "./modules/document-verify/documentVerify.routes";
+import { adminJobRouter, publicJobRouter } from "./modules/jobs/job.routes";
+import { screeningQuestionRouter } from "./modules/screening-questions/screeningQuestion.routes";
+import {
+  adminApplicationRouter as adminJobApplicationRouter,
+  publicApplicationRouter as publicJobApplicationRouter,
+} from "./modules/applications/application.routes";
+import { candidatePortalRouter } from "./modules/candidate-portal/candidatePortal.routes";
+import { pipelineRouter } from "./modules/pipeline/pipeline.routes";
+import { adminAssessmentRouter, publicAssessmentRouter } from "./modules/assessments/assessment.routes";
 import { saasAuthRouter } from "./modules/saas/saasAuth/saasAuth.routes";
 import { publicPackageRouter, adminPackageRouter } from "./modules/saas/packages/package.routes";
 import { publicApplicationRouter, adminApplicationRouter } from "./modules/saas/applications/application.routes";
@@ -73,6 +82,15 @@ export function createApp(): Express {
   app.use("/api/document-templates", tenantResolver, documentTemplateRouter);
   app.use("/api/document-requests", tenantResolver, documentRequestRouter);
   app.use("/api/document-verify", tenantResolver, documentVerifyRouter); // public — no requireAuth
+  app.use("/api/public/jobs", tenantResolver, publicJobRouter); // public — no requireAuth
+  app.use("/api/jobs", tenantResolver, adminJobRouter);
+  app.use("/api/screening-questions", tenantResolver, screeningQuestionRouter);
+  app.use("/api/public/applications", tenantResolver, publicJobApplicationRouter); // public — no requireAuth
+  app.use("/api/applications", tenantResolver, adminJobApplicationRouter);
+  app.use("/api/public/candidate-portal", tenantResolver, candidatePortalRouter); // public — token auth, no requireAuth
+  app.use("/api/pipeline", tenantResolver, pipelineRouter);
+  app.use("/api/assessments", tenantResolver, adminAssessmentRouter);
+  app.use("/api/public/assessment", tenantResolver, publicAssessmentRouter); // public — token auth, no requireAuth
 
   // SaaS control-plane API (public landing/signup + super-admin portal)
   app.use("/saas/admin/auth", saasAuthRouter);

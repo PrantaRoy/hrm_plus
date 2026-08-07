@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import { GeneralSettingsDto } from "@hrm-plus/shared";
 import {
   BarChart3,
+  Briefcase,
   CalendarDays,
   CalendarPlus,
   CalendarRange,
@@ -100,6 +101,17 @@ export default function DashboardShell() {
           {
             label: "Reports",
             items: [{ key: "records", label: "Records", to: "/records", icon: BarChart3 }],
+          },
+        ]
+      : []),
+    ...(isAdminOrHr
+      ? [
+          {
+            label: "Recruitment",
+            items: [
+              { key: "jobs", label: "Job Circulars", to: "/jobs", icon: Briefcase },
+              { key: "screening-questions", label: "Screening Questions", to: "/screening-questions", icon: ListChecks },
+            ],
           },
         ]
       : []),

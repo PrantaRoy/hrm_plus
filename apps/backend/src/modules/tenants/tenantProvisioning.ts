@@ -6,6 +6,7 @@ import { nanoid } from "nanoid";
 import { ROLES } from "@hrm-plus/shared";
 import { PrismaClient as TenantPrismaClient, User as TenantUser } from "../../../generated/tenant";
 import { env } from "../../config/env";
+import { SCREENING_QUESTION_SEEDS } from "../screening-questions/screeningQuestion.seedData";
 
 async function withAdminConnection<T>(fn: (conn: mysql.Connection) => Promise<T>): Promise<T> {
   const connection = await mysql.createConnection({
@@ -98,6 +99,30 @@ export async function seedDefaultDocumentCategories(tenantClient: TenantPrismaCl
         where: { code: category.code },
         update: { name: category.name },
         create: category,
+      })
+    )
+  );
+}
+
+/**
+ * Idempotently seeds the NZ/AU legal-compliance screening question bank (upsert by
+ * `code`) so every provisioned tenant has them available to attach to job circulars
+ * out of the box. Safe to re-run — matches the shape of `seedDefaultDocumentCategories`.
+ */
+export async function seedDefaultScreeningQuestions(tenantClient: TenantPrismaClient): Promise<void> {
+  await Promise.all(
+    SCREENING_QUESTION_SEEDS.map((seed) =>
+      tenantClient.screeningQuestion.upsert({
+        where: { code: seed.code },
+        update: { text: seed.text, type: seed.type, options: seed.options ?? undefined, category: seed.category },
+        create: {
+          code: seed.code,
+          text: seed.text,
+          type: seed.type,
+          options: seed.options ?? undefined,
+          category: seed.category,
+          isSystem: true,
+        },
       })
     )
   );

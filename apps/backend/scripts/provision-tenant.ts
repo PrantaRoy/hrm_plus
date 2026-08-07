@@ -8,6 +8,7 @@ import {
   runTenantMigrations,
   seedDefaultRoles,
   seedDefaultWeekDays,
+  seedDefaultScreeningQuestions,
   provisionTenantAdmin,
 } from "../src/modules/tenants/tenantProvisioning";
 
@@ -71,6 +72,7 @@ async function main() {
   const tenantClient = getTenantClient(databaseName);
   const roleIds = await seedDefaultRoles(tenantClient);
   await seedDefaultWeekDays(tenantClient);
+  await seedDefaultScreeningQuestions(tenantClient);
 
   const finalPassword = adminPassword ?? nanoid(12);
   await provisionTenantAdmin(tenantClient, {

@@ -30,11 +30,30 @@ services:
     environment:
       TENANT_DB_HOST: mysql
       CONTROL_DATABASE_URL: mysql://root@mysql:3306/hrm_control
+      REDIS_URL: redis://redis:6379
     ports:
       - "4000:4000"
     depends_on:
       mysql:
         condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    command: ["node", "dist/worker.js"]
+    restart: unless-stopped
+    env_file:
+      - apps/backend/.env
+    environment:
+      TENANT_DB_HOST: mysql
+      CONTROL_DATABASE_URL: mysql://root@mysql:3306/hrm_control
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
   frontend:
     build:

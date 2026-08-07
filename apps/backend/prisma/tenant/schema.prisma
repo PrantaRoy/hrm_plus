@@ -54,6 +54,12 @@ model User {
   documentRequestsCreated  DocumentRequest[]        @relation("DocumentRequestCreatedBy")
   documentRequestsUpdated  DocumentRequest[]        @relation("DocumentRequestUpdatedBy")
   documentApprovalsDecided DocumentRequestApproval[] @relation("DocumentApprovalDecidedBy")
+  jobsPosted                Job[]                     @relation("JobPostedBy")
+  jobsUpdated               Job[]                     @relation("JobUpdatedBy")
+  screeningQuestionsCreated ScreeningQuestion[]       @relation("ScreeningQuestionCreatedBy")
+  applicationStagesMoved    ApplicationStageHistory[] @relation("ApplicationStageMovedBy")
+  assessmentsCreated        Assessment[]              @relation("AssessmentCreatedBy")
+  assessmentsUpdated        Assessment[]              @relation("AssessmentUpdatedBy")
   signatureImageUrl  String?
   signatureImageKey  String?
   signatureUpdatedAt DateTime?
@@ -72,6 +78,7 @@ model Department {
   employees          Employee[]
   rosters            Roster[]
   dutyAssignments    DutyScheduleAssignment[]
+  jobs               Job[]
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
 }
@@ -622,4 +629,229 @@ model DocumentRequestApproval {
 
   @@unique([documentRequestId, stepOrder])
   @@index([documentRequestId])
+}
+
+// ── Job Recruitment & ATS ────────────────────────────────────────────────
+
+model Job {
+  id                 Int      @id @default(autoincrement())
+  title              String
+  slug               String   @unique // slugify(title) + short nanoid suffix on collision
+  vacancyCount       Int      @default(1)
+  skills             Json     // string[]
+  minExperienceYears Int?
+  maxExperienceYears Int?
+  jobType            String   @default("FULL_TIME") // "FULL_TIME" | "PART_TIME" | "CONTRACT" | "INTERNSHIP" | "CASUAL"
+  salaryType         String   @default("ANNUAL")     // "HOURLY" | "ANNUAL"
+  salaryMin          Float?
+  salaryMax          Float?
+  description        String   @db.Text
+  status             String   @default("Draft") // "Draft" | "Open" | "Closed" | "Archived"
+  departmentId       Int?
+  department         Department? @relation(fields: [departmentId], references: [id])
+  closesAt           DateTime?
+  postedById         Int
+  postedBy           User     @relation("JobPostedBy", fields: [postedById], references: [id])
+  updatedById        Int?
+  updatedBy          User?    @relation("JobUpdatedBy", fields: [updatedById], references: [id])
+  screeningQuestions JobScreeningQuestion[]
+  applications       Application[]
+  assessment         Assessment?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([status])
+  @@index([departmentId])
+}
+
+model ScreeningQuestion {
+  id          Int      @id @default(autoincrement())
+  code        String?  @unique // set only for system-seeded questions, e.g. "NZ_CRIMINAL_RECORD_CLEAN_SLATE"; null for tenant-authored
+  text        String   @db.Text
+  type        String   @default("SHORT_TEXT") // "YES_NO" | "SINGLE_CHOICE" | "MULTIPLE_CHOICE" | "SHORT_TEXT"
+  options     Json?    // string[] — SINGLE_CHOICE / MULTIPLE_CHOICE only
+  category    String   @default("Custom") // "LegalCompliance" | "Custom"
+  isSystem    Boolean  @default(false) // seeded; blocks deletion via API, still editable
+  status      String   @default("Active") // "Active" | "Inactive"
+  jobLinks    JobScreeningQuestion[]
+  createdById Int?
+  createdBy   User?    @relation("ScreeningQuestionCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status])
+  @@index([category])
+}
+
+model JobScreeningQuestion {
+  id          Int      @id @default(autoincrement())
+  jobId       Int
+  job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  questionId  Int
+  question    ScreeningQuestion @relation(fields: [questionId], references: [id])
+  isMandatory Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  answers     ApplicationAnswer[]
+  createdAt   DateTime @default(now())
+
+  @@unique([jobId, questionId])
+  @@index([jobId])
+  @@index([questionId])
+}
+
+model Candidate {
+  id           Int      @id @default(autoincrement())
+  fullName     String
+  email        String   @unique
+  phoneNumber  String?
+  applications Application[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Application {
+  id                   Int      @id @default(autoincrement())
+  jobId                Int
+  job                  Job      @relation(fields: [jobId], references: [id])
+  candidateId          Int
+  candidate            Candidate @relation(fields: [candidateId], references: [id])
+  resumeFileUrl        String?
+  resumeFileKey        String?
+  coverLetter          String?  @db.Text
+  stage                String   @default("APPLICATION_RECEIVED")
+  // "APPLICATION_RECEIVED" | "AI_ASSESSMENT" | "VIRTUAL_INTERVIEW" | "IN_PERSON_INTERVIEW" | "OFFER" | "HIRED" | "REJECTED"
+  movedToStageAt       DateTime @default(now())
+  rejectionReason      String?
+  withdrawnAt          DateTime?
+  answers              ApplicationAnswer[]
+  stageHistory         ApplicationStageHistory[]
+  assessmentInvitation AssessmentInvitation?
+  accessTokens         CandidateAccessToken[]
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@unique([jobId, candidateId])
+  @@index([jobId, stage])
+  @@index([candidateId])
+}
+
+model ApplicationAnswer {
+  id                     Int      @id @default(autoincrement())
+  applicationId          Int
+  application            Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  jobScreeningQuestionId Int
+  jobScreeningQuestion   JobScreeningQuestion @relation(fields: [jobScreeningQuestionId], references: [id])
+  answerText             String?  @db.Text   // YES_NO ("Yes"/"No") and SHORT_TEXT
+  answerOptions          Json?               // string[] for SINGLE_CHOICE / MULTIPLE_CHOICE
+  createdAt              DateTime @default(now())
+
+  @@unique([applicationId, jobScreeningQuestionId])
+  @@index([applicationId])
+}
+
+model ApplicationStageHistory {
+  id            Int      @id @default(autoincrement())
+  applicationId Int
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  fromStage     String?
+  toStage       String
+  movedByType   String   @default("User") // "User" | "System" — System = auto-transition from grading worker
+  movedById     Int?
+  movedBy       User?    @relation("ApplicationStageMovedBy", fields: [movedById], references: [id])
+  note          String?
+  createdAt     DateTime @default(now())
+
+  @@index([applicationId])
+}
+
+model CandidateAccessToken {
+  id            Int       @id @default(autoincrement())
+  applicationId Int
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  token         String    @unique // crypto.randomBytes(32).toString("hex"), same as PasswordResetToken
+  purpose       String    @default("PORTAL") // "PORTAL" | "ASSESSMENT_INVITE" — informational only, both redeem identically
+  expiresAt     DateTime
+  lastUsedAt    DateTime? // updated on each redemption; multi-use until expiresAt
+  createdAt     DateTime  @default(now())
+
+  @@index([applicationId])
+}
+
+model Assessment {
+  id                   Int      @id @default(autoincrement())
+  jobId                Int      @unique
+  job                  Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  title                String   @default("Assessment")
+  instructions         String?  @db.Text
+  passThresholdPercent Int      @default(60)
+  generationSource     String   @default("MANUAL") // "MANUAL" | "AI_GENERATED" | "AI_GENERATED_EDITED"
+  status               String   @default("Draft") // "Draft" | "Published"
+  questions            AssessmentQuestion[]
+  invitations          AssessmentInvitation[]
+  createdById          Int
+  createdBy            User     @relation("AssessmentCreatedBy", fields: [createdById], references: [id])
+  updatedById          Int?
+  updatedBy            User?    @relation("AssessmentUpdatedBy", fields: [updatedById], references: [id])
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model AssessmentQuestion {
+  id                 Int      @id @default(autoincrement())
+  assessmentId       Int
+  assessment         Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  type               String   @default("MCQ") // "MCQ" | "SHORT_TEXT"
+  prompt             String   @db.Text
+  options            Json?    // string[] — MCQ only
+  correctOptionIndex Int?     // MCQ only
+  points             Int      @default(1)
+  sortOrder          Int      @default(0)
+  answers            AssessmentAnswer[]
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([assessmentId])
+}
+
+model AssessmentInvitation {
+  id            Int       @id @default(autoincrement())
+  applicationId Int       @unique // one attempt per application
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  assessmentId  Int
+  assessment    Assessment @relation(fields: [assessmentId], references: [id])
+  status        String    @default("INVITED") // "INVITED" | "IN_PROGRESS" | "SUBMITTED" | "GRADING" | "GRADED"
+  totalPoints   Int?
+  scoredPoints  Float?
+  scorePercent  Float?
+  outcome       String?   // "PASSED" | "PASSED_PENDING_REVIEW" | "FAILED" | null
+  invitedAt     DateTime  @default(now())
+  startedAt     DateTime?
+  submittedAt   DateTime?
+  gradedAt      DateTime?
+  answers       AssessmentAnswer[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([assessmentId])
+}
+
+model AssessmentAnswer {
+  id                  Int      @id @default(autoincrement())
+  invitationId        Int
+  invitation          AssessmentInvitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  questionId          Int
+  question            AssessmentQuestion @relation(fields: [questionId], references: [id])
+  selectedOptionIndex Int?     // MCQ
+  textAnswer          String?  @db.Text // SHORT_TEXT
+  isCorrect           Boolean? // MCQ, computed instantly
+  pointsAwarded       Float?
+  gradingStatus       String   @default("PENDING") // "PENDING" | "INSTANT" | "QUEUED" | "GRADED" | "FAILED"
+  aiFeedback          String?  @db.Text
+  aiRawResponse        Json?
+  gradedAt            DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([invitationId, questionId])
+  @@index([invitationId])
 }

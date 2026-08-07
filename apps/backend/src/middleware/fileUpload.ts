@@ -46,3 +46,12 @@ export const faviconUpload = createUploadMiddleware({
   allowedMimeTypes: ["image/png", "image/webp", "image/svg+xml", "image/x-icon", "image/vnd.microsoft.icon"],
   maxSizeBytes: 512 * 1024,
 });
+
+export const resumeUpload = createUploadMiddleware({
+  allowedMimeTypes: [
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ],
+  maxSizeBytes: 10 * 1024 * 1024,
+});

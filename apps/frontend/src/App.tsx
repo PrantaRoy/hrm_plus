@@ -45,6 +45,15 @@ import RequestDocument from "./pages/documents/RequestDocument";
 import MyDocumentRequests from "./pages/documents/MyDocumentRequests";
 import DocumentApprovals from "./pages/documents/DocumentApprovals";
 import VerifyDocument from "./pages/public/VerifyDocument";
+import JobApplication from "./pages/public/JobApplication";
+import CandidatePortal from "./pages/public/CandidatePortal";
+import CandidateAssessment from "./pages/public/CandidateAssessment";
+import JobList from "./pages/jobs/JobList";
+import JobCreate from "./pages/jobs/JobCreate";
+import JobEdit from "./pages/jobs/JobEdit";
+import ScreeningQuestionList from "./pages/screening-questions/ScreeningQuestionList";
+import PipelineBoard from "./pages/pipeline/PipelineBoard";
+import AssessmentBuilder from "./pages/assessments/AssessmentBuilder";
 
 export default function App() {
   return (
@@ -53,6 +62,9 @@ export default function App() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/verify/:tenantSlug/:referenceNumber" element={<VerifyDocument />} />
+      <Route path="/jobs/:tenantSlug/:jobSlug/apply" element={<JobApplication />} />
+      <Route path="/candidate/:tenantSlug/portal" element={<CandidatePortal />} />
+      <Route path="/candidate/:tenantSlug/assessment" element={<CandidateAssessment />} />
 
       <Route element={<RequireAuth />}>
         <Route path="/change-password" element={<ChangePassword />} />
@@ -88,6 +100,12 @@ export default function App() {
             <Route path="/document-templates" element={<DocumentTemplateList />} />
             <Route path="/document-templates/new" element={<DocumentTemplateCreate />} />
             <Route path="/document-templates/:id/edit" element={<DocumentTemplateEdit />} />
+            <Route path="/jobs" element={<JobList />} />
+            <Route path="/jobs/new" element={<JobCreate />} />
+            <Route path="/jobs/:id/edit" element={<JobEdit />} />
+            <Route path="/jobs/:id/pipeline" element={<PipelineBoard />} />
+            <Route path="/jobs/:id/assessment" element={<AssessmentBuilder />} />
+            <Route path="/screening-questions" element={<ScreeningQuestionList />} />
           </Route>
 
           <Route element={<RequireAuth roles={["Admin", "HR", "Manager"]} />}>

@@ -40,3 +40,6 @@ export type { TopbarProps } from "./components/Topbar";
 
 export { Logo } from "./components/Logo";
 export type { LogoProps } from "./components/Logo";
+
+export { Modal } from "./components/Modal";
+export type { ModalProps } from "./components/Modal";

@@ -137,6 +137,36 @@ export async function sendDocumentRejectedEmail(
   );
 }
 
+export async function sendApplicationReceivedEmail(
+  to: string,
+  candidateName: string,
+  jobTitle: string,
+  portalUrl: string
+): Promise<void> {
+  await send(
+    to,
+    `We've received your application for ${jobTitle}`,
+    `<p>Hi ${candidateName},</p>
+     <p>Thanks for applying for <strong>${jobTitle}</strong>. We've received your application and it's now with our hiring team.</p>
+     <p><a href="${portalUrl}">Track your application here</a></p>`
+  );
+}
+
+export async function sendAssessmentInviteEmail(
+  to: string,
+  candidateName: string,
+  jobTitle: string,
+  assessmentUrl: string
+): Promise<void> {
+  await send(
+    to,
+    `You're invited to complete an assessment for ${jobTitle}`,
+    `<p>Hi ${candidateName},</p>
+     <p>Congratulations on progressing in your application for <strong>${jobTitle}</strong>. The next step is a short online assessment.</p>
+     <p><a href="${assessmentUrl}">Start your assessment here</a></p>`
+  );
+}
+
 export async function sendDocumentIssuedEmail(
   to: string,
   documentTypeName: string,

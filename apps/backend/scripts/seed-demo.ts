@@ -8,6 +8,7 @@ import {
   runTenantMigrations,
   seedDefaultRoles,
   seedDefaultWeekDays,
+  seedDefaultScreeningQuestions,
   provisionTenantAdmin,
 } from "../src/modules/tenants/tenantProvisioning";
 
@@ -58,6 +59,7 @@ async function seedDemoTenant(): Promise<void> {
   const tenantClient = getTenantClient(tenant.databaseName);
   const roleIds = await seedDefaultRoles(tenantClient);
   await seedDefaultWeekDays(tenantClient);
+  await seedDefaultScreeningQuestions(tenantClient);
 
   await provisionTenantAdmin(tenantClient, {
     email: DEMO_TENANT.adminEmail,

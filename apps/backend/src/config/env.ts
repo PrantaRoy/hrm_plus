@@ -31,6 +31,21 @@ const envSchema = z.object({
   AWS_SECRET_ACCESS_KEY: z.string().optional(),
   AWS_S3_BUCKET: z.string().optional(),
   AWS_S3_PUBLIC_BASE_URL: z.string().optional(),
+
+  // Candidate portal / ATS pipeline
+  CANDIDATE_PORTAL_TOKEN_TTL_HOURS: z.string().default("168"),
+  ASSESSMENT_BORDERLINE_BAND_PERCENT: z.string().default("10"),
+
+  // Background queue (BullMQ + Redis) — used by the async short-text assessment grading worker
+  REDIS_URL: z.string().default("redis://localhost:6379"),
+  ASSESSMENT_GRADING_CONCURRENCY: z.string().default("5"),
+
+  // LLM provider — assessment question generation + short-text grading
+  LLM_PROVIDER: z.enum(["openai", "anthropic"]).default("openai"),
+  OPENAI_API_KEY: z.string().optional(),
+  OPENAI_MODEL: z.string().default("gpt-4o-mini"),
+  ANTHROPIC_API_KEY: z.string().optional(),
+  ANTHROPIC_MODEL: z.string().default("claude-3-5-haiku-latest"),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -40,6 +55,10 @@ if (!parsed.success) {
   throw new Error("Invalid environment configuration");
 }
 
+// Deliberately not enforced at boot (unlike the rest of this file's fail-fast checks): requiring
+// an LLM key up front would take down the entire API/worker process for tenants that never touch
+// AI assessment generation/grading, and would break the Jest suite. Enforced lazily instead, in
+// modules/llm's provider factory, only when a caller actually tries to use the configured provider.
 export const env = parsed.data;
 
 export const corsOrigins = env.CORS_ORIGIN.split(",").map((origin) => origin.trim());

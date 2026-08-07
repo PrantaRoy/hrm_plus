@@ -19,6 +19,10 @@ declare global {
         id: number;
         email: string;
       };
+      candidateApplication?: {
+        applicationId: number;
+        candidateId: number;
+      };
     }
   }
 }

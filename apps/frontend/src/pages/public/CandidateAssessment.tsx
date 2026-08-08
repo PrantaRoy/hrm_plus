@@ -8,7 +8,7 @@ import { Button, Card, Field, Logo, Spinner, Textarea } from "@hrm-plus/ui";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000/api";
 
-type AnswerValue = { selectedOptionIndex?: number; textAnswer?: string };
+type AnswerValue = { selectedOptionIndex?: number; selectedOptionIndexes?: number[]; textAnswer?: string };
 
 export default function CandidateAssessment() {
   const { tenantSlug } = useParams();
@@ -48,6 +48,7 @@ export default function CandidateAssessment() {
           answers: assessment.questions.map((q) => ({
             questionId: q.id,
             selectedOptionIndex: answers[q.id]?.selectedOptionIndex,
+            selectedOptionIndexes: answers[q.id]?.selectedOptionIndexes,
             textAnswer: answers[q.id]?.textAnswer,
           })),
         },
@@ -110,7 +111,7 @@ export default function CandidateAssessment() {
 
             {assessment.questions.map((q, index) => (
               <Field key={q.id} label={`${index + 1}. ${q.prompt}`} required>
-                {q.type === "MCQ" ? (
+                {(q.type === "MCQ" || q.type === "TRUE_FALSE") && (
                   <div className="space-y-1.5">
                     {q.options?.map((opt, optIndex) => (
                       <label key={opt} className="flex items-center gap-2 text-sm text-slate-700">
@@ -125,7 +126,29 @@ export default function CandidateAssessment() {
                       </label>
                     ))}
                   </div>
-                ) : (
+                )}
+                {q.type === "MULTIPLE_SELECT" && (
+                  <div className="space-y-1.5">
+                    {q.options?.map((opt, optIndex) => {
+                      const current = answers[q.id]?.selectedOptionIndexes ?? [];
+                      const checked = current.includes(optIndex);
+                      return (
+                        <label key={opt} className="flex items-center gap-2 text-sm text-slate-700">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e) => {
+                              const next = e.target.checked ? [...current, optIndex] : current.filter((i) => i !== optIndex);
+                              setAnswers((a) => ({ ...a, [q.id]: { selectedOptionIndexes: next } }));
+                            }}
+                          />
+                          {opt}
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+                {q.type === "SHORT_TEXT" && (
                   <Textarea
                     required
                     rows={3}

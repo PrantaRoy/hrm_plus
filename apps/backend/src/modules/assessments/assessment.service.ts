@@ -49,6 +49,22 @@ async function assertQuestionsEditable(prisma: PrismaClient, assessmentId: numbe
   }
 }
 
+const TRUE_FALSE_OPTIONS = ["True", "False"];
+
+function questionOptionFields(q: CreateOrUpdateAssessmentInput["questions"][number]) {
+  switch (q.type) {
+    case "MCQ":
+      return { options: q.options, correctOptionIndex: q.correctOptionIndex, correctOptionIndexes: undefined };
+    case "TRUE_FALSE":
+      // Options are always ["True", "False"] — never accepted from the client (see assessment.schemas.ts).
+      return { options: TRUE_FALSE_OPTIONS, correctOptionIndex: q.correctOptionIndex, correctOptionIndexes: undefined };
+    case "MULTIPLE_SELECT":
+      return { options: q.options, correctOptionIndex: undefined, correctOptionIndexes: q.correctOptionIndexes };
+    case "SHORT_TEXT":
+      return { options: undefined, correctOptionIndex: undefined, correctOptionIndexes: undefined };
+  }
+}
+
 async function replaceQuestions(
   prisma: PrismaClient,
   assessmentId: number,
@@ -60,10 +76,9 @@ async function replaceQuestions(
       assessmentId,
       type: q.type,
       prompt: q.prompt,
-      options: q.type === "MCQ" ? q.options : undefined,
-      correctOptionIndex: q.type === "MCQ" ? q.correctOptionIndex : undefined,
       points: q.points,
       sortOrder: q.sortOrder ?? index,
+      ...questionOptionFields(q),
     })),
   });
 }
@@ -274,13 +289,30 @@ export async function submitAssessmentAnswers(
         throw ApiError.badRequest("One or more answers reference an unknown question");
       }
 
-      if (question.type === "MCQ") {
+      if (question.type === "MCQ" || question.type === "TRUE_FALSE") {
         const isCorrect = answer.selectedOptionIndex === question.correctOptionIndex;
         await tx.assessmentAnswer.create({
           data: {
             invitationId: invitation.id,
             questionId: question.id,
             selectedOptionIndex: answer.selectedOptionIndex,
+            isCorrect,
+            pointsAwarded: isCorrect ? question.points : 0,
+            gradingStatus: "INSTANT",
+            gradedAt: new Date(),
+          },
+        });
+      } else if (question.type === "MULTIPLE_SELECT") {
+        // Full credit only on an exact set match — no partial credit for a subset of correct options.
+        const correctSet = new Set((question.correctOptionIndexes as number[] | null) ?? []);
+        const selectedIndexes = answer.selectedOptionIndexes ?? [];
+        const selectedSet = new Set(selectedIndexes);
+        const isCorrect = correctSet.size === selectedSet.size && [...correctSet].every((i) => selectedSet.has(i));
+        await tx.assessmentAnswer.create({
+          data: {
+            invitationId: invitation.id,
+            questionId: question.id,
+            selectedOptionIndexes: selectedIndexes,
             isCorrect,
             pointsAwarded: isCorrect ? question.points : 0,
             gradingStatus: "INSTANT",

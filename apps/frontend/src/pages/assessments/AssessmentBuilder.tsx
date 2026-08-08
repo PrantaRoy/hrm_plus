@@ -37,6 +37,7 @@ export default function AssessmentBuilder() {
         prompt: q.prompt,
         options: q.options ?? undefined,
         correctOptionIndex: q.correctOptionIndex ?? undefined,
+        correctOptionIndexes: q.correctOptionIndexes ?? undefined,
         points: q.points,
         sortOrder: q.sortOrder,
       }))

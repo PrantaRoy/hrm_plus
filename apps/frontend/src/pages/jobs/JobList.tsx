@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@hrm-plus/ui";
 import { closeJob, deleteJob, listJobs, publishJob } from "../../api/jobs";
+import { useAuth } from "../../auth/AuthContext";
 
 const statusColor: Record<JobDto["status"], BadgeColor> = {
   Draft: "slate",
@@ -22,10 +23,16 @@ const statusColor: Record<JobDto["status"], BadgeColor> = {
   Archived: "red",
 };
 
+function applyUrl(tenantSlug: string, jobSlug: string): string {
+  return `${window.location.origin}/jobs/${tenantSlug}/${jobSlug}/apply`;
+}
+
 export default function JobList() {
+  const { tenantSlug } = useAuth();
   const [jobs, setJobs] = useState<JobDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [copiedJobId, setCopiedJobId] = useState<number | null>(null);
 
   function refresh() {
     setLoading(true);
@@ -66,6 +73,13 @@ export default function JobList() {
     } catch (err: any) {
       setError(err.response?.data?.error?.message ?? "Failed to delete job");
     }
+  }
+
+  async function handleCopyLink(job: JobDto) {
+    if (!tenantSlug) return;
+    await navigator.clipboard.writeText(applyUrl(tenantSlug, job.slug));
+    setCopiedJobId(job.id);
+    setTimeout(() => setCopiedJobId((current) => (current === job.id ? null : current)), 2000);
   }
 
   return (
@@ -139,9 +153,14 @@ export default function JobList() {
                       </>
                     )}
                     {job.status === "Open" && (
-                      <Button size="sm" variant="secondary" onClick={() => handleClose(job.id)}>
-                        Close
-                      </Button>
+                      <>
+                        <Button size="sm" variant="secondary" onClick={() => handleCopyLink(job)} className="mr-2">
+                          {copiedJobId === job.id ? "Copied!" : "Copy Application Link"}
+                        </Button>
+                        <Button size="sm" variant="secondary" onClick={() => handleClose(job.id)}>
+                          Close
+                        </Button>
+                      </>
                     )}
                   </TableCell>
                 </TableRow>

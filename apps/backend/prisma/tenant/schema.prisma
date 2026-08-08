@@ -800,10 +800,11 @@ model AssessmentQuestion {
   id                 Int      @id @default(autoincrement())
   assessmentId       Int
   assessment         Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
-  type               String   @default("MCQ") // "MCQ" | "SHORT_TEXT"
+  type               String   @default("MCQ") // "MCQ" | "TRUE_FALSE" | "MULTIPLE_SELECT" | "SHORT_TEXT"
   prompt             String   @db.Text
-  options            Json?    // string[] — MCQ only
-  correctOptionIndex Int?     // MCQ only
+  options            Json?    // string[] — MCQ | TRUE_FALSE | MULTIPLE_SELECT
+  correctOptionIndex Int?     // MCQ | TRUE_FALSE — single correct option
+  correctOptionIndexes Json?  // number[] — MULTIPLE_SELECT only
   points             Int      @default(1)
   sortOrder          Int      @default(0)
   answers            AssessmentAnswer[]
@@ -841,9 +842,10 @@ model AssessmentAnswer {
   invitation          AssessmentInvitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
   questionId          Int
   question            AssessmentQuestion @relation(fields: [questionId], references: [id])
-  selectedOptionIndex Int?     // MCQ
+  selectedOptionIndex Int?     // MCQ | TRUE_FALSE
+  selectedOptionIndexes Json?  // number[] — MULTIPLE_SELECT only
   textAnswer          String?  @db.Text // SHORT_TEXT
-  isCorrect           Boolean? // MCQ, computed instantly
+  isCorrect           Boolean? // MCQ | TRUE_FALSE | MULTIPLE_SELECT, computed instantly
   pointsAwarded       Float?
   gradingStatus       String   @default("PENDING") // "PENDING" | "INSTANT" | "QUEUED" | "GRADED" | "FAILED"
   aiFeedback          String?  @db.Text

@@ -1,4 +1,4 @@
-export const ASSESSMENT_QUESTION_TYPES = ["MCQ", "SHORT_TEXT"] as const;
+export const ASSESSMENT_QUESTION_TYPES = ["MCQ", "TRUE_FALSE", "MULTIPLE_SELECT", "SHORT_TEXT"] as const;
 export type AssessmentQuestionType = (typeof ASSESSMENT_QUESTION_TYPES)[number];
 
 export const ASSESSMENT_STATUSES = ["Draft", "Published"] as const;
@@ -22,6 +22,7 @@ export interface AssessmentQuestionDto {
   prompt: string;
   options: string[] | null;
   correctOptionIndex: number | null;
+  correctOptionIndexes: number[] | null;
   points: number;
   sortOrder: number;
 }
@@ -44,6 +45,7 @@ export interface UpsertAssessmentQuestionInput {
   prompt: string;
   options?: string[];
   correctOptionIndex?: number;
+  correctOptionIndexes?: number[];
   points: number;
   sortOrder?: number;
 }
@@ -66,6 +68,7 @@ export interface AssessmentAnswerResultDto {
   type: AssessmentQuestionType;
   prompt: string;
   selectedOptionIndex: number | null;
+  selectedOptionIndexes: number[] | null;
   textAnswer: string | null;
   isCorrect: boolean | null;
   pointsAwarded: number | null;
@@ -107,5 +110,10 @@ export interface PublicAssessmentDto {
 }
 
 export interface SubmitAssessmentAnswersInput {
-  answers: Array<{ questionId: number; selectedOptionIndex?: number; textAnswer?: string }>;
+  answers: Array<{
+    questionId: number;
+    selectedOptionIndex?: number;
+    selectedOptionIndexes?: number[];
+    textAnswer?: string;
+  }>;
 }

@@ -6,11 +6,17 @@ import { getJob, updateJob } from "../../api/jobs";
 import { listDepartments } from "../../api/departments";
 import { listScreeningQuestions } from "../../api/screeningQuestions";
 import { ScreeningQuestionPicker } from "./components/ScreeningQuestionPicker";
+import { useAuth } from "../../auth/AuthContext";
+
+function applyUrl(tenantSlug: string, jobSlug: string): string {
+  return `${window.location.origin}/jobs/${tenantSlug}/${jobSlug}/apply`;
+}
 
 export default function JobEdit() {
   const { id } = useParams();
   const jobId = Number(id);
   const navigate = useNavigate();
+  const { tenantSlug } = useAuth();
 
   const [job, setJob] = useState<JobDto | null>(null);
   const [departments, setDepartments] = useState<DepartmentDto[]>([]);
@@ -18,6 +24,7 @@ export default function JobEdit() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const [title, setTitle] = useState("");
   const [vacancyCount, setVacancyCount] = useState(1);
@@ -59,6 +66,13 @@ export default function JobEdit() {
   }, [jobId]);
 
   const screeningQuestionsLocked = (job?.applicationCount ?? 0) > 0;
+
+  async function handleCopyLink() {
+    if (!tenantSlug || !job) return;
+    await navigator.clipboard.writeText(applyUrl(tenantSlug, job.slug));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -117,6 +131,19 @@ export default function JobEdit() {
           </span>
         }
       />
+
+      <Card title="Candidate application link">
+        {job.status === "Open" && tenantSlug ? (
+          <div className="flex items-center gap-2">
+            <Input readOnly value={applyUrl(tenantSlug, job.slug)} className="font-mono text-xs" />
+            <Button type="button" variant="secondary" onClick={handleCopyLink}>
+              {copied ? "Copied!" : "Copy"}
+            </Button>
+          </div>
+        ) : (
+          <p className="text-sm text-slate-500">Publish this job to get a shareable application link.</p>
+        )}
+      </Card>
 
       <Card>
         <form onSubmit={handleSubmit} className="space-y-4">

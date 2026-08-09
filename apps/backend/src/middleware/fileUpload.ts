@@ -55,3 +55,18 @@ export const resumeUpload = createUploadMiddleware({
   ],
   maxSizeBytes: 10 * 1024 * 1024,
 });
+
+export const heroMediaUpload = createUploadMiddleware({
+  allowedMimeTypes: ["image/png", "image/jpeg", "image/webp", "video/mp4", "video/webm"],
+  maxSizeBytes: 20 * 1024 * 1024,
+});
+
+export const galleryImageUpload = createUploadMiddleware({
+  allowedMimeTypes: ["image/png", "image/jpeg", "image/webp"],
+  maxSizeBytes: 5 * 1024 * 1024,
+});
+
+export const blogFeaturedImageUpload = createUploadMiddleware({
+  allowedMimeTypes: ["image/png", "image/jpeg", "image/webp"],
+  maxSizeBytes: 5 * 1024 * 1024,
+});

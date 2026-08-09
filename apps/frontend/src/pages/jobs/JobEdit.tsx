@@ -28,6 +28,7 @@ export default function JobEdit() {
 
   const [title, setTitle] = useState("");
   const [vacancyCount, setVacancyCount] = useState(1);
+  const [location, setLocation] = useState("");
   const [skills, setSkills] = useState("");
   const [minExperienceYears, setMinExperienceYears] = useState("");
   const [maxExperienceYears, setMaxExperienceYears] = useState("");
@@ -49,6 +50,7 @@ export default function JobEdit() {
         setJob(j);
         setTitle(j.title);
         setVacancyCount(j.vacancyCount);
+        setLocation(j.location ?? "");
         setSkills(j.skills.join(", "));
         setMinExperienceYears(j.minExperienceYears?.toString() ?? "");
         setMaxExperienceYears(j.maxExperienceYears?.toString() ?? "");
@@ -82,6 +84,7 @@ export default function JobEdit() {
       const updated = await updateJob(jobId, {
         title,
         vacancyCount,
+        location: location || undefined,
         skills: skills
           .split(",")
           .map((s) => s.trim())
@@ -167,6 +170,10 @@ export default function JobEdit() {
 
           <Field label="Skills" helperText="Comma-separated">
             <Input value={skills} onChange={(e) => setSkills(e.target.value)} />
+          </Field>
+
+          <Field label="Location" helperText="City/region, or 'Remote'">
+            <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Auckland, or Remote" />
           </Field>
 
           <div className="grid grid-cols-2 gap-3">

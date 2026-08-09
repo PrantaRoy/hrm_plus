@@ -128,6 +128,36 @@ export async function seedDefaultScreeningQuestions(tenantClient: TenantPrismaCl
   );
 }
 
+const DEFAULT_SITE_SECTIONS: { sectionKey: string; displayName: string }[] = [
+  { sectionKey: "hero", displayName: "Hero" },
+  { sectionKey: "about", displayName: "About Us" },
+  { sectionKey: "overview", displayName: "Our Services" },
+  { sectionKey: "gallery", displayName: "Gallery" },
+  { sectionKey: "careers", displayName: "Careers" },
+  { sectionKey: "blogs", displayName: "Blog" },
+  { sectionKey: "contact", displayName: "Contact Us" },
+];
+
+/**
+ * Idempotently seeds the default public-website CMS section list. Existing tenants
+ * also get these lazily via siteSection.service.listSections, so this is just a
+ * convenience for freshly-provisioned tenants — matches seedDefaultWeekDays's shape.
+ */
+export async function seedDefaultSiteSections(tenantClient: TenantPrismaClient): Promise<void> {
+  const existing = await tenantClient.siteSection.count();
+  if (existing > 0) {
+    return;
+  }
+  await tenantClient.siteSection.createMany({
+    data: DEFAULT_SITE_SECTIONS.map((section, index) => ({
+      sectionKey: section.sectionKey,
+      displayName: section.displayName,
+      isEnabled: true,
+      sortOrder: index,
+    })),
+  });
+}
+
 /**
  * Idempotently ensures a tenant admin user (+ linked employee) exists with the
  * given plaintext password. Re-running this always resets the password back

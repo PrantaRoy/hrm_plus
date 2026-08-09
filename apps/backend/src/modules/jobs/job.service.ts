@@ -1,22 +1,11 @@
-import { nanoid } from "nanoid";
 import { PrismaClient, Prisma } from "../../../generated/tenant";
 import { CreateJobInput, JobDto, JobScreeningQuestionInput, ListJobsQuery, PublicJobDto, UpdateJobInput } from "@hrm-plus/shared";
 import { ApiError } from "../../utils/ApiError";
+import { generateUniqueSlug } from "../../utils/slug";
 import { jobInclude, toJobDto, toPublicJobDto } from "./job.mapper";
 
-function slugify(title: string): string {
-  return title
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-+|-+$)/g, "");
-}
-
-async function generateUniqueSlug(prisma: PrismaClient, title: string): Promise<string> {
-  const base = slugify(title) || "job";
-  const existing = await prisma.job.findUnique({ where: { slug: base } });
-  if (!existing) return base;
-  return `${base}-${nanoid(6).toLowerCase()}`;
+async function generateUniqueJobSlug(prisma: PrismaClient, title: string): Promise<string> {
+  return generateUniqueSlug(title, "job", async (slug) => Boolean(await prisma.job.findUnique({ where: { slug } })));
 }
 
 async function assertScreeningQuestionsValid(prisma: PrismaClient, questions: JobScreeningQuestionInput[]) {
@@ -55,7 +44,7 @@ export async function getPublicJobBySlug(prisma: PrismaClient, slug: string): Pr
 
 export async function createJob(prisma: PrismaClient, input: CreateJobInput, postedById: number): Promise<JobDto> {
   await assertScreeningQuestionsValid(prisma, input.screeningQuestions);
-  const slug = await generateUniqueSlug(prisma, input.title);
+  const slug = await generateUniqueJobSlug(prisma, input.title);
 
   const job = await prisma.$transaction(async (tx) => {
     const created = await tx.job.create({
@@ -63,6 +52,7 @@ export async function createJob(prisma: PrismaClient, input: CreateJobInput, pos
         title: input.title,
         slug,
         vacancyCount: input.vacancyCount,
+        location: input.location,
         skills: input.skills,
         minExperienceYears: input.minExperienceYears,
         maxExperienceYears: input.maxExperienceYears,
@@ -117,6 +107,7 @@ export async function updateJob(prisma: PrismaClient, id: number, input: UpdateJ
       data: {
         title: input.title,
         vacancyCount: input.vacancyCount,
+        location: input.location,
         skills: input.skills,
         minExperienceYears: input.minExperienceYears,
         maxExperienceYears: input.maxExperienceYears,

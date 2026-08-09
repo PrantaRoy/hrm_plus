@@ -30,6 +30,7 @@ export interface JobDto {
   title: string;
   slug: string;
   vacancyCount: number;
+  location: string | null;
   skills: string[];
   minExperienceYears: number | null;
   maxExperienceYears: number | null;
@@ -54,6 +55,7 @@ export interface JobDto {
 export interface CreateJobInput {
   title: string;
   vacancyCount: number;
+  location?: string;
   skills: string[];
   minExperienceYears?: number;
   maxExperienceYears?: number;
@@ -86,6 +88,9 @@ export interface PublicJobDto {
   slug: string;
   title: string;
   vacancyCount: number;
+  location: string | null;
+  departmentName: string | null;
+  closesAt: string | null;
   skills: string[];
   minExperienceYears: number | null;
   maxExperienceYears: number | null;
@@ -95,4 +100,13 @@ export interface PublicJobDto {
   salaryMax: number | null;
   description: string;
   screeningQuestions: PublicJobScreeningQuestionDto[];
+}
+
+export interface PublicJobListItemDto {
+  slug: string;
+  title: string;
+  jobType: JobType;
+  departmentName: string | null;
+  closesAt: string | null;
+  location: string | null;
 }

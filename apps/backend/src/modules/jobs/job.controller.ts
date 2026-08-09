@@ -1,6 +1,7 @@
 import { RequestHandler } from "express";
 import { createJobSchema, listJobsQuerySchema, updateJobSchema } from "./job.schemas";
 import * as jobService from "./job.service";
+import { toPublicJobListItem } from "./job.mapper";
 import { ApiError } from "../../utils/ApiError";
 
 export const listJobsHandler: RequestHandler = async (req, res, next) => {
@@ -33,7 +34,7 @@ export const getPublicJobHandler: RequestHandler = async (req, res, next) => {
 export const listPublicJobsHandler: RequestHandler = async (req, res, next) => {
   try {
     const jobs = await jobService.listJobs(req.prisma!, { status: "Open" });
-    res.json(jobs.map((job) => ({ slug: job.slug, title: job.title, jobType: job.jobType, departmentName: job.departmentName })));
+    res.json(jobs.map(toPublicJobListItem));
   } catch (err) {
     next(err);
   }

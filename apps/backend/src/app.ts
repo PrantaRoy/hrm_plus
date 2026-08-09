@@ -43,6 +43,19 @@ import { publicPackageRouter, adminPackageRouter } from "./modules/saas/packages
 import { publicApplicationRouter, adminApplicationRouter } from "./modules/saas/applications/application.routes";
 import { saasTenantRouter } from "./modules/saas/tenants/saasTenant.routes";
 import { statsRouter } from "./modules/saas/stats/stats.routes";
+import { siteSettingRouter } from "./modules/site-settings/siteSetting.routes";
+import { siteSectionRouter } from "./modules/site-sections/siteSection.routes";
+import { heroSlideRouter } from "./modules/hero-slides/heroSlide.routes";
+import { companyServiceRouter } from "./modules/company-services/companyService.routes";
+import { galleryItemRouter } from "./modules/gallery-items/galleryItem.routes";
+import { blogPostRouter } from "./modules/blog-posts/blogPost.routes";
+import {
+  adminContactInquiryRouter,
+  publicContactInquiryRouter,
+} from "./modules/contact-inquiries/contactInquiry.routes";
+import { socialLinkRouter } from "./modules/social-links/socialLink.routes";
+import { legalPageRouter } from "./modules/legal-pages/legalPage.routes";
+import { publicSiteContentRouter } from "./modules/site-content/siteContent.routes";
 
 export function createApp(): Express {
   const app = express();
@@ -91,6 +104,19 @@ export function createApp(): Express {
   app.use("/api/pipeline", tenantResolver, pipelineRouter);
   app.use("/api/assessments", tenantResolver, adminAssessmentRouter);
   app.use("/api/public/assessment", tenantResolver, publicAssessmentRouter); // public — token auth, no requireAuth
+
+  // Public website CMS
+  app.use("/api/site-settings", tenantResolver, siteSettingRouter);
+  app.use("/api/site-sections", tenantResolver, siteSectionRouter);
+  app.use("/api/hero-slides", tenantResolver, heroSlideRouter);
+  app.use("/api/company-services", tenantResolver, companyServiceRouter);
+  app.use("/api/gallery-items", tenantResolver, galleryItemRouter);
+  app.use("/api/blog-posts", tenantResolver, blogPostRouter);
+  app.use("/api/public/contact-inquiries", tenantResolver, publicContactInquiryRouter); // public — rate-limited, no requireAuth
+  app.use("/api/contact-inquiries", tenantResolver, adminContactInquiryRouter);
+  app.use("/api/social-links", tenantResolver, socialLinkRouter);
+  app.use("/api/legal-pages", tenantResolver, legalPageRouter);
+  app.use("/api/public/site-content", tenantResolver, publicSiteContentRouter); // public — no requireAuth, cached
 
   // SaaS control-plane API (public landing/signup + super-admin portal)
   app.use("/saas/admin/auth", saasAuthRouter);

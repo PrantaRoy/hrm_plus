@@ -1,5 +1,5 @@
 import { Prisma } from "../../../generated/tenant";
-import { JobDto, PublicJobDto } from "@hrm-plus/shared";
+import { JobDto, PublicJobDto, PublicJobListItemDto } from "@hrm-plus/shared";
 
 const jobWithRelations = Prisma.validator<Prisma.JobDefaultArgs>()({
   include: {
@@ -31,6 +31,7 @@ export function toJobDto(job: JobWithRelations): JobDto {
     title: job.title,
     slug: job.slug,
     vacancyCount: job.vacancyCount,
+    location: job.location,
     skills: (job.skills as string[]) ?? [],
     minExperienceYears: job.minExperienceYears,
     maxExperienceYears: job.maxExperienceYears,
@@ -66,6 +67,9 @@ export function toPublicJobDto(job: JobWithRelations): PublicJobDto {
     slug: job.slug,
     title: job.title,
     vacancyCount: job.vacancyCount,
+    location: job.location,
+    departmentName: job.department?.name ?? null,
+    closesAt: job.closesAt ? job.closesAt.toISOString() : null,
     skills: (job.skills as string[]) ?? [],
     minExperienceYears: job.minExperienceYears,
     maxExperienceYears: job.maxExperienceYears,
@@ -81,5 +85,16 @@ export function toPublicJobDto(job: JobWithRelations): PublicJobDto {
       questionOptions: (link.question.options as string[] | null) ?? null,
       isMandatory: link.isMandatory,
     })),
+  };
+}
+
+export function toPublicJobListItem(job: JobDto): PublicJobListItemDto {
+  return {
+    slug: job.slug,
+    title: job.title,
+    jobType: job.jobType,
+    departmentName: job.departmentName,
+    closesAt: job.closesAt,
+    location: job.location,
   };
 }

@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import { GeneralSettingsDto } from "@hrm-plus/shared";
 import {
   BarChart3,
+  Boxes,
   Briefcase,
   CalendarDays,
   CalendarPlus,
@@ -11,11 +12,19 @@ import {
   FileCheck,
   FilePlus,
   FileClock,
+  FileText,
+  Globe,
+  Image,
+  Images,
+  Layout,
   LayoutDashboard,
   LayoutTemplate,
   ListChecks,
+  Mail,
+  Newspaper,
   PartyPopper,
   Settings as SettingsIcon,
+  Share2,
   ClipboardCheck,
   Users,
 } from "lucide-react";
@@ -122,6 +131,24 @@ export default function DashboardShell() {
             items: [
               { key: "document-templates", label: "Document Templates", to: "/document-templates", icon: LayoutTemplate },
               { key: "settings", label: "Settings", to: "/settings", icon: SettingsIcon },
+            ],
+          },
+        ]
+      : []),
+    ...(isAdminOrHr
+      ? [
+          {
+            label: "Website CMS",
+            items: [
+              { key: "cms-site-settings", label: "Site Settings", to: "/website-cms/settings", icon: Globe },
+              { key: "cms-sections", label: "Sections", to: "/website-cms/sections", icon: Layout },
+              { key: "cms-hero-slides", label: "Hero Slides", to: "/website-cms/hero-slides", icon: Image },
+              { key: "cms-services", label: "Services", to: "/website-cms/services", icon: Boxes },
+              { key: "cms-gallery", label: "Gallery", to: "/website-cms/gallery", icon: Images },
+              { key: "cms-blog", label: "Blog", to: "/website-cms/blog", icon: Newspaper },
+              { key: "cms-inquiries", label: "Contact Inquiries", to: "/website-cms/contact-inquiries", icon: Mail },
+              { key: "cms-social", label: "Social Links", to: "/website-cms/social-links", icon: Share2 },
+              { key: "cms-legal", label: "Legal Pages", to: "/website-cms/legal-pages", icon: FileText },
             ],
           },
         ]

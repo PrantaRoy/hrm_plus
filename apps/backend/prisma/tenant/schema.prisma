@@ -60,6 +60,10 @@ model User {
   applicationStagesMoved    ApplicationStageHistory[] @relation("ApplicationStageMovedBy")
   assessmentsCreated        Assessment[]              @relation("AssessmentCreatedBy")
   assessmentsUpdated        Assessment[]              @relation("AssessmentUpdatedBy")
+  siteSettingsUpdated       SiteSetting[]             @relation("SiteSettingUpdatedBy")
+  blogPostsCreated          BlogPost[]                @relation("BlogPostCreatedBy")
+  blogPostsUpdated          BlogPost[]                @relation("BlogPostUpdatedBy")
+  legalPagesUpdated         LegalPage[]               @relation("LegalPageUpdatedBy")
   signatureImageUrl  String?
   signatureImageKey  String?
   signatureUpdatedAt DateTime?
@@ -638,6 +642,7 @@ model Job {
   title              String
   slug               String   @unique // slugify(title) + short nanoid suffix on collision
   vacancyCount       Int      @default(1)
+  location           String?  // free-text city/region, or "Remote"
   skills             Json     // string[]
   minExperienceYears Int?
   maxExperienceYears Int?
@@ -856,4 +861,158 @@ model AssessmentAnswer {
 
   @@unique([invitationId, questionId])
   @@index([invitationId])
+}
+
+// ── Public Website CMS ──────────────────────────────────────────────────
+
+model SiteSetting {
+  id               Int      @id @default(autoincrement())
+  siteTitle        String   @default("Our Company")
+  tagline          String?
+  logoUrl          String?
+  logoKey          String?
+  faviconUrl       String?
+  faviconKey       String?
+  primaryColor     String   @default("#4F46E5")
+  secondaryColor   String   @default("#0EA5E9")
+  contactEmail     String?
+  contactPhone     String?
+  contactAddress   String?  @db.Text
+  businessHours    Json?    // { day: string; openTime: string; closeTime: string; isClosed: boolean }[]
+  aboutHeading     String?
+  aboutContent     String?  @db.Text // fills the "about" SiteSection — no dedicated About model
+  metaDescription  String?  @db.Text
+  updatedById      Int?
+  updatedBy        User?    @relation("SiteSettingUpdatedBy", fields: [updatedById], references: [id])
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model SiteSection {
+  id          Int      @id @default(autoincrement())
+  sectionKey  String   @unique // "hero" | "about" | "overview" | "gallery" | "careers" | "blogs" | "contact"
+  displayName String
+  isEnabled   Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sortOrder])
+}
+
+model HeroSlide {
+  id               Int      @id @default(autoincrement())
+  headline         String
+  subHeadline      String?
+  mediaType        String   @default("IMAGE") // "IMAGE" | "VIDEO"
+  mediaUrl         String
+  mediaKey         String?
+  ctaPrimaryText   String?
+  ctaPrimaryUrl    String?
+  ctaSecondaryText String?
+  ctaSecondaryUrl  String?
+  sortOrder        Int      @default(0)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([sortOrder])
+}
+
+model CompanyService {
+  id          Int      @id @default(autoincrement())
+  icon        String   // lucide-react icon name, e.g. "Rocket"
+  title       String
+  summary     String
+  description String   @db.Text // HTML
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([sortOrder])
+}
+
+model GalleryItem {
+  id           Int      @id @default(autoincrement())
+  title        String?
+  caption      String?
+  category     String?
+  imageUrl     String
+  imageKey     String?
+  thumbnailUrl String?
+  thumbnailKey String?
+  isFeatured   Boolean  @default(false)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([category])
+  @@index([sortOrder])
+}
+
+model BlogPost {
+  id               Int       @id @default(autoincrement())
+  title            String
+  slug             String    @unique // slugify(title) + short nanoid suffix on collision
+  featuredImageUrl String?
+  featuredImageKey String?
+  excerpt          String?   @db.Text
+  content          String    @db.Text // rich HTML from Tiptap, trusted admin content — not sanitized
+  authorName       String?
+  authorAvatarUrl  String?
+  status           String    @default("DRAFT") // "DRAFT" | "PUBLISHED"
+  publishedAt      DateTime?
+  createdById      Int
+  createdBy        User      @relation("BlogPostCreatedBy", fields: [createdById], references: [id])
+  updatedById      Int?
+  updatedBy        User?     @relation("BlogPostUpdatedBy", fields: [updatedById], references: [id])
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([status])
+  @@index([publishedAt])
+}
+
+model ContactInquiry {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String   @db.Text
+  status    String   @default("UNREAD") // "UNREAD" | "READ" | "ARCHIVED"
+  ipAddress String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model SocialLink {
+  id        Int      @id @default(autoincrement())
+  platform  String   // e.g. "Facebook" | "LinkedIn" | "Twitter" | "Instagram" | "YouTube"
+  icon      String   // lucide-react icon name
+  url       String
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([sortOrder])
+}
+
+model LegalPage {
+  id          Int      @id @default(autoincrement())
+  slug        String   @unique // admin-set, e.g. "privacy-policy" | "terms-of-service" — not auto-slugified
+  title       String
+  content     String   @db.Text // rich HTML from Tiptap, trusted — not sanitized
+  updatedById Int?
+  updatedBy   User?    @relation("LegalPageUpdatedBy", fields: [updatedById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

@@ -10,6 +10,7 @@ const jobScreeningQuestionInputSchema = z.object({
 export const createJobSchema = z.object({
   title: z.string().trim().min(1),
   vacancyCount: z.number().int().min(1).default(1),
+  location: z.string().trim().max(160).optional(),
   skills: z.array(z.string().trim().min(1)).default([]),
   minExperienceYears: z.number().int().min(0).optional(),
   maxExperienceYears: z.number().int().min(0).optional(),

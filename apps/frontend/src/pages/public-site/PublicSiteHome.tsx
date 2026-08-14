@@ -1,6 +1,6 @@
 import { ReactElement } from "react";
-import { useParams } from "react-router-dom";
 import { SiteSectionKey } from "@hrm-plus/shared";
+import { useResolvedTenantSlug } from "../../hooks/useResolvedTenantSlug";
 import { useSiteContent } from "../../hooks/useSiteContent";
 import { PublicSiteLayout } from "../../components/public-site/PublicSiteLayout";
 import { SectionSkeleton } from "../../components/public-site/SectionSkeleton";
@@ -13,7 +13,7 @@ import { BlogsSection } from "../../components/public-site/BlogsSection";
 import { ContactSection } from "../../components/public-site/ContactSection";
 
 export default function PublicSiteHome() {
-  const { tenantSlug } = useParams<{ tenantSlug: string }>();
+  const tenantSlug = useResolvedTenantSlug();
   const { data: content, isLoading, isError } = useSiteContent(tenantSlug);
 
   if (isLoading) {

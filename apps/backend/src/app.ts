@@ -3,7 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import { pinoHttp } from "pino-http";
-import { corsOrigins } from "./config/env";
+import { corsOrigins, isTenantOrigin } from "./config/env";
 import { LOCAL_UPLOAD_ROOT } from "./storage";
 import { logger } from "./logger";
 import { tenantResolver } from "./middleware/tenantResolver";
@@ -56,12 +56,24 @@ import {
 import { socialLinkRouter } from "./modules/social-links/socialLink.routes";
 import { legalPageRouter } from "./modules/legal-pages/legalPage.routes";
 import { publicSiteContentRouter } from "./modules/site-content/siteContent.routes";
+import { assetRouter } from "./modules/assets/asset.routes";
 
 export function createApp(): Express {
   const app = express();
 
   app.use(helmet());
-  app.use(cors({ origin: corsOrigins, credentials: true }));
+  app.use(
+    cors({
+      origin(origin, callback) {
+        if (!origin || corsOrigins.includes(origin) || isTenantOrigin(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error("Not allowed by CORS"));
+        }
+      },
+      credentials: true,
+    })
+  );
   app.use(cookieParser());
   app.use(express.json());
   app.use(pinoHttp({ logger }));
@@ -95,6 +107,7 @@ export function createApp(): Express {
   app.use("/api/document-templates", tenantResolver, documentTemplateRouter);
   app.use("/api/document-requests", tenantResolver, documentRequestRouter);
   app.use("/api/document-verify", tenantResolver, documentVerifyRouter); // public — no requireAuth
+  app.use("/api/assets", tenantResolver, assetRouter);
   app.use("/api/public/jobs", tenantResolver, publicJobRouter); // public — no requireAuth
   app.use("/api/jobs", tenantResolver, adminJobRouter);
   app.use("/api/screening-questions", tenantResolver, screeningQuestionRouter);

@@ -63,6 +63,17 @@ export const env = parsed.data;
 
 export const corsOrigins = env.CORS_ORIGIN.split(",").map((origin) => origin.trim());
 
+export function isTenantOrigin(origin: string): boolean {
+  try {
+    const { hostname } = new URL(origin);
+    return (
+      hostname === env.PUBLIC_TENANT_BASE_DOMAIN || hostname.endsWith(`.${env.PUBLIC_TENANT_BASE_DOMAIN}`)
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function tenantDatabaseUrl(databaseName: string): string {
   const user = encodeURIComponent(env.TENANT_DB_USER);
   const auth = env.TENANT_DB_PASSWORD

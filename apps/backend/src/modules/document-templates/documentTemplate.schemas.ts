@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { APPROVER_TYPES } from "@hrm-plus/shared";
+import { DOCUMENT_APPROVER_TYPES } from "@hrm-plus/shared";
 
 export const documentApprovalStepSchema = z
   .object({
-    approverType: z.enum(APPROVER_TYPES),
+    approverType: z.enum(DOCUMENT_APPROVER_TYPES),
     roleId: z.number().int().optional(),
   })
   .refine((step) => step.approverType !== "Role" || step.roleId !== undefined, {

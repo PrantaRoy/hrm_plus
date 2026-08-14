@@ -3,14 +3,18 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button, Field, Input, Logo } from "@hrm-plus/ui";
 import * as authApi from "../api/auth";
 import { useAuth } from "../auth/AuthContext";
+import { useTenantSubdomain } from "../hooks/useTenantSubdomain";
 
 type Step = "email" | "password";
 
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const subdomainTenantSlug = useTenantSubdomain();
   const [step, setStep] = useState<Step>("email");
-  const [tenantSlug, setTenantSlug] = useState(import.meta.env.VITE_DEFAULT_TENANT_SLUG ?? "");
+  const [tenantSlug, setTenantSlug] = useState(
+    subdomainTenantSlug ?? import.meta.env.VITE_DEFAULT_TENANT_SLUG ?? ""
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -83,12 +87,16 @@ export default function Login() {
           {step === "email" ? (
             <>
               <Field label="Organisation slug">
-                <Input
-                  required
-                  value={tenantSlug}
-                  onChange={(e) => setTenantSlug(e.target.value)}
-                  placeholder="acme"
-                />
+                {subdomainTenantSlug ? (
+                  <Input required readOnly value={tenantSlug} className="bg-slate-100" />
+                ) : (
+                  <Input
+                    required
+                    value={tenantSlug}
+                    onChange={(e) => setTenantSlug(e.target.value)}
+                    placeholder="acme"
+                  />
+                )}
               </Field>
               <Field label="Email">
                 <Input

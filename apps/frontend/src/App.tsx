@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { RequireAuth } from "./auth/RequireAuth";
+import { useTenantSubdomain } from "./hooks/useTenantSubdomain";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -77,8 +78,15 @@ import PublicSiteProviders from "./pages/public-site/PublicSiteProviders";
 import PublicSiteHome from "./pages/public-site/PublicSiteHome";
 import PublicBlogPost from "./pages/public-site/PublicBlogPost";
 import PublicLegalPage from "./pages/public-site/PublicLegalPage";
+import AssetList from "./pages/assets/AssetList";
+import AssetCreate from "./pages/assets/AssetCreate";
+import AssetDetail from "./pages/assets/AssetDetail";
+import AssetEdit from "./pages/assets/AssetEdit";
+import OffboardingChecklist from "./pages/assets/OffboardingChecklist";
 
 export default function App() {
+  const tenantSlug = useTenantSubdomain();
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
@@ -92,13 +100,26 @@ export default function App() {
         <Route path="/site/:tenantSlug" element={<PublicSiteHome />} />
         <Route path="/site/:tenantSlug/blog/:slug" element={<PublicBlogPost />} />
         <Route path="/site/:tenantSlug/legal/:legalSlug" element={<PublicLegalPage />} />
+        <Route path="/blog/:slug" element={<PublicBlogPost />} />
+        <Route path="/legal/:legalSlug" element={<PublicLegalPage />} />
+      </Route>
+
+      <Route
+        element={
+          <RequireAuth
+            publicFallback={tenantSlug ? <PublicSiteProviders><PublicSiteHome /></PublicSiteProviders> : undefined}
+          />
+        }
+      >
+        <Route element={<DashboardShell />}>
+          <Route path="/" element={<Dashboard />} />
+        </Route>
       </Route>
 
       <Route element={<RequireAuth />}>
         <Route path="/change-password" element={<ChangePassword />} />
 
         <Route element={<DashboardShell />}>
-          <Route path="/" element={<Dashboard />} />
           <Route path="/employees" element={<EmployeeList />} />
           <Route
             path="/employees/new"
@@ -120,6 +141,9 @@ export default function App() {
           <Route path="/documents/my-requests" element={<MyDocumentRequests />} />
           <Route path="/documents/approvals" element={<DocumentApprovals />} />
 
+          <Route path="/assets" element={<AssetList />} />
+          <Route path="/assets/:id" element={<AssetDetail />} />
+
           <Route element={<RequireAuth roles={["Admin", "HR"]} />}>
             <Route path="/duty-schedules" element={<DutyScheduleList />} />
             <Route path="/duty-schedules/new" element={<DutyScheduleCreate />} />
@@ -134,6 +158,10 @@ export default function App() {
             <Route path="/jobs/:id/pipeline" element={<PipelineBoard />} />
             <Route path="/jobs/:id/assessment" element={<AssessmentBuilder />} />
             <Route path="/screening-questions" element={<ScreeningQuestionList />} />
+
+            <Route path="/assets/new" element={<AssetCreate />} />
+            <Route path="/assets/:id/edit" element={<AssetEdit />} />
+            <Route path="/assets/offboarding/:employeeId" element={<OffboardingChecklist />} />
 
             <Route path="/website-cms/settings" element={<SiteSettingsForm />} />
             <Route path="/website-cms/sections" element={<SiteSectionList />} />

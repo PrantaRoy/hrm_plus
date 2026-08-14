@@ -1,12 +1,14 @@
+import { ReactElement } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { RoleName } from "@hrm-plus/shared";
 import { useAuth } from "./AuthContext";
 
-export function RequireAuth({ roles }: { roles?: RoleName[] }) {
+export function RequireAuth({ roles, publicFallback }: { roles?: RoleName[]; publicFallback?: ReactElement }) {
   const { isAuthenticated, user, mustChangePassword } = useAuth();
   const location = useLocation();
 
   if (!isAuthenticated) {
+    if (publicFallback) return publicFallback;
     return <Navigate to="/login" replace />;
   }
 

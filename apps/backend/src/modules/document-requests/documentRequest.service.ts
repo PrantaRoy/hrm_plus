@@ -26,10 +26,14 @@ interface ApprovalStepLike {
 function isEligibleForStep(
   actingUserRole: string,
   actingEmployeeId: number | null,
+  applicantEmployeeId: number,
   applicantReportingToId: number | null,
   step: ApprovalStepLike
 ): boolean {
   if (actingUserRole === "Admin") return true;
+  if (step.approverType === "Self") {
+    return actingEmployeeId != null && actingEmployeeId === applicantEmployeeId;
+  }
   if (step.approverType === "ReportingManager") {
     return actingEmployeeId != null && applicantReportingToId === actingEmployeeId;
   }
@@ -52,11 +56,14 @@ async function resolveActingEmployee(prisma: PrismaClient, userId: number) {
 async function resolveApproverEmails(
   prisma: PrismaClient,
   step: { approverType: string; roleId: number | null },
-  applicantReportingToId: number | null
+  applicant: { email: string; reportingToId: number | null }
 ): Promise<string[]> {
+  if (step.approverType === "Self") {
+    return [applicant.email];
+  }
   if (step.approverType === "ReportingManager") {
-    if (!applicantReportingToId) return [];
-    const manager = await prisma.employee.findUnique({ where: { id: applicantReportingToId } });
+    if (!applicant.reportingToId) return [];
+    const manager = await prisma.employee.findUnique({ where: { id: applicant.reportingToId } });
     return manager ? [manager.email] : [];
   }
   if (step.approverType === "Role" && step.roleId) {
@@ -105,7 +112,13 @@ export async function listPendingMyApproval(
   const eligible = pending.filter((request) => {
     const currentApproval = request.approvals.find((a) => a.stepOrder === request.currentStepOrder);
     if (!currentApproval || currentApproval.status !== "Pending") return false;
-    return isEligibleForStep(actingUser.role, actingEmployee?.id ?? null, request.employee.reportingToId, currentApproval);
+    return isEligibleForStep(
+      actingUser.role,
+      actingEmployee?.id ?? null,
+      request.employeeId,
+      request.employee.reportingToId,
+      currentApproval
+    );
   });
 
   return eligible.map(toDocumentRequestDto);
@@ -170,7 +183,13 @@ async function getRequestWithAccessCheck(
   }
 
   const isApprover = request.approvals.some((approval) =>
-    isEligibleForStep(actingUser.role, actingEmployee?.id ?? null, request.employee.reportingToId, approval)
+    isEligibleForStep(
+      actingUser.role,
+      actingEmployee?.id ?? null,
+      request.employeeId,
+      request.employee.reportingToId,
+      approval
+    )
   );
   if (!isApprover) {
     throw ApiError.forbidden("Not authorized to view this document request");
@@ -269,11 +288,9 @@ export async function createDocumentRequest(
 
   const firstStep = template.approvalSteps.find((s) => s.stepOrder === 1);
   if (firstStep) {
-    notifyApprovers(prisma, firstStep, employee.reportingToId, template.name, {
-      id: employee.id,
-      firstName: employee.firstName,
-      lastName: employee.lastName,
-    }).catch((err) => logger.warn({ err }, "Failed to send document request notification email"));
+    notifyApprovers(prisma, firstStep, template.name, employee).catch((err) =>
+      logger.warn({ err }, "Failed to send document request notification email")
+    );
   }
 
   return toDocumentRequestDto(request);
@@ -282,11 +299,10 @@ export async function createDocumentRequest(
 async function notifyApprovers(
   prisma: PrismaClient,
   step: { approverType: string; roleId: number | null },
-  applicantReportingToId: number | null,
   documentTypeName: string,
-  requester: { id: number; firstName: string; lastName: string }
+  requester: { id: number; firstName: string; lastName: string; email: string; reportingToId: number | null }
 ): Promise<void> {
-  const emails = await resolveApproverEmails(prisma, step, applicantReportingToId);
+  const emails = await resolveApproverEmails(prisma, step, requester);
   await Promise.all(
     emails.map((email) =>
       sendDocumentStepPendingEmail(email, documentTypeName, `${requester.firstName} ${requester.lastName}`)
@@ -347,6 +363,7 @@ export async function decideDocumentRequest(
   const eligible = isEligibleForStep(
     actingUser.role,
     actingEmployee?.id ?? null,
+    request.employeeId,
     request.employee.reportingToId,
     currentApproval
   );
@@ -433,7 +450,7 @@ async function notifyDecisionOutcome(
 
   await sendDocumentApprovedEmail(requesterEmail, documentTypeName);
   if (nextStep) {
-    await notifyApprovers(prisma, nextStep, request.employee.reportingToId, documentTypeName, request.employee);
+    await notifyApprovers(prisma, nextStep, documentTypeName, request.employee);
   }
 }
 

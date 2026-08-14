@@ -1,5 +1,12 @@
 import { SettingStatus } from "./employee";
-import { ApproverType } from "./leave";
+import { APPROVER_TYPES } from "./leave";
+
+// Documents additionally support "Self" (the requester attests/signs for themselves,
+// e.g. an asset receipt acknowledgement) — a case the leave-approval chain has no use
+// for, so it's kept as a document-only superset rather than widening the shared
+// ApproverType used by leave allocations.
+export const DOCUMENT_APPROVER_TYPES = [...APPROVER_TYPES, "Self"] as const;
+export type DocumentApproverType = (typeof DOCUMENT_APPROVER_TYPES)[number];
 
 export const DOCUMENT_REQUEST_STATUSES = ["Pending", "Approved", "Issued", "Rejected", "Cancelled"] as const;
 export type DocumentRequestStatus = (typeof DOCUMENT_REQUEST_STATUSES)[number];
@@ -18,14 +25,14 @@ export interface DocumentCategoryDto {
 }
 
 export interface DocumentTemplateApprovalStepInput {
-  approverType: ApproverType;
+  approverType: DocumentApproverType;
   roleId?: number;
 }
 
 export interface DocumentTemplateApprovalStepDto {
   id: number;
   stepOrder: number;
-  approverType: ApproverType;
+  approverType: DocumentApproverType;
   roleId: number | null;
   roleName: string | null;
 }
@@ -65,7 +72,7 @@ export interface UpdateDocumentTemplateInput {
 export interface DocumentRequestApprovalDto {
   id: number;
   stepOrder: number;
-  approverType: ApproverType;
+  approverType: DocumentApproverType;
   roleId: number | null;
   roleName: string | null;
   status: DocumentApprovalStatus;

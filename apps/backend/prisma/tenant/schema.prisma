@@ -54,6 +54,10 @@ model User {
   documentRequestsCreated  DocumentRequest[]        @relation("DocumentRequestCreatedBy")
   documentRequestsUpdated  DocumentRequest[]        @relation("DocumentRequestUpdatedBy")
   documentApprovalsDecided DocumentRequestApproval[] @relation("DocumentApprovalDecidedBy")
+  assetsCreated             Asset[]                   @relation("AssetCreatedBy")
+  assetsUpdated             Asset[]                   @relation("AssetUpdatedBy")
+  assetAssignmentsMade      AssetAssignment[]         @relation("AssetAssignedBy")
+  assetAssignmentsReturnedTo AssetAssignment[]        @relation("AssetReturnedTo")
   jobsPosted                Job[]                     @relation("JobPostedBy")
   jobsUpdated               Job[]                     @relation("JobUpdatedBy")
   screeningQuestionsCreated ScreeningQuestion[]       @relation("ScreeningQuestionCreatedBy")
@@ -161,6 +165,7 @@ model Employee {
   attendanceDevices     EmployeeAttendanceDevice[]
   attendanceRules       EmployeeAttendanceRules?
   documentRequests      DocumentRequest[]
+  assetAssignments      AssetAssignment[]
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 }
@@ -178,6 +183,111 @@ model EmployeeDocument {
   status          String    @default("Active")
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+}
+
+// ── Asset & Fleet Tracking ───────────────────────────────────────────────
+
+model Asset {
+  id           Int      @id @default(autoincrement())
+  assetTag     String   @unique // e.g. "AST-9F3KQJ2X", generated on create
+  name         String
+  category     String   // "Laptop" | "Mobile" | "Tool" | "OfficeEquipment" | "VehicleCar" | "VehicleVan" | "EmployerHousing" | "Other"
+  status       String   @default("Available") // "Available" | "Assigned" | "InRepair" | "Retired" | "Disposed"
+  serialNumber String?
+  purchaseDate DateTime?
+  purchaseCost Decimal? @db.Decimal(12, 2)
+  supplier     String?
+  notes        String?  @db.Text
+
+  // Vehicle-specific (nullable; only meaningful when category is VehicleCar/VehicleVan)
+  registrationNumber String?
+  registrationExpiry DateTime? // AU rego
+  wofCofExpiry       DateTime? // NZ Warrant of Fitness (car) / Certificate of Fitness (heavy vehicle)
+  make               String?
+  model              String?
+  vin                String?
+
+  // Tool/equipment-specific
+  testAndTagExpiry DateTime? // AU electrical test-and-tag
+
+  // Generic expiry (warranty, lease-return date, etc.), reused by the reminder job for any category
+  warrantyExpiry DateTime?
+
+  // Fringe Benefit Tax flagging — surfaces which assets need accountant attention,
+  // does not compute FBT owed (depends on business-use % and AU/NZ-specific formulas).
+  isFbtRelevant Boolean @default(false)
+  fbtNotes      String? @db.Text
+
+  currentAssignmentId Int?              @unique
+  currentAssignment   AssetAssignment?  @relation("CurrentAssetAssignment", fields: [currentAssignmentId], references: [id])
+  assignments         AssetAssignment[] @relation("AssetAssignments")
+  reminderLogs        AssetReminderLog[]
+
+  photoUrl String?
+  photoKey String?
+
+  createdById Int
+  createdBy   User  @relation("AssetCreatedBy", fields: [createdById], references: [id])
+  updatedById Int?
+  updatedBy   User? @relation("AssetUpdatedBy", fields: [updatedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([status])
+  @@index([isFbtRelevant])
+}
+
+model AssetAssignment {
+  id         Int      @id @default(autoincrement())
+  assetId    Int
+  asset      Asset    @relation("AssetAssignments", fields: [assetId], references: [id])
+  employeeId Int
+  employee   Employee @relation(fields: [employeeId], references: [id])
+
+  assignedAt   DateTime @default(now())
+  assignedById Int
+  assignedBy   User     @relation("AssetAssignedBy", fields: [assignedById], references: [id])
+
+  expectedReturnDate DateTime?
+  returnedAt         DateTime?
+  returnedToId       Int?
+  returnedTo         User?     @relation("AssetReturnedTo", fields: [returnedToId], references: [id])
+
+  conditionOnAssign String?
+  conditionOnReturn String?
+
+  // Links to the DocumentRequest used for digital sign-off. assignReceiptRequestId is
+  // one-to-one (each assignment gets its own receipt acknowledgement). returnReceiptRequestId
+  // is many-to-one — a single offboarding return checklist commonly covers several assets
+  // returned by the same employee at once, so it is NOT unique here.
+  assignReceiptRequestId Int?             @unique
+  assignReceiptRequest   DocumentRequest? @relation("AssetAssignReceipt", fields: [assignReceiptRequestId], references: [id])
+  returnReceiptRequestId Int?
+  returnReceiptRequest   DocumentRequest? @relation("AssetReturnReceipt", fields: [returnReceiptRequestId], references: [id])
+
+  currentFor Asset? @relation("CurrentAssetAssignment")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([assetId])
+  @@index([employeeId])
+}
+
+// Dedup log for the scheduled expiry-reminder job — one row per (asset, expiry field,
+// reminder window) sent, so a daily job doesn't re-email the same 30-day/7-day warning.
+model AssetReminderLog {
+  id          Int      @id @default(autoincrement())
+  assetId     Int
+  asset       Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  expiryField String   // "registrationExpiry" | "wofCofExpiry" | "testAndTagExpiry" | "warrantyExpiry"
+  windowDays  Int      // 30 | 7
+  sentAt      DateTime @default(now())
+
+  @@unique([assetId, expiryField, windowDays])
+  @@index([assetId])
 }
 
 model AuditLog {
@@ -609,6 +719,9 @@ model DocumentRequest {
   updatedBy         User?    @relation("DocumentRequestUpdatedBy", fields: [updatedById], references: [id])
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+
+  assetAssignReceipt  AssetAssignment?  @relation("AssetAssignReceipt")
+  assetReturnReceipts AssetAssignment[] @relation("AssetReturnReceipt")
 
   @@index([employeeId])
   @@index([templateId])

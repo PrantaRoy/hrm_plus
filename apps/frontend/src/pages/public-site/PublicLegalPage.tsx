@@ -1,10 +1,12 @@
 import { Link, useParams } from "react-router-dom";
+import { useResolvedTenantSlug } from "../../hooks/useResolvedTenantSlug";
 import { useSiteContent } from "../../hooks/useSiteContent";
 import { PublicSiteLayout } from "../../components/public-site/PublicSiteLayout";
 import { SectionSkeleton } from "../../components/public-site/SectionSkeleton";
 
 export default function PublicLegalPage() {
-  const { tenantSlug, legalSlug } = useParams<{ tenantSlug: string; legalSlug: string }>();
+  const { legalSlug } = useParams<{ legalSlug: string }>();
+  const tenantSlug = useResolvedTenantSlug();
   const { data: content, isLoading, isError } = useSiteContent(tenantSlug);
 
   if (isLoading) return <SectionSkeleton />;

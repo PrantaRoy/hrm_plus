@@ -22,6 +22,7 @@ import {
   ListChecks,
   Mail,
   Newspaper,
+  Package,
   PartyPopper,
   Settings as SettingsIcon,
   Share2,
@@ -121,6 +122,14 @@ export default function DashboardShell() {
               { key: "jobs", label: "Job Circulars", to: "/jobs", icon: Briefcase },
               { key: "screening-questions", label: "Screening Questions", to: "/screening-questions", icon: ListChecks },
             ],
+          },
+        ]
+      : []),
+    ...(isAdminOrHr
+      ? [
+          {
+            label: "Assets & Fleet",
+            items: [{ key: "assets", label: "Assets", to: "/assets", icon: Package }],
           },
         ]
       : []),

@@ -1,11 +1,13 @@
 import { Link, useParams } from "react-router-dom";
+import { useResolvedTenantSlug } from "../../hooks/useResolvedTenantSlug";
 import { useSiteContent } from "../../hooks/useSiteContent";
 import { PublicSiteLayout } from "../../components/public-site/PublicSiteLayout";
 import { SectionSkeleton } from "../../components/public-site/SectionSkeleton";
 import { resolveFileUrl } from "../../utils/fileUrl";
 
 export default function PublicBlogPost() {
-  const { tenantSlug, slug } = useParams<{ tenantSlug: string; slug: string }>();
+  const { slug } = useParams<{ slug: string }>();
+  const tenantSlug = useResolvedTenantSlug();
   const { data: content, isLoading, isError } = useSiteContent(tenantSlug);
 
   if (isLoading) return <SectionSkeleton />;

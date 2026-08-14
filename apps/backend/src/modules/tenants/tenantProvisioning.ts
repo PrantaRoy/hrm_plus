@@ -84,6 +84,8 @@ const DOCUMENT_CATEGORIES: Array<{ code: string; name: string }> = [
   { code: "APPRECIATION_LETTER", name: "Appreciation Letter" },
   { code: "SALARY_INCREMENT", name: "Salary Increment Letter" },
   { code: "AWARD_LETTER", name: "Award Letter" },
+  { code: "ASSET_RECEIPT", name: "Asset Receipt Acknowledgement" },
+  { code: "ASSET_RETURN", name: "Asset Return Checklist" },
 ];
 
 /**

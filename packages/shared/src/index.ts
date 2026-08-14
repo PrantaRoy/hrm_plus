@@ -63,6 +63,8 @@ export type {
 export type { ApiErrorBody } from "./api";
 export { TENANT_HEADER } from "./api";
 
+export { extractTenantSlug } from "./tenantHost";
+
 export type {
   DutyScheduleDto,
   CreateDutyScheduleInput,
@@ -146,11 +148,13 @@ export type {
 } from "./leave";
 
 export {
+  DOCUMENT_APPROVER_TYPES,
   DOCUMENT_REQUEST_STATUSES,
   DOCUMENT_APPROVAL_STATUSES,
   DOCUMENT_PRIORITIES,
 } from "./document";
 export type {
+  DocumentApproverType,
   DocumentRequestStatus,
   DocumentApprovalStatus,
   DocumentPriority,
@@ -344,3 +348,16 @@ export type {
 } from "./legalPage";
 
 export type { PublicSiteContentDto } from "./publicSiteContent";
+
+export { ASSET_CATEGORIES, ASSET_STATUSES, VEHICLE_ASSET_CATEGORIES, FBT_DEFAULT_CATEGORIES } from "./asset";
+export type {
+  AssetCategory,
+  AssetStatus,
+  AssetAssignmentDto,
+  AssetDto,
+  CreateAssetInput,
+  UpdateAssetInput,
+  AssignAssetInput,
+  ReturnAssetInput,
+  ListAssetsQuery,
+} from "./asset";

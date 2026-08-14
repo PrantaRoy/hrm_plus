@@ -1,5 +1,6 @@
 import { RequestHandler } from "express";
-import { TENANT_HEADER } from "@hrm-plus/shared";
+import { extractTenantSlug, TENANT_HEADER } from "@hrm-plus/shared";
+import { env } from "../config/env";
 import { controlClient } from "../db/controlClient";
 import { getTenantClient } from "../db/tenantClientPool";
 import { ApiError } from "../utils/ApiError";
@@ -7,7 +8,7 @@ import { ApiError } from "../utils/ApiError";
 export const tenantResolver: RequestHandler = async (req, res, next) => {
   try {
     const slugHeader = req.header(TENANT_HEADER);
-    const slug = slugHeader ?? subdomainSlug(req.hostname);
+    const slug = slugHeader ?? extractTenantSlug(req.hostname, env.PUBLIC_TENANT_BASE_DOMAIN);
 
     if (!slug) {
       throw ApiError.badRequest(`Missing tenant (send ${TENANT_HEADER} header)`, "TENANT_REQUIRED");
@@ -26,9 +27,3 @@ export const tenantResolver: RequestHandler = async (req, res, next) => {
     next(err);
   }
 };
-
-function subdomainSlug(hostname: string): string | null {
-  const parts = hostname.split(".");
-  if (parts.length < 3) return null;
-  return parts[0];
-}

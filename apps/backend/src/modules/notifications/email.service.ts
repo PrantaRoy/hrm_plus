@@ -167,6 +167,22 @@ export async function sendAssessmentInviteEmail(
   );
 }
 
+export async function sendAssetExpiryReminderEmail(
+  to: string,
+  assetName: string,
+  assetTag: string,
+  expiryLabel: string,
+  expiryDate: string,
+  daysUntil: number
+): Promise<void> {
+  await send(
+    to,
+    `${assetName} (${assetTag}) — ${expiryLabel} expires in ${daysUntil} day${daysUntil === 1 ? "" : "s"}`,
+    `<p><strong>${assetName}</strong> (${assetTag})'s <strong>${expiryLabel}</strong> expires on ${expiryDate}.</p>
+     <p>Please renew or arrange the relevant check before it lapses.</p>`
+  );
+}
+
 export async function sendDocumentIssuedEmail(
   to: string,
   documentTypeName: string,

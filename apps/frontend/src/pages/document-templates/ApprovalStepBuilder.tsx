@@ -1,13 +1,13 @@
-import { ApproverType, RoleDto } from "@hrm-plus/shared";
+import { DocumentApproverType, RoleDto } from "@hrm-plus/shared";
 import { Button, Select } from "@hrm-plus/ui";
 
 export interface StepFormRow {
-  approverType: ApproverType;
+  approverType: DocumentApproverType;
   roleId: string;
 }
 
 export function validSteps(steps: StepFormRow[]): boolean {
-  return steps.length > 0 && steps.every((s) => s.approverType === "ReportingManager" || s.roleId !== "");
+  return steps.length > 0 && steps.every((s) => s.approverType !== "Role" || s.roleId !== "");
 }
 
 export function ApprovalStepBuilder({
@@ -22,6 +22,12 @@ export function ApprovalStepBuilder({
   function updateStep(index: number, patch: Partial<StepFormRow>) {
     onChange(steps.map((s, i) => (i === index ? { ...s, ...patch } : s)));
   }
+
+  const approverTypeLabels: Record<DocumentApproverType, string> = {
+    ReportingManager: "Reporting Manager",
+    Role: "Role",
+    Self: "Self (requester attests/signs for themselves)",
+  };
 
   function removeStep(index: number) {
     onChange(steps.filter((_, i) => i !== index));
@@ -43,11 +49,14 @@ export function ApprovalStepBuilder({
           <span className="w-5 text-xs text-slate-400">{index + 1}.</span>
           <Select
             value={step.approverType}
-            onChange={(e) => updateStep(index, { approverType: e.target.value as ApproverType, roleId: "" })}
+            onChange={(e) => updateStep(index, { approverType: e.target.value as DocumentApproverType, roleId: "" })}
             className="max-w-[180px]"
           >
-            <option value="ReportingManager">Reporting Manager</option>
-            <option value="Role">Role</option>
+            {Object.entries(approverTypeLabels).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
           </Select>
           {step.approverType === "Role" && (
             <Select

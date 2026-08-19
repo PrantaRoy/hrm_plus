@@ -6,7 +6,25 @@ import { nanoid } from "nanoid";
 import { ROLES } from "@hrm-plus/shared";
 import { PrismaClient as TenantPrismaClient, User as TenantUser } from "../../../generated/tenant";
 import { env } from "../../config/env";
+import { createPlaceholderImage } from "../../utils/placeholderImage";
 import { SCREENING_QUESTION_SEEDS } from "../screening-questions/screeningQuestion.seedData";
+import { getOrCreateSettings, updateSiteSettings } from "../site-settings/siteSetting.service";
+import { createHeroSlide } from "../hero-slides/heroSlide.service";
+import { createCompanyService } from "../company-services/companyService.service";
+import { createGalleryItem } from "../gallery-items/galleryItem.service";
+import { createSocialLink } from "../social-links/socialLink.service";
+import { createLegalPage } from "../legal-pages/legalPage.service";
+import { createBlogPost, publishBlogPost } from "../blog-posts/blogPost.service";
+import {
+  LANDING_PAGE_ABOUT_SEED,
+  LANDING_PAGE_BLOG_POST_SEED,
+  LANDING_PAGE_BUSINESS_HOURS,
+  LANDING_PAGE_GALLERY_SEEDS,
+  LANDING_PAGE_HERO_SEED,
+  LANDING_PAGE_LEGAL_PAGE_SEEDS,
+  LANDING_PAGE_SERVICE_SEEDS,
+  LANDING_PAGE_SOCIAL_LINK_SEEDS,
+} from "./landingPageContent.seedData";
 
 async function withAdminConnection<T>(fn: (conn: mysql.Connection) => Promise<T>): Promise<T> {
   const connection = await mysql.createConnection({
@@ -158,6 +176,96 @@ export async function seedDefaultSiteSections(tenantClient: TenantPrismaClient):
       sortOrder: index,
     })),
   });
+}
+
+/**
+ * Idempotently seeds starter content for a tenant's public landing page (hero
+ * slide, services, gallery, about/contact copy, social links, legal pages, one
+ * published blog post) so a freshly-provisioned tenant's site isn't empty
+ * before an admin customizes it. Each entity type is checked independently and
+ * only seeded if that table is still empty, so this is safe to re-run against
+ * a tenant that has already added some of their own content — existing content
+ * is never touched or overwritten. Placeholder hero/gallery images are
+ * generated locally (see utils/placeholderImage.ts), tinted with the tenant's
+ * own brand colors, rather than fabricated or fetched from the network.
+ */
+export async function seedDefaultLandingPageContent(
+  tenantClient: TenantPrismaClient,
+  admin: { id: number; email: string },
+  companyName: string
+): Promise<void> {
+  const settings = await getOrCreateSettings(tenantClient);
+  if (!settings.aboutContent) {
+    await updateSiteSettings(
+      tenantClient,
+      {
+        siteTitle: companyName,
+        tagline: "Building better ways to work, together.",
+        contactEmail: admin.email,
+        businessHours: LANDING_PAGE_BUSINESS_HOURS,
+        aboutHeading: LANDING_PAGE_ABOUT_SEED.heading,
+        aboutContent: LANDING_PAGE_ABOUT_SEED.content,
+        metaDescription: LANDING_PAGE_ABOUT_SEED.metaDescription,
+      },
+      admin.id
+    );
+  }
+
+  // Re-fetch in case the update above just set the brand colors for the first time.
+  const { primaryColor, secondaryColor } = await getOrCreateSettings(tenantClient);
+
+  if ((await tenantClient.heroSlide.count()) === 0) {
+    const heroImage = createPlaceholderImage(1200, 1500, primaryColor);
+    await createHeroSlide(
+      tenantClient,
+      {
+        headline: LANDING_PAGE_HERO_SEED.headline,
+        subHeadline: LANDING_PAGE_HERO_SEED.subHeadline,
+        mediaType: "IMAGE",
+        ctaPrimaryText: LANDING_PAGE_HERO_SEED.ctaPrimaryText,
+        ctaPrimaryUrl: LANDING_PAGE_HERO_SEED.ctaPrimaryUrl,
+        ctaSecondaryText: LANDING_PAGE_HERO_SEED.ctaSecondaryText,
+        ctaSecondaryUrl: LANDING_PAGE_HERO_SEED.ctaSecondaryUrl,
+      },
+      { buffer: heroImage, originalName: "hero-placeholder.png", mimeType: "image/png" }
+    );
+  }
+
+  if ((await tenantClient.companyService.count()) === 0) {
+    for (const service of LANDING_PAGE_SERVICE_SEEDS) {
+      await createCompanyService(tenantClient, service);
+    }
+  }
+
+  if ((await tenantClient.galleryItem.count()) === 0) {
+    for (const item of LANDING_PAGE_GALLERY_SEEDS) {
+      const color = item.tone === "primary" ? primaryColor : secondaryColor;
+      const image = createPlaceholderImage(800, 800, color);
+      await createGalleryItem(
+        tenantClient,
+        { title: item.title, category: item.category },
+        { buffer: image, originalName: "gallery-placeholder.png", mimeType: "image/png" }
+      );
+    }
+  }
+
+  if ((await tenantClient.socialLink.count()) === 0) {
+    for (const link of LANDING_PAGE_SOCIAL_LINK_SEEDS) {
+      await createSocialLink(tenantClient, link);
+    }
+  }
+
+  for (const page of LANDING_PAGE_LEGAL_PAGE_SEEDS) {
+    const existingPage = await tenantClient.legalPage.findUnique({ where: { slug: page.slug } });
+    if (!existingPage) {
+      await createLegalPage(tenantClient, page);
+    }
+  }
+
+  if ((await tenantClient.blogPost.count()) === 0) {
+    const post = await createBlogPost(tenantClient, LANDING_PAGE_BLOG_POST_SEED, admin.id);
+    await publishBlogPost(tenantClient, post.id, admin.id);
+  }
 }
 
 /**

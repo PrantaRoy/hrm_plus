@@ -276,7 +276,10 @@ export default function SiteSettingsForm() {
         </div>
       </Card>
 
-      <Card title="About section">
+      <Card
+        title="About section"
+        description="Renders as a bold highlighted panel on the public site — keep the heading punchy and content concise. Wrap key points in a bullet list (e.g. an HTML <ul><li> block, one per line) to render as a checklist."
+      >
         <div className="space-y-4">
           <Field label="Heading">
             <Input value={form.aboutHeading} onChange={(e) => set("aboutHeading", e.target.value)} />

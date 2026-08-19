@@ -2,14 +2,18 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { PublicBlogPostDto } from "@hrm-plus/shared";
 import { resolveFileUrl } from "../../utils/fileUrl";
+import { EYEBROW_LABEL } from "./decor/publicSiteClasses";
 
 export function BlogsSection({ data, tenantSlug }: { data: PublicBlogPostDto[]; tenantSlug: string }) {
   if (data.length === 0) return null;
 
   return (
-    <section id="blogs" className="bg-slate-50 py-20">
+    <section id="blogs" className="bg-[var(--brand-primary-tint)] py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <h2 className="text-center text-3xl font-bold text-slate-900">Blog</h2>
+        <div className="text-center">
+          <span className={EYEBROW_LABEL}>Resources</span>
+          <h2 className="mt-2 text-3xl font-bold text-slate-900">From the Blog</h2>
+        </div>
         <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {data.map((post, i) => (
             <motion.div
@@ -21,7 +25,7 @@ export function BlogsSection({ data, tenantSlug }: { data: PublicBlogPostDto[]; 
             >
               <Link
                 to={`/site/${tenantSlug}/blog/${post.slug}`}
-                className="block overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
+                className="block overflow-hidden rounded-2xl bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
               >
                 {post.featuredImageUrl && (
                   <img

@@ -9,6 +9,7 @@ import {
   CalendarPlus,
   CalendarRange,
   Clock,
+  DollarSign,
   FileCheck,
   FilePlus,
   FileClock,
@@ -16,6 +17,7 @@ import {
   Globe,
   Image,
   Images,
+  Landmark,
   Layout,
   LayoutDashboard,
   LayoutTemplate,
@@ -24,6 +26,7 @@ import {
   Newspaper,
   Package,
   PartyPopper,
+  Receipt,
   Settings as SettingsIcon,
   Share2,
   ClipboardCheck,
@@ -52,6 +55,8 @@ export default function DashboardShell() {
   const role = user?.role;
   const isAdminOrHr = role === "Admin" || role === "HR";
   const isApprover = role === "Admin" || role === "HR" || role === "Manager";
+  const isPayroll = role === "Admin" || role === "HR" || role === "Payroll";
+  const isPayrollProcessor = role === "Admin" || role === "Payroll" || role === "Finance";
   const [branding, setBranding] = useState<GeneralSettingsDto | null>(null);
 
   useEffect(() => {
@@ -75,6 +80,7 @@ export default function DashboardShell() {
         { key: "leave-my-requests", label: "My Leave Requests", to: "/leave/my-requests", icon: ListChecks },
         { key: "documents-request", label: "Request Document", to: "/documents/request", icon: FilePlus },
         { key: "documents-my-requests", label: "My Document Requests", to: "/documents/my-requests", icon: FileClock },
+        { key: "my-payslips", label: "My Payslips", to: "/payroll/my-payslips", icon: Receipt },
       ],
     },
     ...(isApprover
@@ -130,6 +136,28 @@ export default function DashboardShell() {
           {
             label: "Assets & Fleet",
             items: [{ key: "assets", label: "Assets", to: "/assets", icon: Package }],
+          },
+        ]
+      : []),
+    ...(isPayroll || isPayrollProcessor
+      ? [
+          {
+            label: "Payroll",
+            items: [
+              ...(isPayroll
+                ? [
+                    { key: "payroll-pay-cycles", label: "Pay Cycles", to: "/payroll/pay-cycles", icon: CalendarRange },
+                    { key: "payroll-pay-rates", label: "Employee Pay Rates", to: "/payroll/pay-rates", icon: DollarSign },
+                    { key: "payroll-work-reports", label: "Work Reports", to: "/payroll/work-reports", icon: ClipboardCheck },
+                  ]
+                : []),
+              ...(isPayrollProcessor
+                ? [{ key: "payroll-runs", label: "Payroll Runs", to: "/payroll/runs", icon: Landmark }]
+                : []),
+              ...(role === "Admin" || role === "Payroll"
+                ? [{ key: "payroll-settings", label: "Payroll Settings", to: "/payroll/settings", icon: SettingsIcon }]
+                : []),
+            ],
           },
         ]
       : []),

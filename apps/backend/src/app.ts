@@ -57,6 +57,12 @@ import { socialLinkRouter } from "./modules/social-links/socialLink.routes";
 import { legalPageRouter } from "./modules/legal-pages/legalPage.routes";
 import { publicSiteContentRouter } from "./modules/site-content/siteContent.routes";
 import { assetRouter } from "./modules/assets/asset.routes";
+import { payCycleRouter } from "./modules/payroll/payCycle.routes";
+import { payRateRouter } from "./modules/payroll/payRate.routes";
+import { payrollSettingsRouter } from "./modules/payroll/payrollSettings.routes";
+import { workReportRouter } from "./modules/payroll/workReport.routes";
+import { payrollRunRouter } from "./modules/payroll/payrollRun.routes";
+import { payslipRouter } from "./modules/payroll/payslip.routes";
 
 export function createApp(): Express {
   const app = express();
@@ -117,6 +123,15 @@ export function createApp(): Express {
   app.use("/api/pipeline", tenantResolver, pipelineRouter);
   app.use("/api/assessments", tenantResolver, adminAssessmentRouter);
   app.use("/api/public/assessment", tenantResolver, publicAssessmentRouter); // public — token auth, no requireAuth
+
+  // Payroll module — separation of duties: HR approves hours, Payroll processes
+  // runs, Finance (or Admin) approves payment.
+  app.use("/api/pay-cycles", tenantResolver, payCycleRouter);
+  app.use("/api/pay-rates", tenantResolver, payRateRouter);
+  app.use("/api/payroll-settings", tenantResolver, payrollSettingsRouter);
+  app.use("/api/work-reports", tenantResolver, workReportRouter);
+  app.use("/api/payroll-runs", tenantResolver, payrollRunRouter);
+  app.use("/api/payslips", tenantResolver, payslipRouter);
 
   // Public website CMS
   app.use("/api/site-settings", tenantResolver, siteSettingRouter);

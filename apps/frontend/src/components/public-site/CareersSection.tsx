@@ -2,16 +2,19 @@ import { motion } from "framer-motion";
 import { ArrowRight, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { PublicJobListItemDto } from "@hrm-plus/shared";
+import { EYEBROW_LABEL, PILL_BUTTON_PRIMARY } from "./decor/publicSiteClasses";
 
 export function CareersSection({ data, tenantSlug }: { data: PublicJobListItemDto[]; tenantSlug: string }) {
   if (data.length === 0) return null;
 
   return (
     <section id="careers" className="mx-auto max-w-4xl px-4 py-20 sm:px-6">
-      <h2 className="text-center text-3xl font-bold text-slate-900">Careers</h2>
-      <p className="mt-3 text-center text-sm text-slate-500">Open roles on our team</p>
+      <div className="text-center">
+        <span className={EYEBROW_LABEL}>Careers</span>
+        <h2 className="mt-2 text-3xl font-bold text-slate-900">Open Roles on Our Team</h2>
+      </div>
 
-      <div className="mt-10 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
+      <div className="mt-10 divide-y divide-[var(--brand-primary)]/10 overflow-hidden rounded-2xl border border-slate-100 bg-white">
         {data.map((job, i) => (
           <motion.div
             key={job.slug}
@@ -33,10 +36,7 @@ export function CareersSection({ data, tenantSlug }: { data: PublicJobListItemDt
                 )}
               </div>
             </div>
-            <Link
-              to={`/jobs/${tenantSlug}/${job.slug}/apply`}
-              className="flex items-center gap-1 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
-            >
+            <Link to={`/jobs/${tenantSlug}/${job.slug}/apply`} className={PILL_BUTTON_PRIMARY}>
               Apply <ArrowRight size={14} />
             </Link>
           </motion.div>

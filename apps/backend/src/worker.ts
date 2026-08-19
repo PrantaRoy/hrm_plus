@@ -2,10 +2,14 @@ import { Worker } from "bullmq";
 import { redisConnection } from "./queue/redisConnection";
 import { ASSESSMENT_GRADING_QUEUE, AssessmentGradingJobData } from "./queue/assessmentGrading.queue";
 import { ASSET_EXPIRY_REMINDER_QUEUE, scheduleAssetExpiryReminderJob } from "./queue/assetExpiryReminder.queue";
+import { PAYSLIP_PDF_QUEUE, PayslipPdfJobData } from "./queue/payslipPdf.queue";
+import { IRD_PAYDAY_FILING_QUEUE, IrdPaydayFilingJobData } from "./queue/irdPaydayFiling.queue";
 import { controlClient } from "./db/controlClient";
 import { getTenantClient } from "./db/tenantClientPool";
 import { gradeAssessmentAnswer } from "./modules/assessments/assessmentGrading.processor";
 import { runAssetExpiryReminderCheck } from "./modules/assets/assetExpiryReminder.processor";
+import { processPayslipPdfJob } from "./modules/payroll/payslipPdf.processor";
+import { processIrdPaydayFilingJob } from "./modules/payroll/irdPaydayFiling.processor";
 import { env } from "./config/env";
 import { logger } from "./logger";
 
@@ -52,3 +56,47 @@ scheduleAssetExpiryReminderJob()
   .catch((err) => logger.error({ err }, "Failed to schedule asset expiry reminder job"));
 
 logger.info("Asset expiry reminder worker started");
+
+async function resolveTenant(tenantSlug: string) {
+  const tenant = await controlClient.tenant.findUnique({ where: { slug: tenantSlug } });
+  if (!tenant) throw new Error(`Unknown tenant slug: ${tenantSlug}`);
+  return tenant;
+}
+
+const payslipPdfWorker = new Worker<PayslipPdfJobData>(
+  PAYSLIP_PDF_QUEUE,
+  async (job) => {
+    const tenant = await resolveTenant(job.data.tenantSlug);
+    await processPayslipPdfJob(getTenantClient(tenant.databaseName), job.data.payslipId, tenant.name);
+  },
+  { connection: redisConnection }
+);
+
+payslipPdfWorker.on("completed", (job) => {
+  logger.info({ jobId: job.id, payslipId: job.data.payslipId }, "Payslip PDF job completed");
+});
+
+payslipPdfWorker.on("failed", (job, err) => {
+  logger.error({ jobId: job?.id, payslipId: job?.data.payslipId, err }, "Payslip PDF job failed");
+});
+
+logger.info("Payslip PDF worker started");
+
+const irdPaydayFilingWorker = new Worker<IrdPaydayFilingJobData>(
+  IRD_PAYDAY_FILING_QUEUE,
+  async (job) => {
+    const tenant = await resolveTenant(job.data.tenantSlug);
+    await processIrdPaydayFilingJob(getTenantClient(tenant.databaseName), job.data.payrollRunId);
+  },
+  { connection: redisConnection }
+);
+
+irdPaydayFilingWorker.on("completed", (job) => {
+  logger.info({ jobId: job.id, payrollRunId: job.data.payrollRunId }, "IRD payday filing job completed");
+});
+
+irdPaydayFilingWorker.on("failed", (job, err) => {
+  logger.error({ jobId: job?.id, payrollRunId: job?.data.payrollRunId, err }, "IRD payday filing job failed");
+});
+
+logger.info("IRD payday filing worker started");

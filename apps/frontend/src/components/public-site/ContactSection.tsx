@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { PublicSiteSettingDto } from "@hrm-plus/shared";
 import { submitPublicContactInquiry } from "../../api/publicContactInquiries";
+import { BlobShape } from "./decor/BlobShape";
+import { EYEBROW_LABEL, PILL_BUTTON_PRIMARY } from "./decor/publicSiteClasses";
 
 export function ContactSection({
   tenantSlug,
@@ -42,36 +44,43 @@ export function ContactSection({
     }
   }
 
-  const inputClass = "w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500";
+  const inputClass =
+    "w-full rounded-xl border border-[var(--brand-primary)]/20 bg-[var(--brand-primary-tint)] px-4 py-3 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]";
 
   return (
-    <section id="contact" className="mx-auto max-w-5xl px-4 py-20 sm:px-6">
-      <h2 className="text-center text-3xl font-bold text-slate-900">Contact Us</h2>
-
-      <div className="mt-12 grid grid-cols-1 gap-10 md:grid-cols-2">
+    <section id="contact" className="bg-[var(--brand-primary-tint)] py-20">
+      <div className="mx-auto grid max-w-5xl grid-cols-1 gap-10 px-4 sm:px-6 md:grid-cols-2">
         <motion.div
           initial={{ opacity: 0, x: -16 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="space-y-3 text-sm text-slate-600"
+          className="relative"
         >
-          {siteSettings.contactEmail && <p>Email: {siteSettings.contactEmail}</p>}
-          {siteSettings.contactPhone && <p>Phone: {siteSettings.contactPhone}</p>}
-          {siteSettings.contactAddress && <p>Address: {siteSettings.contactAddress}</p>}
-          {siteSettings.businessHours && siteSettings.businessHours.length > 0 && (
-            <div className="pt-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Business hours</h3>
-              <ul className="mt-2 space-y-1">
-                {siteSettings.businessHours.map((h) => (
-                  <li key={h.day} className="flex justify-between gap-6">
-                    <span>{h.day}</span>
-                    <span>{h.isClosed ? "Closed" : `${h.openTime} – ${h.closeTime}`}</span>
-                  </li>
-                ))}
-              </ul>
+          <BlobShape tone="secondary" className="pointer-events-none absolute -left-8 top-0 h-32 w-32 opacity-30" />
+          <div className="relative">
+            <span className={EYEBROW_LABEL}>Contact Us</span>
+            <h2 className="mt-2 text-3xl font-bold text-slate-900">Let's Collaborate Now!</h2>
+
+            <div className="mt-6 space-y-3 text-sm text-slate-600">
+              {siteSettings.contactEmail && <p>Email: {siteSettings.contactEmail}</p>}
+              {siteSettings.contactPhone && <p>Phone: {siteSettings.contactPhone}</p>}
+              {siteSettings.contactAddress && <p>Address: {siteSettings.contactAddress}</p>}
+              {siteSettings.businessHours && siteSettings.businessHours.length > 0 && (
+                <div className="pt-4">
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Business hours</h3>
+                  <ul className="mt-2 space-y-1">
+                    {siteSettings.businessHours.map((h) => (
+                      <li key={h.day} className="flex justify-between gap-6">
+                        <span>{h.day}</span>
+                        <span>{h.isClosed ? "Closed" : `${h.openTime} – ${h.closeTime}`}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </motion.div>
 
         <motion.form
@@ -82,16 +91,23 @@ export function ContactSection({
           onSubmit={handleSubmit}
           className="space-y-3"
         >
-          <input required placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
-          <input
-            required
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className={inputClass}
-          />
-          <input placeholder="Phone (optional)" value={phone} onChange={(e) => setPhone(e.target.value)} className={inputClass} />
+          <input required placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <input
+              required
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={inputClass}
+            />
+            <input
+              placeholder="Phone (optional)"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className={inputClass}
+            />
+          </div>
           <input
             placeholder="Subject (optional)"
             value={subject}
@@ -100,17 +116,13 @@ export function ContactSection({
           />
           <textarea
             required
-            placeholder="Message"
+            placeholder="Write Message..."
             rows={4}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             className={inputClass}
           />
-          <button
-            type="submit"
-            disabled={submitting}
-            className="rounded-md bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-60"
-          >
+          <button type="submit" disabled={submitting} className={`${PILL_BUTTON_PRIMARY} disabled:opacity-60`}>
             {submitting ? "Sending..." : "Send Message"}
           </button>
         </motion.form>

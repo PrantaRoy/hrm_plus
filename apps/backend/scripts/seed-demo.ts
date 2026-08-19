@@ -10,6 +10,7 @@ import {
   seedDefaultWeekDays,
   seedDefaultScreeningQuestions,
   seedDefaultSiteSections,
+  seedDefaultLandingPageContent,
   provisionTenantAdmin,
 } from "../src/modules/tenants/tenantProvisioning";
 
@@ -63,15 +64,52 @@ async function seedDemoTenant(): Promise<void> {
   await seedDefaultScreeningQuestions(tenantClient);
   await seedDefaultSiteSections(tenantClient);
 
-  await provisionTenantAdmin(tenantClient, {
+  const admin = await provisionTenantAdmin(tenantClient, {
     email: DEMO_TENANT.adminEmail,
     password: DEMO_TENANT.adminPassword,
     roleId: roleIds.Admin,
   });
 
+  await seedDefaultLandingPageContent(tenantClient, { id: admin.id, email: admin.email }, DEMO_TENANT.name);
+  await seedDemoPayrollData(tenantClient, admin.id);
+
   console.log(
     `Tenant admin ready: [slug=${DEMO_TENANT.slug}] ${DEMO_TENANT.adminEmail} / ${DEMO_TENANT.adminPassword}`
   );
+}
+
+/**
+ * Idempotent starter data for the payroll module so there's something to
+ * click through in a fresh demo tenant: one active PayCycle, the tenant admin's
+ * employee assigned to it with an HOURLY rate. Only run for the demo tenant —
+ * real provisioned tenants start with an empty payroll module by design.
+ */
+async function seedDemoPayrollData(tenantClient: ReturnType<typeof getTenantClient>, adminUserId: number): Promise<void> {
+  const employee = await tenantClient.employee.findUnique({ where: { userId: adminUserId } });
+  if (!employee) return;
+
+  const payCycle =
+    (await tenantClient.payCycle.findFirst({ where: { name: "Standard Fortnightly" } })) ??
+    (await tenantClient.payCycle.create({
+      data: { name: "Standard Fortnightly", frequency: "FORTNIGHTLY", createdById: adminUserId },
+    }));
+
+  await tenantClient.employee.update({ where: { id: employee.id }, data: { payCycleId: payCycle.id } });
+
+  const existingRate = await tenantClient.employeePayRate.findFirst({ where: { employeeId: employee.id } });
+  if (!existingRate) {
+    await tenantClient.employeePayRate.create({
+      data: {
+        employeeId: employee.id,
+        rateType: "HOURLY",
+        baseRate: 35,
+        effectiveFrom: new Date("2026-01-01"),
+        createdById: adminUserId,
+      },
+    });
+  }
+
+  console.log(`Payroll demo data ready: pay cycle "${payCycle.name}", employee #${employee.id} rated $35/hr`);
 }
 
 async function main(): Promise<void> {

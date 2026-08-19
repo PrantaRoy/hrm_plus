@@ -83,6 +83,13 @@ import AssetCreate from "./pages/assets/AssetCreate";
 import AssetDetail from "./pages/assets/AssetDetail";
 import AssetEdit from "./pages/assets/AssetEdit";
 import OffboardingChecklist from "./pages/assets/OffboardingChecklist";
+import PayCycleSettings from "./pages/payroll/PayCycleSettings";
+import PayRates from "./pages/payroll/PayRates";
+import WorkReports from "./pages/payroll/WorkReports";
+import PayrollRuns from "./pages/payroll/PayrollRuns";
+import PayrollRunDetail from "./pages/payroll/PayrollRunDetail";
+import PayrollSettingsPage from "./pages/payroll/PayrollSettingsPage";
+import MyPayslips from "./pages/payroll/MyPayslips";
 
 export default function App() {
   const tenantSlug = useTenantSubdomain();
@@ -219,6 +226,23 @@ export default function App() {
 
           <Route element={<RequireAuth roles={["Admin", "HR"]} />}>
             <Route path="/records/attendance/manual" element={<ManualAttendanceEntry />} />
+          </Route>
+
+          <Route path="/payroll/my-payslips" element={<MyPayslips />} />
+
+          <Route element={<RequireAuth roles={["Admin", "HR", "Payroll"]} />}>
+            <Route path="/payroll/pay-cycles" element={<PayCycleSettings />} />
+            <Route path="/payroll/pay-rates" element={<PayRates />} />
+            <Route path="/payroll/work-reports" element={<WorkReports />} />
+          </Route>
+
+          <Route element={<RequireAuth roles={["Admin", "Payroll", "Finance"]} />}>
+            <Route path="/payroll/runs" element={<PayrollRuns />} />
+            <Route path="/payroll/runs/:id" element={<PayrollRunDetail />} />
+          </Route>
+
+          <Route element={<RequireAuth roles={["Admin", "Payroll"]} />}>
+            <Route path="/payroll/settings" element={<PayrollSettingsPage />} />
           </Route>
         </Route>
       </Route>

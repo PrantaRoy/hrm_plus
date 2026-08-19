@@ -1,6 +1,8 @@
 // Built-in, protected role names — seeded for every tenant and relied on by
 // requireRole() call sites. These cannot be renamed or deleted via Role CRUD.
-export const ROLES = ["Admin", "HR", "Manager", "Staff"] as const;
+// "Payroll" and "Finance" back the Payroll module's separation-of-duties
+// workflow: HR approves hours, Payroll processes runs, Finance approves payment.
+export const ROLES = ["Admin", "HR", "Manager", "Staff", "Payroll", "Finance"] as const;
 
 // Role names are otherwise dynamic (managed via the Role CRUD module), so this
 // is just a string alias rather than a literal union of ROLES.

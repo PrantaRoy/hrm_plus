@@ -9,86 +9,95 @@ datasource db {
 }
 
 model Role {
-  id               Int      @id @default(autoincrement())
-  name             String   @unique
-  status           String   @default("Active")
-  shortDescription String?
-  users            User[]
-  leaveApprovalSteps LeaveApprovalStep[]
+  id                            Int                            @id @default(autoincrement())
+  name                          String                         @unique
+  status                        String                         @default("Active")
+  shortDescription              String?
+  users                         User[]
+  leaveApprovalSteps            LeaveApprovalStep[]
   documentTemplateApprovalSteps DocumentTemplateApprovalStep[]
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt                     DateTime                       @default(now())
+  updatedAt                     DateTime                       @updatedAt
 }
 
 model User {
-  id                 Int        @id @default(autoincrement())
-  email              String     @unique
-  passwordHash       String
-  isActive           Boolean    @default(true)
-  mustChangePassword Boolean    @default(false)
-  roleId             Int
-  role         Role       @relation(fields: [roleId], references: [id])
-  employee     Employee?
-  auditLogs    AuditLog[]
-  rostersGenerated   Roster[]                 @relation("RosterGeneratedBy")
-  rostersApproved    Roster[]                 @relation("RosterApprovedBy")
-  rostersCreated     Roster[]                 @relation("RosterCreatedBy")
-  rostersUpdated     Roster[]                 @relation("RosterUpdatedBy")
-  assignmentsCreated DutyScheduleAssignment[] @relation("AssignmentCreatedBy")
-  assignmentsUpdated DutyScheduleAssignment[] @relation("AssignmentUpdatedBy")
-  passwordResetTokens PasswordResetToken[]
-  leaveAllocationsCreated EmployeeLeaveAllocation[] @relation("LeaveAllocationCreatedBy")
-  leaveAllocationsUpdated EmployeeLeaveAllocation[] @relation("LeaveAllocationUpdatedBy")
-  leaveRequestsCreated    LeaveRequest[]            @relation("LeaveRequestCreatedBy")
-  leaveRequestsUpdated    LeaveRequest[]            @relation("LeaveRequestUpdatedBy")
-  leaveApprovalsDecided   LeaveRequestApproval[]    @relation("LeaveApprovalDecidedBy")
-  attendanceSettingsUpdated AttendanceSettings[]    @relation("AttendanceSettingsUpdatedBy")
-  generalSettingsUpdated    GeneralSettings[]       @relation("GeneralSettingsUpdatedBy")
-  attendanceDevicesApproved EmployeeAttendanceDevice[] @relation("AttendanceDeviceApprovedBy")
-  attendanceManualEntries   Attendance[]               @relation("AttendanceManualEntryBy")
-  holidaysCreated    Holiday[]                @relation("HolidayCreatedBy")
-  holidaysUpdated    Holiday[]                @relation("HolidayUpdatedBy")
-  holidaysPublished  Holiday[]                @relation("HolidayPublishedBy")
-  documentTemplatesCreated DocumentTemplate[]       @relation("DocumentTemplateCreatedBy")
-  documentTemplatesUpdated DocumentTemplate[]       @relation("DocumentTemplateUpdatedBy")
-  documentRequestsCreated  DocumentRequest[]        @relation("DocumentRequestCreatedBy")
-  documentRequestsUpdated  DocumentRequest[]        @relation("DocumentRequestUpdatedBy")
-  documentApprovalsDecided DocumentRequestApproval[] @relation("DocumentApprovalDecidedBy")
-  assetsCreated             Asset[]                   @relation("AssetCreatedBy")
-  assetsUpdated             Asset[]                   @relation("AssetUpdatedBy")
-  assetAssignmentsMade      AssetAssignment[]         @relation("AssetAssignedBy")
-  assetAssignmentsReturnedTo AssetAssignment[]        @relation("AssetReturnedTo")
-  jobsPosted                Job[]                     @relation("JobPostedBy")
-  jobsUpdated               Job[]                     @relation("JobUpdatedBy")
-  screeningQuestionsCreated ScreeningQuestion[]       @relation("ScreeningQuestionCreatedBy")
-  applicationStagesMoved    ApplicationStageHistory[] @relation("ApplicationStageMovedBy")
-  assessmentsCreated        Assessment[]              @relation("AssessmentCreatedBy")
-  assessmentsUpdated        Assessment[]              @relation("AssessmentUpdatedBy")
-  siteSettingsUpdated       SiteSetting[]             @relation("SiteSettingUpdatedBy")
-  blogPostsCreated          BlogPost[]                @relation("BlogPostCreatedBy")
-  blogPostsUpdated          BlogPost[]                @relation("BlogPostUpdatedBy")
-  legalPagesUpdated         LegalPage[]               @relation("LegalPageUpdatedBy")
-  signatureImageUrl  String?
-  signatureImageKey  String?
-  signatureUpdatedAt DateTime?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  id                         Int                        @id @default(autoincrement())
+  email                      String                     @unique
+  passwordHash               String
+  isActive                   Boolean                    @default(true)
+  mustChangePassword         Boolean                    @default(false)
+  roleId                     Int
+  role                       Role                       @relation(fields: [roleId], references: [id])
+  employee                   Employee?
+  auditLogs                  AuditLog[]
+  rostersGenerated           Roster[]                   @relation("RosterGeneratedBy")
+  rostersApproved            Roster[]                   @relation("RosterApprovedBy")
+  rostersCreated             Roster[]                   @relation("RosterCreatedBy")
+  rostersUpdated             Roster[]                   @relation("RosterUpdatedBy")
+  assignmentsCreated         DutyScheduleAssignment[]   @relation("AssignmentCreatedBy")
+  assignmentsUpdated         DutyScheduleAssignment[]   @relation("AssignmentUpdatedBy")
+  passwordResetTokens        PasswordResetToken[]
+  leaveAllocationsCreated    EmployeeLeaveAllocation[]  @relation("LeaveAllocationCreatedBy")
+  leaveAllocationsUpdated    EmployeeLeaveAllocation[]  @relation("LeaveAllocationUpdatedBy")
+  leaveRequestsCreated       LeaveRequest[]             @relation("LeaveRequestCreatedBy")
+  leaveRequestsUpdated       LeaveRequest[]             @relation("LeaveRequestUpdatedBy")
+  leaveApprovalsDecided      LeaveRequestApproval[]     @relation("LeaveApprovalDecidedBy")
+  attendanceSettingsUpdated  AttendanceSettings[]       @relation("AttendanceSettingsUpdatedBy")
+  generalSettingsUpdated     GeneralSettings[]          @relation("GeneralSettingsUpdatedBy")
+  attendanceDevicesApproved  EmployeeAttendanceDevice[] @relation("AttendanceDeviceApprovedBy")
+  attendanceManualEntries    Attendance[]               @relation("AttendanceManualEntryBy")
+  holidaysCreated            Holiday[]                  @relation("HolidayCreatedBy")
+  holidaysUpdated            Holiday[]                  @relation("HolidayUpdatedBy")
+  holidaysPublished          Holiday[]                  @relation("HolidayPublishedBy")
+  documentTemplatesCreated   DocumentTemplate[]         @relation("DocumentTemplateCreatedBy")
+  documentTemplatesUpdated   DocumentTemplate[]         @relation("DocumentTemplateUpdatedBy")
+  documentRequestsCreated    DocumentRequest[]          @relation("DocumentRequestCreatedBy")
+  documentRequestsUpdated    DocumentRequest[]          @relation("DocumentRequestUpdatedBy")
+  documentApprovalsDecided   DocumentRequestApproval[]  @relation("DocumentApprovalDecidedBy")
+  assetsCreated              Asset[]                    @relation("AssetCreatedBy")
+  assetsUpdated              Asset[]                    @relation("AssetUpdatedBy")
+  assetAssignmentsMade       AssetAssignment[]          @relation("AssetAssignedBy")
+  assetAssignmentsReturnedTo AssetAssignment[]          @relation("AssetReturnedTo")
+  jobsPosted                 Job[]                      @relation("JobPostedBy")
+  jobsUpdated                Job[]                      @relation("JobUpdatedBy")
+  screeningQuestionsCreated  ScreeningQuestion[]        @relation("ScreeningQuestionCreatedBy")
+  applicationStagesMoved     ApplicationStageHistory[]  @relation("ApplicationStageMovedBy")
+  assessmentsCreated         Assessment[]               @relation("AssessmentCreatedBy")
+  assessmentsUpdated         Assessment[]               @relation("AssessmentUpdatedBy")
+  siteSettingsUpdated        SiteSetting[]              @relation("SiteSettingUpdatedBy")
+  blogPostsCreated           BlogPost[]                 @relation("BlogPostCreatedBy")
+  blogPostsUpdated           BlogPost[]                 @relation("BlogPostUpdatedBy")
+  legalPagesUpdated          LegalPage[]                @relation("LegalPageUpdatedBy")
+  payCyclesCreated           PayCycle[]                 @relation("PayCycleCreatedBy")
+  payCyclesUpdated           PayCycle[]                 @relation("PayCycleUpdatedBy")
+  payRatesCreated            EmployeePayRate[]          @relation("PayRateCreatedBy")
+  workReportsCreated         WorkReport[]               @relation("WorkReportCreatedBy")
+  workReportsApproved        WorkReport[]               @relation("WorkReportApprovedBy")
+  payrollRunsProcessed       PayrollRun[]               @relation("PayrollRunProcessedBy")
+  payrollRunsSubmitted       PayrollRun[]               @relation("PayrollRunSubmittedBy")
+  payrollRunsDecided         PayrollRun[]               @relation("PayrollRunDecidedBy")
+  payrollSettingsUpdated     PayrollSettings[]          @relation("PayrollSettingsUpdatedBy")
+  signatureImageUrl          String?
+  signatureImageKey          String?
+  signatureUpdatedAt         DateTime?
+  createdAt                  DateTime                   @default(now())
+  updatedAt                  DateTime                   @updatedAt
 }
 
 model Department {
-  id                 Int          @id @default(autoincrement())
+  id                 Int                      @id @default(autoincrement())
   name               String
-  status             String       @default("Active")
+  status             String                   @default("Active")
   shortDescription   String?
   parentDepartmentId Int?
-  parentDepartment   Department?  @relation("DepartmentHierarchy", fields: [parentDepartmentId], references: [id])
-  childDepartments   Department[] @relation("DepartmentHierarchy")
+  parentDepartment   Department?              @relation("DepartmentHierarchy", fields: [parentDepartmentId], references: [id])
+  childDepartments   Department[]             @relation("DepartmentHierarchy")
   employees          Employee[]
   rosters            Roster[]
   dutyAssignments    DutyScheduleAssignment[]
   jobs               Job[]
-  createdAt          DateTime     @default(now())
-  updatedAt          DateTime     @updatedAt
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
 }
 
 model Shift {
@@ -110,13 +119,13 @@ model WeekDay {
 }
 
 model LeaveType {
-  id           Int      @id @default(autoincrement())
+  id           Int                       @id @default(autoincrement())
   name         String
   assignedDays Int
-  status       String   @default("Active")
+  status       String                    @default("Active")
   allocations  EmployeeLeaveAllocation[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
 }
 
 model Designation {
@@ -130,44 +139,49 @@ model Designation {
 }
 
 model Employee {
-  id              Int          @id @default(autoincrement())
-  employeeCode    String       @unique
-  firstName       String
-  lastName        String
-  email           String       @unique
-  phoneNumber     String?
-  gender          String?
-  dateOfBirth     DateTime?
-  jobTitle        String?
-  status          String       @default("Active")
-  joiningDate     DateTime
-  terminationDate DateTime?
-  employmentType  String       @default("Full-Time")
-  avatarUrl       String?
-  avatarKey       String?
-  departmentId    Int?
-  department      Department?  @relation(fields: [departmentId], references: [id])
-  designationId   Int?
-  designation     Designation? @relation(fields: [designationId], references: [id])
-  reportingToId   Int?
-  reportingTo     Employee?    @relation("EmployeeHierarchy", fields: [reportingToId], references: [id])
-  directReports   Employee[]   @relation("EmployeeHierarchy")
-  userId          Int?         @unique
-  user            User?        @relation(fields: [userId], references: [id])
-  documents       EmployeeDocument[]
-  dutyAssignments DutyScheduleAssignment[]
-  leaveAllocations EmployeeLeaveAllocation[]
-  leaveRequests    LeaveRequest[]
+  id                  Int                          @id @default(autoincrement())
+  employeeCode        String                       @unique
+  firstName           String
+  lastName            String
+  email               String                       @unique
+  phoneNumber         String?
+  gender              String?
+  dateOfBirth         DateTime?
+  jobTitle            String?
+  status              String                       @default("Active")
+  joiningDate         DateTime
+  terminationDate     DateTime?
+  employmentType      String                       @default("Full-Time")
+  avatarUrl           String?
+  avatarKey           String?
+  departmentId        Int?
+  department          Department?                  @relation(fields: [departmentId], references: [id])
+  designationId       Int?
+  designation         Designation?                 @relation(fields: [designationId], references: [id])
+  reportingToId       Int?
+  reportingTo         Employee?                    @relation("EmployeeHierarchy", fields: [reportingToId], references: [id])
+  directReports       Employee[]                   @relation("EmployeeHierarchy")
+  userId              Int?                         @unique
+  user                User?                        @relation(fields: [userId], references: [id])
+  documents           EmployeeDocument[]
+  dutyAssignments     DutyScheduleAssignment[]
+  leaveAllocations    EmployeeLeaveAllocation[]
+  leaveRequests       LeaveRequest[]
   attendances         Attendance[]
   attendanceMethods   EmployeeAttendanceMethod[]
-  attendanceIpRules     EmployeeAttendanceIpRule[]
-  attendanceLocations   EmployeeAttendanceLocation[]
-  attendanceDevices     EmployeeAttendanceDevice[]
-  attendanceRules       EmployeeAttendanceRules?
-  documentRequests      DocumentRequest[]
-  assetAssignments      AssetAssignment[]
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  attendanceIpRules   EmployeeAttendanceIpRule[]
+  attendanceLocations EmployeeAttendanceLocation[]
+  attendanceDevices   EmployeeAttendanceDevice[]
+  attendanceRules     EmployeeAttendanceRules?
+  documentRequests    DocumentRequest[]
+  assetAssignments    AssetAssignment[]
+  payCycleId          Int?
+  payCycle            PayCycle?                    @relation(fields: [payCycleId], references: [id])
+  payRates            EmployeePayRate[]
+  workReports         WorkReport[]
+  payslips            Payslip[]
+  createdAt           DateTime                     @default(now())
+  updatedAt           DateTime                     @updatedAt
 }
 
 model EmployeeDocument {
@@ -188,16 +202,16 @@ model EmployeeDocument {
 // ── Asset & Fleet Tracking ───────────────────────────────────────────────
 
 model Asset {
-  id           Int      @id @default(autoincrement())
-  assetTag     String   @unique // e.g. "AST-9F3KQJ2X", generated on create
+  id           Int       @id @default(autoincrement())
+  assetTag     String    @unique // e.g. "AST-9F3KQJ2X", generated on create
   name         String
-  category     String   // "Laptop" | "Mobile" | "Tool" | "OfficeEquipment" | "VehicleCar" | "VehicleVan" | "EmployerHousing" | "Other"
-  status       String   @default("Available") // "Available" | "Assigned" | "InRepair" | "Retired" | "Disposed"
+  category     String // "Laptop" | "Mobile" | "Tool" | "OfficeEquipment" | "VehicleCar" | "VehicleVan" | "EmployerHousing" | "Other"
+  status       String    @default("Available") // "Available" | "Assigned" | "InRepair" | "Retired" | "Disposed"
   serialNumber String?
   purchaseDate DateTime?
-  purchaseCost Decimal? @db.Decimal(12, 2)
+  purchaseCost Decimal?  @db.Decimal(12, 2)
   supplier     String?
-  notes        String?  @db.Text
+  notes        String?   @db.Text
 
   // Vehicle-specific (nullable; only meaningful when category is VehicleCar/VehicleVan)
   registrationNumber String?
@@ -218,9 +232,9 @@ model Asset {
   isFbtRelevant Boolean @default(false)
   fbtNotes      String? @db.Text
 
-  currentAssignmentId Int?              @unique
-  currentAssignment   AssetAssignment?  @relation("CurrentAssetAssignment", fields: [currentAssignmentId], references: [id])
-  assignments         AssetAssignment[] @relation("AssetAssignments")
+  currentAssignmentId Int?               @unique
+  currentAssignment   AssetAssignment?   @relation("CurrentAssetAssignment", fields: [currentAssignmentId], references: [id])
+  assignments         AssetAssignment[]  @relation("AssetAssignments")
   reminderLogs        AssetReminderLog[]
 
   photoUrl String?
@@ -282,8 +296,8 @@ model AssetReminderLog {
   id          Int      @id @default(autoincrement())
   assetId     Int
   asset       Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
-  expiryField String   // "registrationExpiry" | "wofCofExpiry" | "testAndTagExpiry" | "warrantyExpiry"
-  windowDays  Int      // 30 | 7
+  expiryField String // "registrationExpiry" | "wofCofExpiry" | "testAndTagExpiry" | "warrantyExpiry"
+  windowDays  Int // 30 | 7
   sentAt      DateTime @default(now())
 
   @@unique([assetId, expiryField, windowDays])
@@ -302,71 +316,71 @@ model AuditLog {
 }
 
 model DutySchedule {
-  id                        Int      @id @default(autoincrement())
+  id                        Int                      @id @default(autoincrement())
   name                      String
   startTime                 String
   endTime                   String
-  checkinConsiderMinutes    Int      @default(0)
-  checkoutConsiderMinutes   Int      @default(0)
-  maxOverTimeMinutes        Int      @default(0)
-  earlyCheckinBufferMinutes Int      @default(0)
-  isTardyApplicable         Boolean  @default(true)
-  status                    String   @default("Active")
+  checkinConsiderMinutes    Int                      @default(0)
+  checkoutConsiderMinutes   Int                      @default(0)
+  maxOverTimeMinutes        Int                      @default(0)
+  earlyCheckinBufferMinutes Int                      @default(0)
+  isTardyApplicable         Boolean                  @default(true)
+  status                    String                   @default("Active")
   shortDescription          String?
   assignments               DutyScheduleAssignment[]
-  createdAt                 DateTime @default(now())
-  updatedAt                 DateTime @updatedAt
+  createdAt                 DateTime                 @default(now())
+  updatedAt                 DateTime                 @updatedAt
 }
 
 model Roster {
-  id            Int       @id @default(autoincrement())
+  id            Int                      @id @default(autoincrement())
   departmentId  Int
-  department    Department @relation(fields: [departmentId], references: [id])
-  periodType    String    // "Weekly" | "Fortnightly" | "Monthly"
+  department    Department               @relation(fields: [departmentId], references: [id])
+  periodType    String // "Weekly" | "Fortnightly" | "Monthly"
   startDate     DateTime
   endDate       DateTime
-  status        String    @default("Draft") // "Draft" | "Pending" | "Approved"
+  status        String                   @default("Draft") // "Draft" | "Pending" | "Approved"
   generatedById Int?
-  generatedBy   User?     @relation("RosterGeneratedBy", fields: [generatedById], references: [id])
+  generatedBy   User?                    @relation("RosterGeneratedBy", fields: [generatedById], references: [id])
   approvedById  Int?
-  approvedBy    User?     @relation("RosterApprovedBy", fields: [approvedById], references: [id])
+  approvedBy    User?                    @relation("RosterApprovedBy", fields: [approvedById], references: [id])
   approvedAt    DateTime?
   createdById   Int
-  createdBy     User      @relation("RosterCreatedBy", fields: [createdById], references: [id])
+  createdBy     User                     @relation("RosterCreatedBy", fields: [createdById], references: [id])
   updatedById   Int?
-  updatedBy     User?     @relation("RosterUpdatedBy", fields: [updatedById], references: [id])
+  updatedBy     User?                    @relation("RosterUpdatedBy", fields: [updatedById], references: [id])
   assignments   DutyScheduleAssignment[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
 
   @@index([departmentId, startDate, endDate])
   @@index([status])
 }
 
 model DutyScheduleAssignment {
-  id             Int          @id @default(autoincrement())
+  id             Int           @id @default(autoincrement())
   rosterId       Int
-  roster         Roster       @relation(fields: [rosterId], references: [id])
+  roster         Roster        @relation(fields: [rosterId], references: [id])
   employeeId     Int
-  employee       Employee     @relation(fields: [employeeId], references: [id])
+  employee       Employee      @relation(fields: [employeeId], references: [id])
   dutyScheduleId Int?
   dutySchedule   DutySchedule? @relation(fields: [dutyScheduleId], references: [id])
   departmentId   Int
-  department     Department   @relation(fields: [departmentId], references: [id])
+  department     Department    @relation(fields: [departmentId], references: [id])
   date           DateTime
-  status         String       @default("Scheduled") // "Scheduled" | "CheckedIn" | "Completed" | "OnLeave" | "Incomplete" | "Cancelled"
+  status         String        @default("Scheduled") // "Scheduled" | "CheckedIn" | "Completed" | "OnLeave" | "Incomplete" | "Cancelled"
   comment        String?
-  isLeave        Boolean      @default(false)
-  isHoliday      Boolean      @default(false)
-  isWeekend      Boolean      @default(false)
+  isLeave        Boolean       @default(false)
+  isHoliday      Boolean       @default(false)
+  isWeekend      Boolean       @default(false)
   changeRequest  String?
   createdById    Int
-  createdBy      User         @relation("AssignmentCreatedBy", fields: [createdById], references: [id])
+  createdBy      User          @relation("AssignmentCreatedBy", fields: [createdById], references: [id])
   updatedById    Int?
-  updatedBy      User?        @relation("AssignmentUpdatedBy", fields: [updatedById], references: [id])
+  updatedBy      User?         @relation("AssignmentUpdatedBy", fields: [updatedById], references: [id])
   attendance     Attendance?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@unique([employeeId, date])
   @@index([rosterId])
@@ -419,8 +433,8 @@ model Attendance {
   id                       Int                    @id @default(autoincrement())
   employeeId               Int
   employee                 Employee               @relation(fields: [employeeId], references: [id])
-  dutyScheduleAssignmentId Int                     @unique
-  dutyScheduleAssignment   DutyScheduleAssignment  @relation(fields: [dutyScheduleAssignmentId], references: [id])
+  dutyScheduleAssignmentId Int                    @unique
+  dutyScheduleAssignment   DutyScheduleAssignment @relation(fields: [dutyScheduleAssignmentId], references: [id])
   date                     DateTime
   checkInAt                DateTime?
   checkInMethod            String?
@@ -455,25 +469,25 @@ model BreakLog {
 }
 
 model AttendanceIpRule {
-  id            Int      @id @default(autoincrement())
+  id            Int                        @id @default(autoincrement())
   label         String
   cidr          String
-  status        String   @default("Active")
+  status        String                     @default("Active")
   employeeRules EmployeeAttendanceIpRule[]
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime                   @default(now())
+  updatedAt     DateTime                   @updatedAt
 }
 
 model AttendanceLocation {
-  id            Int      @id @default(autoincrement())
+  id            Int                          @id @default(autoincrement())
   name          String
   latitude      Float
   longitude     Float
   radiusMeters  Int
-  status        String   @default("Active")
+  status        String                       @default("Active")
   employeeRules EmployeeAttendanceLocation[]
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime                     @default(now())
+  updatedAt     DateTime                     @updatedAt
 }
 
 model EmployeeAttendanceIpRule {
@@ -541,23 +555,23 @@ model PasswordResetToken {
 }
 
 model EmployeeLeaveAllocation {
-  id            Int      @id @default(autoincrement())
+  id            Int                 @id @default(autoincrement())
   employeeId    Int
-  employee      Employee  @relation(fields: [employeeId], references: [id])
+  employee      Employee            @relation(fields: [employeeId], references: [id])
   leaveTypeId   Int
-  leaveType     LeaveType @relation(fields: [leaveTypeId], references: [id])
+  leaveType     LeaveType           @relation(fields: [leaveTypeId], references: [id])
   year          Int
   allocatedDays Int
-  daysUsed      Int      @default(0)
-  status        String   @default("Active") // "Active" | "Inactive"
+  daysUsed      Int                 @default(0)
+  status        String              @default("Active") // "Active" | "Inactive"
   approvalSteps LeaveApprovalStep[]
   leaveRequests LeaveRequest[]
   createdById   Int
-  createdBy     User      @relation("LeaveAllocationCreatedBy", fields: [createdById], references: [id])
+  createdBy     User                @relation("LeaveAllocationCreatedBy", fields: [createdById], references: [id])
   updatedById   Int?
-  updatedBy     User?     @relation("LeaveAllocationUpdatedBy", fields: [updatedById], references: [id])
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  updatedBy     User?               @relation("LeaveAllocationUpdatedBy", fields: [updatedById], references: [id])
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
 
   @@unique([employeeId, leaveTypeId, year])
   @@index([employeeId])
@@ -565,39 +579,39 @@ model EmployeeLeaveAllocation {
 }
 
 model LeaveApprovalStep {
-  id           Int      @id @default(autoincrement())
+  id           Int                     @id @default(autoincrement())
   allocationId Int
   allocation   EmployeeLeaveAllocation @relation(fields: [allocationId], references: [id], onDelete: Cascade)
   stepOrder    Int
-  approverType String   // "ReportingManager" | "Role"
+  approverType String // "ReportingManager" | "Role"
   roleId       Int?
-  role         Role?    @relation(fields: [roleId], references: [id])
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  role         Role?                   @relation(fields: [roleId], references: [id])
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
 
   @@unique([allocationId, stepOrder])
   @@index([allocationId])
 }
 
 model LeaveRequest {
-  id               Int      @id @default(autoincrement())
+  id               Int                     @id @default(autoincrement())
   employeeId       Int
-  employee         Employee @relation(fields: [employeeId], references: [id])
+  employee         Employee                @relation(fields: [employeeId], references: [id])
   allocationId     Int
   allocation       EmployeeLeaveAllocation @relation(fields: [allocationId], references: [id])
   startDate        DateTime
   endDate          DateTime
   daysRequested    Int
   reason           String?
-  status           String   @default("Pending") // "Pending" | "Approved" | "Rejected" | "Cancelled"
-  currentStepOrder Int      @default(1)
+  status           String                  @default("Pending") // "Pending" | "Approved" | "Rejected" | "Cancelled"
+  currentStepOrder Int                     @default(1)
   approvals        LeaveRequestApproval[]
   createdById      Int
-  createdBy        User     @relation("LeaveRequestCreatedBy", fields: [createdById], references: [id])
+  createdBy        User                    @relation("LeaveRequestCreatedBy", fields: [createdById], references: [id])
   updatedById      Int?
-  updatedBy        User?    @relation("LeaveRequestUpdatedBy", fields: [updatedById], references: [id])
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  updatedBy        User?                   @relation("LeaveRequestUpdatedBy", fields: [updatedById], references: [id])
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
 
   @@index([employeeId])
   @@index([allocationId])
@@ -605,20 +619,20 @@ model LeaveRequest {
 }
 
 model LeaveRequestApproval {
-  id              Int      @id @default(autoincrement())
+  id              Int          @id @default(autoincrement())
   leaveRequestId  Int
   leaveRequest    LeaveRequest @relation(fields: [leaveRequestId], references: [id], onDelete: Cascade)
   stepOrder       Int
-  approverType    String   // snapshot of the step's type at submission time
+  approverType    String // snapshot of the step's type at submission time
   roleId          Int?
-  roleName        String?  // snapshot label, survives later role rename/deletion
-  status          String   @default("Pending") // "Pending" | "Approved" | "Rejected"
+  roleName        String? // snapshot label, survives later role rename/deletion
+  status          String       @default("Pending") // "Pending" | "Approved" | "Rejected"
   decidedByUserId Int?
-  decidedBy       User?    @relation("LeaveApprovalDecidedBy", fields: [decidedByUserId], references: [id])
+  decidedBy       User?        @relation("LeaveApprovalDecidedBy", fields: [decidedByUserId], references: [id])
   decidedAt       DateTime?
   comment         String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 
   @@unique([leaveRequestId, stepOrder])
   @@index([leaveRequestId])
@@ -630,7 +644,7 @@ model Holiday {
   date          DateTime
   year          Int
   source        String    @default("Manual") // "Manual" | "NZ" | "AU"
-  status        String    @default("Draft")  // "Draft" | "Published"
+  status        String    @default("Draft") // "Draft" | "Published"
   notes         String?
   createdById   Int
   createdBy     User      @relation("HolidayCreatedBy", fields: [createdById], references: [id])
@@ -648,77 +662,77 @@ model Holiday {
 }
 
 model DocumentCategory {
-  id        Int      @id @default(autoincrement())
-  code      String   @unique // "SALARY_CERT" | "PAYSLIP" | "EXP_LETTER" | "APPOINT_LETTER" |
-                              // "LEAVE_APPROVAL" | "APPRECIATION_LETTER" | "SALARY_INCREMENT" | "AWARD_LETTER"
+  id        Int                @id @default(autoincrement())
+  code      String             @unique // "SALARY_CERT" | "PAYSLIP" | "EXP_LETTER" | "APPOINT_LETTER" |
+  // "LEAVE_APPROVAL" | "APPRECIATION_LETTER" | "SALARY_INCREMENT" | "AWARD_LETTER"
   name      String
-  status    String   @default("Active") // "Active" | "Inactive"
+  status    String             @default("Active") // "Active" | "Inactive"
   templates DocumentTemplate[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
 }
 
 model DocumentTemplate {
-  id                 Int      @id @default(autoincrement())
-  shortCode          String   @unique
+  id                 Int                            @id @default(autoincrement())
+  shortCode          String                         @unique
   name               String
   categoryId         Int
-  category           DocumentCategory @relation(fields: [categoryId], references: [id])
-  bodyHtml           String   @db.Text // HTML/CSS with {{placeholder}} and {{signature:Role}} tokens
-  isStaffRequestable Boolean  @default(false)
-  status             String   @default("Active") // "Active" | "Inactive"
+  category           DocumentCategory               @relation(fields: [categoryId], references: [id])
+  bodyHtml           String                         @db.Text // HTML/CSS with {{placeholder}} and {{signature:Role}} tokens
+  isStaffRequestable Boolean                        @default(false)
+  status             String                         @default("Active") // "Active" | "Inactive"
   approvalSteps      DocumentTemplateApprovalStep[]
   requests           DocumentRequest[]
   createdById        Int
-  createdBy          User     @relation("DocumentTemplateCreatedBy", fields: [createdById], references: [id])
+  createdBy          User                           @relation("DocumentTemplateCreatedBy", fields: [createdById], references: [id])
   updatedById        Int?
-  updatedBy          User?    @relation("DocumentTemplateUpdatedBy", fields: [updatedById], references: [id])
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  updatedBy          User?                          @relation("DocumentTemplateUpdatedBy", fields: [updatedById], references: [id])
+  createdAt          DateTime                       @default(now())
+  updatedAt          DateTime                       @updatedAt
 
   @@index([categoryId])
 }
 
 model DocumentTemplateApprovalStep {
-  id           Int      @id @default(autoincrement())
+  id           Int              @id @default(autoincrement())
   templateId   Int
   template     DocumentTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
   stepOrder    Int
-  approverType String   // "ReportingManager" | "Role"
+  approverType String // "ReportingManager" | "Role"
   roleId       Int?
-  role         Role?    @relation(fields: [roleId], references: [id])
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  role         Role?            @relation(fields: [roleId], references: [id])
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
 
   @@unique([templateId, stepOrder])
   @@index([templateId])
 }
 
 model DocumentRequest {
-  id                Int      @id @default(autoincrement())
+  id                Int                       @id @default(autoincrement())
   employeeId        Int
-  employee          Employee @relation(fields: [employeeId], references: [id])
+  employee          Employee                  @relation(fields: [employeeId], references: [id])
   templateId        Int
-  template          DocumentTemplate @relation(fields: [templateId], references: [id])
+  template          DocumentTemplate          @relation(fields: [templateId], references: [id])
   reason            String?
-  priority          String   @default("Medium") // "Low" | "Medium" | "High" | "Urgent"
+  priority          String                    @default("Medium") // "Low" | "Medium" | "High" | "Urgent"
   deadlineDate      DateTime?
   attachmentFileUrl String?
   attachmentFileKey String?
-  fieldValues       Json?    // generic per-template manual data (e.g. payslip basic/allowances/deductions/netPay)
-  status            String   @default("Pending") // "Pending" | "Approved" | "Issued" | "Rejected" | "Cancelled"
-  currentStepOrder  Int      @default(1)
-  referenceNumber   String?  @unique // set at issuance, e.g. "DOC-9F3KQJ2X"
+  fieldValues       Json? // generic per-template manual data (e.g. payslip basic/allowances/deductions/netPay)
+  status            String                    @default("Pending") // "Pending" | "Approved" | "Issued" | "Rejected" | "Cancelled"
+  currentStepOrder  Int                       @default(1)
+  referenceNumber   String?                   @unique // set at issuance, e.g. "DOC-9F3KQJ2X"
   finalFileUrl      String?
   finalFileKey      String?
   issuedAt          DateTime?
   approvals         DocumentRequestApproval[]
   createdById       Int
-  createdBy         User     @relation("DocumentRequestCreatedBy", fields: [createdById], references: [id])
+  createdBy         User                      @relation("DocumentRequestCreatedBy", fields: [createdById], references: [id])
   updatedById       Int?
-  updatedBy         User?    @relation("DocumentRequestUpdatedBy", fields: [updatedById], references: [id])
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  updatedBy         User?                     @relation("DocumentRequestUpdatedBy", fields: [updatedById], references: [id])
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
 
   assetAssignReceipt  AssetAssignment?  @relation("AssetAssignReceipt")
   assetReturnReceipts AssetAssignment[] @relation("AssetReturnReceipt")
@@ -729,20 +743,20 @@ model DocumentRequest {
 }
 
 model DocumentRequestApproval {
-  id                Int      @id @default(autoincrement())
+  id                Int             @id @default(autoincrement())
   documentRequestId Int
   documentRequest   DocumentRequest @relation(fields: [documentRequestId], references: [id], onDelete: Cascade)
   stepOrder         Int
-  approverType      String   // snapshot of the step's type at submission time
+  approverType      String // snapshot of the step's type at submission time
   roleId            Int?
-  roleName          String?  // snapshot label, survives later role rename/deletion
-  status            String   @default("Pending") // "Pending" | "Approved" | "Rejected"
+  roleName          String? // snapshot label, survives later role rename/deletion
+  status            String          @default("Pending") // "Pending" | "Approved" | "Rejected"
   decidedByUserId   Int?
-  decidedBy         User?    @relation("DocumentApprovalDecidedBy", fields: [decidedByUserId], references: [id])
+  decidedBy         User?           @relation("DocumentApprovalDecidedBy", fields: [decidedByUserId], references: [id])
   decidedAt         DateTime?
   comment           String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 
   @@unique([documentRequestId, stepOrder])
   @@index([documentRequestId])
@@ -751,66 +765,66 @@ model DocumentRequestApproval {
 // ── Job Recruitment & ATS ────────────────────────────────────────────────
 
 model Job {
-  id                 Int      @id @default(autoincrement())
+  id                 Int                    @id @default(autoincrement())
   title              String
-  slug               String   @unique // slugify(title) + short nanoid suffix on collision
-  vacancyCount       Int      @default(1)
-  location           String?  // free-text city/region, or "Remote"
-  skills             Json     // string[]
+  slug               String                 @unique // slugify(title) + short nanoid suffix on collision
+  vacancyCount       Int                    @default(1)
+  location           String? // free-text city/region, or "Remote"
+  skills             Json // string[]
   minExperienceYears Int?
   maxExperienceYears Int?
-  jobType            String   @default("FULL_TIME") // "FULL_TIME" | "PART_TIME" | "CONTRACT" | "INTERNSHIP" | "CASUAL"
-  salaryType         String   @default("ANNUAL")     // "HOURLY" | "ANNUAL"
+  jobType            String                 @default("FULL_TIME") // "FULL_TIME" | "PART_TIME" | "CONTRACT" | "INTERNSHIP" | "CASUAL"
+  salaryType         String                 @default("ANNUAL") // "HOURLY" | "ANNUAL"
   salaryMin          Float?
   salaryMax          Float?
-  description        String   @db.Text
-  status             String   @default("Draft") // "Draft" | "Open" | "Closed" | "Archived"
+  description        String                 @db.Text
+  status             String                 @default("Draft") // "Draft" | "Open" | "Closed" | "Archived"
   departmentId       Int?
-  department         Department? @relation(fields: [departmentId], references: [id])
+  department         Department?            @relation(fields: [departmentId], references: [id])
   closesAt           DateTime?
   postedById         Int
-  postedBy           User     @relation("JobPostedBy", fields: [postedById], references: [id])
+  postedBy           User                   @relation("JobPostedBy", fields: [postedById], references: [id])
   updatedById        Int?
-  updatedBy          User?    @relation("JobUpdatedBy", fields: [updatedById], references: [id])
+  updatedBy          User?                  @relation("JobUpdatedBy", fields: [updatedById], references: [id])
   screeningQuestions JobScreeningQuestion[]
   applications       Application[]
   assessment         Assessment?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
 
   @@index([status])
   @@index([departmentId])
 }
 
 model ScreeningQuestion {
-  id          Int      @id @default(autoincrement())
-  code        String?  @unique // set only for system-seeded questions, e.g. "NZ_CRIMINAL_RECORD_CLEAN_SLATE"; null for tenant-authored
-  text        String   @db.Text
-  type        String   @default("SHORT_TEXT") // "YES_NO" | "SINGLE_CHOICE" | "MULTIPLE_CHOICE" | "SHORT_TEXT"
-  options     Json?    // string[] — SINGLE_CHOICE / MULTIPLE_CHOICE only
-  category    String   @default("Custom") // "LegalCompliance" | "Custom"
-  isSystem    Boolean  @default(false) // seeded; blocks deletion via API, still editable
-  status      String   @default("Active") // "Active" | "Inactive"
+  id          Int                    @id @default(autoincrement())
+  code        String?                @unique // set only for system-seeded questions, e.g. "NZ_CRIMINAL_RECORD_CLEAN_SLATE"; null for tenant-authored
+  text        String                 @db.Text
+  type        String                 @default("SHORT_TEXT") // "YES_NO" | "SINGLE_CHOICE" | "MULTIPLE_CHOICE" | "SHORT_TEXT"
+  options     Json? // string[] — SINGLE_CHOICE / MULTIPLE_CHOICE only
+  category    String                 @default("Custom") // "LegalCompliance" | "Custom"
+  isSystem    Boolean                @default(false) // seeded; blocks deletion via API, still editable
+  status      String                 @default("Active") // "Active" | "Inactive"
   jobLinks    JobScreeningQuestion[]
   createdById Int?
-  createdBy   User?    @relation("ScreeningQuestionCreatedBy", fields: [createdById], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdBy   User?                  @relation("ScreeningQuestionCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
 
   @@index([status])
   @@index([category])
 }
 
 model JobScreeningQuestion {
-  id          Int      @id @default(autoincrement())
+  id          Int                 @id @default(autoincrement())
   jobId       Int
-  job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  job         Job                 @relation(fields: [jobId], references: [id], onDelete: Cascade)
   questionId  Int
-  question    ScreeningQuestion @relation(fields: [questionId], references: [id])
-  isMandatory Boolean  @default(true)
-  sortOrder   Int      @default(0)
+  question    ScreeningQuestion   @relation(fields: [questionId], references: [id])
+  isMandatory Boolean             @default(true)
+  sortOrder   Int                 @default(0)
   answers     ApplicationAnswer[]
-  createdAt   DateTime @default(now())
+  createdAt   DateTime            @default(now())
 
   @@unique([jobId, questionId])
   @@index([jobId])
@@ -818,35 +832,35 @@ model JobScreeningQuestion {
 }
 
 model Candidate {
-  id           Int      @id @default(autoincrement())
+  id           Int           @id @default(autoincrement())
   fullName     String
-  email        String   @unique
+  email        String        @unique
   phoneNumber  String?
   applications Application[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 model Application {
-  id                   Int      @id @default(autoincrement())
+  id                   Int                       @id @default(autoincrement())
   jobId                Int
-  job                  Job      @relation(fields: [jobId], references: [id])
+  job                  Job                       @relation(fields: [jobId], references: [id])
   candidateId          Int
-  candidate            Candidate @relation(fields: [candidateId], references: [id])
+  candidate            Candidate                 @relation(fields: [candidateId], references: [id])
   resumeFileUrl        String?
   resumeFileKey        String?
-  coverLetter          String?  @db.Text
-  stage                String   @default("APPLICATION_RECEIVED")
+  coverLetter          String?                   @db.Text
+  stage                String                    @default("APPLICATION_RECEIVED")
   // "APPLICATION_RECEIVED" | "AI_ASSESSMENT" | "VIRTUAL_INTERVIEW" | "IN_PERSON_INTERVIEW" | "OFFER" | "HIRED" | "REJECTED"
-  movedToStageAt       DateTime @default(now())
+  movedToStageAt       DateTime                  @default(now())
   rejectionReason      String?
   withdrawnAt          DateTime?
   answers              ApplicationAnswer[]
   stageHistory         ApplicationStageHistory[]
   assessmentInvitation AssessmentInvitation?
   accessTokens         CandidateAccessToken[]
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  createdAt            DateTime                  @default(now())
+  updatedAt            DateTime                  @updatedAt
 
   @@unique([jobId, candidateId])
   @@index([jobId, stage])
@@ -854,123 +868,123 @@ model Application {
 }
 
 model ApplicationAnswer {
-  id                     Int      @id @default(autoincrement())
+  id                     Int                  @id @default(autoincrement())
   applicationId          Int
-  application            Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  application            Application          @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   jobScreeningQuestionId Int
   jobScreeningQuestion   JobScreeningQuestion @relation(fields: [jobScreeningQuestionId], references: [id])
-  answerText             String?  @db.Text   // YES_NO ("Yes"/"No") and SHORT_TEXT
-  answerOptions          Json?               // string[] for SINGLE_CHOICE / MULTIPLE_CHOICE
-  createdAt              DateTime @default(now())
+  answerText             String?              @db.Text // YES_NO ("Yes"/"No") and SHORT_TEXT
+  answerOptions          Json? // string[] for SINGLE_CHOICE / MULTIPLE_CHOICE
+  createdAt              DateTime             @default(now())
 
   @@unique([applicationId, jobScreeningQuestionId])
   @@index([applicationId])
 }
 
 model ApplicationStageHistory {
-  id            Int      @id @default(autoincrement())
+  id            Int         @id @default(autoincrement())
   applicationId Int
   application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   fromStage     String?
   toStage       String
-  movedByType   String   @default("User") // "User" | "System" — System = auto-transition from grading worker
+  movedByType   String      @default("User") // "User" | "System" — System = auto-transition from grading worker
   movedById     Int?
-  movedBy       User?    @relation("ApplicationStageMovedBy", fields: [movedById], references: [id])
+  movedBy       User?       @relation("ApplicationStageMovedBy", fields: [movedById], references: [id])
   note          String?
-  createdAt     DateTime @default(now())
+  createdAt     DateTime    @default(now())
 
   @@index([applicationId])
 }
 
 model CandidateAccessToken {
-  id            Int       @id @default(autoincrement())
+  id            Int         @id @default(autoincrement())
   applicationId Int
   application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  token         String    @unique // crypto.randomBytes(32).toString("hex"), same as PasswordResetToken
-  purpose       String    @default("PORTAL") // "PORTAL" | "ASSESSMENT_INVITE" — informational only, both redeem identically
+  token         String      @unique // crypto.randomBytes(32).toString("hex"), same as PasswordResetToken
+  purpose       String      @default("PORTAL") // "PORTAL" | "ASSESSMENT_INVITE" — informational only, both redeem identically
   expiresAt     DateTime
   lastUsedAt    DateTime? // updated on each redemption; multi-use until expiresAt
-  createdAt     DateTime  @default(now())
+  createdAt     DateTime    @default(now())
 
   @@index([applicationId])
 }
 
 model Assessment {
-  id                   Int      @id @default(autoincrement())
-  jobId                Int      @unique
-  job                  Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  title                String   @default("Assessment")
-  instructions         String?  @db.Text
-  passThresholdPercent Int      @default(60)
-  generationSource     String   @default("MANUAL") // "MANUAL" | "AI_GENERATED" | "AI_GENERATED_EDITED"
-  status               String   @default("Draft") // "Draft" | "Published"
+  id                   Int                    @id @default(autoincrement())
+  jobId                Int                    @unique
+  job                  Job                    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  title                String                 @default("Assessment")
+  instructions         String?                @db.Text
+  passThresholdPercent Int                    @default(60)
+  generationSource     String                 @default("MANUAL") // "MANUAL" | "AI_GENERATED" | "AI_GENERATED_EDITED"
+  status               String                 @default("Draft") // "Draft" | "Published"
   questions            AssessmentQuestion[]
   invitations          AssessmentInvitation[]
   createdById          Int
-  createdBy            User     @relation("AssessmentCreatedBy", fields: [createdById], references: [id])
+  createdBy            User                   @relation("AssessmentCreatedBy", fields: [createdById], references: [id])
   updatedById          Int?
-  updatedBy            User?    @relation("AssessmentUpdatedBy", fields: [updatedById], references: [id])
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  updatedBy            User?                  @relation("AssessmentUpdatedBy", fields: [updatedById], references: [id])
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
 }
 
 model AssessmentQuestion {
-  id                 Int      @id @default(autoincrement())
-  assessmentId       Int
-  assessment         Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
-  type               String   @default("MCQ") // "MCQ" | "TRUE_FALSE" | "MULTIPLE_SELECT" | "SHORT_TEXT"
-  prompt             String   @db.Text
-  options            Json?    // string[] — MCQ | TRUE_FALSE | MULTIPLE_SELECT
-  correctOptionIndex Int?     // MCQ | TRUE_FALSE — single correct option
-  correctOptionIndexes Json?  // number[] — MULTIPLE_SELECT only
-  points             Int      @default(1)
-  sortOrder          Int      @default(0)
-  answers            AssessmentAnswer[]
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id                   Int                @id @default(autoincrement())
+  assessmentId         Int
+  assessment           Assessment         @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  type                 String             @default("MCQ") // "MCQ" | "TRUE_FALSE" | "MULTIPLE_SELECT" | "SHORT_TEXT"
+  prompt               String             @db.Text
+  options              Json? // string[] — MCQ | TRUE_FALSE | MULTIPLE_SELECT
+  correctOptionIndex   Int? // MCQ | TRUE_FALSE — single correct option
+  correctOptionIndexes Json? // number[] — MULTIPLE_SELECT only
+  points               Int                @default(1)
+  sortOrder            Int                @default(0)
+  answers              AssessmentAnswer[]
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
 
   @@index([assessmentId])
 }
 
 model AssessmentInvitation {
-  id            Int       @id @default(autoincrement())
-  applicationId Int       @unique // one attempt per application
-  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  id            Int                @id @default(autoincrement())
+  applicationId Int                @unique // one attempt per application
+  application   Application        @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   assessmentId  Int
-  assessment    Assessment @relation(fields: [assessmentId], references: [id])
-  status        String    @default("INVITED") // "INVITED" | "IN_PROGRESS" | "SUBMITTED" | "GRADING" | "GRADED"
+  assessment    Assessment         @relation(fields: [assessmentId], references: [id])
+  status        String             @default("INVITED") // "INVITED" | "IN_PROGRESS" | "SUBMITTED" | "GRADING" | "GRADED"
   totalPoints   Int?
   scoredPoints  Float?
   scorePercent  Float?
-  outcome       String?   // "PASSED" | "PASSED_PENDING_REVIEW" | "FAILED" | null
-  invitedAt     DateTime  @default(now())
+  outcome       String? // "PASSED" | "PASSED_PENDING_REVIEW" | "FAILED" | null
+  invitedAt     DateTime           @default(now())
   startedAt     DateTime?
   submittedAt   DateTime?
   gradedAt      DateTime?
   answers       AssessmentAnswer[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
 
   @@index([assessmentId])
 }
 
 model AssessmentAnswer {
-  id                  Int      @id @default(autoincrement())
-  invitationId        Int
-  invitation          AssessmentInvitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
-  questionId          Int
-  question            AssessmentQuestion @relation(fields: [questionId], references: [id])
-  selectedOptionIndex Int?     // MCQ | TRUE_FALSE
-  selectedOptionIndexes Json?  // number[] — MULTIPLE_SELECT only
-  textAnswer          String?  @db.Text // SHORT_TEXT
-  isCorrect           Boolean? // MCQ | TRUE_FALSE | MULTIPLE_SELECT, computed instantly
-  pointsAwarded       Float?
-  gradingStatus       String   @default("PENDING") // "PENDING" | "INSTANT" | "QUEUED" | "GRADED" | "FAILED"
-  aiFeedback          String?  @db.Text
-  aiRawResponse        Json?
-  gradedAt            DateTime?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  id                    Int                  @id @default(autoincrement())
+  invitationId          Int
+  invitation            AssessmentInvitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  questionId            Int
+  question              AssessmentQuestion   @relation(fields: [questionId], references: [id])
+  selectedOptionIndex   Int? // MCQ | TRUE_FALSE
+  selectedOptionIndexes Json? // number[] — MULTIPLE_SELECT only
+  textAnswer            String?              @db.Text // SHORT_TEXT
+  isCorrect             Boolean? // MCQ | TRUE_FALSE | MULTIPLE_SELECT, computed instantly
+  pointsAwarded         Float?
+  gradingStatus         String               @default("PENDING") // "PENDING" | "INSTANT" | "QUEUED" | "GRADED" | "FAILED"
+  aiFeedback            String?              @db.Text
+  aiRawResponse         Json?
+  gradedAt              DateTime?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
 
   @@unique([invitationId, questionId])
   @@index([invitationId])
@@ -979,26 +993,26 @@ model AssessmentAnswer {
 // ── Public Website CMS ──────────────────────────────────────────────────
 
 model SiteSetting {
-  id               Int      @id @default(autoincrement())
-  siteTitle        String   @default("Our Company")
-  tagline          String?
-  logoUrl          String?
-  logoKey          String?
-  faviconUrl       String?
-  faviconKey       String?
-  primaryColor     String   @default("#4F46E5")
-  secondaryColor   String   @default("#0EA5E9")
-  contactEmail     String?
-  contactPhone     String?
-  contactAddress   String?  @db.Text
-  businessHours    Json?    // { day: string; openTime: string; closeTime: string; isClosed: boolean }[]
-  aboutHeading     String?
-  aboutContent     String?  @db.Text // fills the "about" SiteSection — no dedicated About model
-  metaDescription  String?  @db.Text
-  updatedById      Int?
-  updatedBy        User?    @relation("SiteSettingUpdatedBy", fields: [updatedById], references: [id])
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id              Int      @id @default(autoincrement())
+  siteTitle       String   @default("Our Company")
+  tagline         String?
+  logoUrl         String?
+  logoKey         String?
+  faviconUrl      String?
+  faviconKey      String?
+  primaryColor    String   @default("#4F46E5")
+  secondaryColor  String   @default("#0EA5E9")
+  contactEmail    String?
+  contactPhone    String?
+  contactAddress  String?  @db.Text
+  businessHours   Json? // { day: string; openTime: string; closeTime: string; isClosed: boolean }[]
+  aboutHeading    String?
+  aboutContent    String?  @db.Text // fills the "about" SiteSection — no dedicated About model
+  metaDescription String?  @db.Text
+  updatedById     Int?
+  updatedBy       User?    @relation("SiteSettingUpdatedBy", fields: [updatedById], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model SiteSection {
@@ -1035,7 +1049,7 @@ model HeroSlide {
 
 model CompanyService {
   id          Int      @id @default(autoincrement())
-  icon        String   // lucide-react icon name, e.g. "Rocket"
+  icon        String // lucide-react icon name, e.g. "Rocket"
   title       String
   summary     String
   description String   @db.Text // HTML
@@ -1107,8 +1121,8 @@ model ContactInquiry {
 
 model SocialLink {
   id        Int      @id @default(autoincrement())
-  platform  String   // e.g. "Facebook" | "LinkedIn" | "Twitter" | "Instagram" | "YouTube"
-  icon      String   // lucide-react icon name
+  platform  String // e.g. "Facebook" | "LinkedIn" | "Twitter" | "Instagram" | "YouTube"
+  icon      String // lucide-react icon name
   url       String
   sortOrder Int      @default(0)
   isActive  Boolean  @default(true)
@@ -1128,4 +1142,142 @@ model LegalPage {
   updatedBy   User?    @relation("LegalPageUpdatedBy", fields: [updatedById], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// --- Payroll module ---
+// Separation of duties: HR approves WorkReport hours, Payroll generates/processes
+// PayrollRun + Payslips, Finance (or Admin) gives final payment approval. Enforced
+// via requireRole() in modules/payroll/*.routes.ts, not a configurable approval chain
+// (unlike LeaveRequest/DocumentRequest) since the three payroll steps are fixed.
+
+model PayCycle {
+  id          Int          @id @default(autoincrement())
+  name        String
+  frequency   String // "WEEKLY" | "FORTNIGHTLY" | "MONTHLY"
+  status      String       @default("Active") // "Active" | "Inactive"
+  employees   Employee[]
+  payrollRuns PayrollRun[]
+  createdById Int
+  createdBy   User         @relation("PayCycleCreatedBy", fields: [createdById], references: [id])
+  updatedById Int?
+  updatedBy   User?        @relation("PayCycleUpdatedBy", fields: [updatedById], references: [id])
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+// Effective-dated: the row where effectiveFrom <= targetDate <= (effectiveTo ?? +inf)
+// is the rate in force on targetDate. See payRate.service.ts resolveEffectivePayRate.
+model EmployeePayRate {
+  id            Int       @id @default(autoincrement())
+  employeeId    Int
+  employee      Employee  @relation(fields: [employeeId], references: [id])
+  rateType      String // "HOURLY" | "SALARY"
+  baseRate      Decimal   @db.Decimal(10, 2)
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  createdById   Int
+  createdBy     User      @relation("PayRateCreatedBy", fields: [createdById], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([employeeId, effectiveFrom])
+}
+
+// One row per employee per pay period. totalHours/regularHours/extraHours are
+// aggregated from Attendance + DutySchedule by workReport.service.ts, then
+// reviewed/approved by HR. Once HR_APPROVED, the underlying Attendance/BreakLog
+// rows for this employee+period are locked (see payrollLock.ts).
+model WorkReport {
+  id           Int       @id @default(autoincrement())
+  employeeId   Int
+  employee     Employee  @relation(fields: [employeeId], references: [id])
+  periodStart  DateTime
+  periodEnd    DateTime
+  totalHours   Decimal   @db.Decimal(5, 2)
+  regularHours Decimal   @db.Decimal(5, 2)
+  extraHours   Decimal   @db.Decimal(5, 2)
+  status       String    @default("DRAFT") // "DRAFT" | "HR_APPROVED" | "PAYROLL_PROCESSED"
+  approvedById Int?
+  approvedBy   User?     @relation("WorkReportApprovedBy", fields: [approvedById], references: [id])
+  approvedAt   DateTime?
+  payslipId    Int?      @unique
+  payslip      Payslip?  @relation(fields: [payslipId], references: [id])
+  createdById  Int
+  createdBy    User      @relation("WorkReportCreatedBy", fields: [createdById], references: [id])
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([employeeId, periodStart, periodEnd])
+  @@index([status])
+}
+
+model PayrollRun {
+  id              Int       @id @default(autoincrement())
+  payCycleId      Int
+  payCycle        PayCycle  @relation(fields: [payCycleId], references: [id])
+  periodStart     DateTime
+  periodEnd       DateTime
+  paymentDate     DateTime
+  status          String    @default("DRAFT") // "DRAFT" | "PENDING_PAYMENT" | "PAID" | "REJECTED"
+  totalGrossPay   Decimal   @default(0) @db.Decimal(12, 2)
+  totalNetPay     Decimal   @default(0) @db.Decimal(12, 2)
+  payslips        Payslip[]
+  processedById   Int
+  processedBy     User      @relation("PayrollRunProcessedBy", fields: [processedById], references: [id])
+  submittedById   Int?
+  submittedBy     User?     @relation("PayrollRunSubmittedBy", fields: [submittedById], references: [id])
+  submittedAt     DateTime?
+  decidedById     Int?
+  decidedBy       User?     @relation("PayrollRunDecidedBy", fields: [decidedById], references: [id])
+  decidedAt       DateTime?
+  rejectionReason String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([status])
+  @@index([payCycleId, periodStart, periodEnd])
+}
+
+model Payslip {
+  id            Int               @id @default(autoincrement())
+  payrollRunId  Int
+  payrollRun    PayrollRun        @relation(fields: [payrollRunId], references: [id])
+  employeeId    Int
+  employee      Employee          @relation(fields: [employeeId], references: [id])
+  grossPay      Decimal           @db.Decimal(10, 2)
+  taxDeductions Decimal           @db.Decimal(10, 2)
+  netPay        Decimal           @db.Decimal(10, 2)
+  status        String            @default("DRAFT") // "DRAFT" | "PUBLISHED"
+  pdfUrl        String?
+  pdfKey        String?
+  workReport    WorkReport?
+  lineItems     PayslipLineItem[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([employeeId])
+  @@index([payrollRunId])
+}
+
+model PayslipLineItem {
+  id          Int      @id @default(autoincrement())
+  payslipId   Int
+  payslip     Payslip  @relation(fields: [payslipId], references: [id])
+  description String
+  hours       Decimal  @db.Decimal(5, 2)
+  rate        Decimal  @db.Decimal(10, 2)
+  total       Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+}
+
+// Tenant-wide singleton (get-or-create, same pattern as GeneralSettings/AttendanceSettings).
+// region drives which statutory tax table and bank-export format the payroll engine uses.
+model PayrollSettings {
+  id                 Int      @id @default(autoincrement())
+  overtimeMultiplier Decimal  @default(1.5) @db.Decimal(4, 2)
+  region             String   @default("NZ") // "NZ" | "AU"
+  updatedById        Int?
+  updatedBy          User?    @relation("PayrollSettingsUpdatedBy", fields: [updatedById], references: [id])
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }

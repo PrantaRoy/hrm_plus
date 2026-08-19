@@ -10,6 +10,7 @@ import {
   seedDefaultWeekDays,
   seedDefaultScreeningQuestions,
   seedDefaultSiteSections,
+  seedDefaultLandingPageContent,
   provisionTenantAdmin,
 } from "../src/modules/tenants/tenantProvisioning";
 
@@ -77,11 +78,14 @@ async function main() {
   await seedDefaultSiteSections(tenantClient);
 
   const finalPassword = adminPassword ?? nanoid(12);
-  await provisionTenantAdmin(tenantClient, {
+  const admin = await provisionTenantAdmin(tenantClient, {
     email: adminEmail,
     password: finalPassword,
     roleId: roleIds.Admin,
   });
+
+  console.log("Seeding default landing page content...");
+  await seedDefaultLandingPageContent(tenantClient, { id: admin.id, email: admin.email }, name);
 
   console.log("\nTenant provisioned successfully:");
   console.log(`  Tenant slug:    ${slug}`);

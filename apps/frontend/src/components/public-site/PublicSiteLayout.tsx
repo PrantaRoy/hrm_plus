@@ -1,8 +1,10 @@
 import { ReactNode, useEffect } from "react";
 import { PublicSiteContentDto } from "@hrm-plus/shared";
 import { resolveFileUrl } from "../../utils/fileUrl";
+import { getBrandStyleVars } from "../../utils/brandTheme";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
+import "./publicSite.css";
 
 export function PublicSiteLayout({
   content,
@@ -27,7 +29,7 @@ export function PublicSiteLayout({
   }, [content.siteSettings.siteTitle, content.siteSettings.faviconUrl]);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white" style={getBrandStyleVars(content.siteSettings)}>
       <Navbar content={content} />
       {children}
       <Footer content={content} tenantSlug={tenantSlug} />

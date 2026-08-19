@@ -1,0 +1,17 @@
+{
+  "employerFilingType": "payday",
+  "payPeriodStart": "2026-08-01",
+  "payPeriodEnd": "2026-08-14",
+  "paymentDate": "2026-08-15",
+  "employees": [
+    {
+      "employeeCode": "EMP-DKQYOX",
+      "firstName": "Tenant",
+      "lastName": "Admin",
+      "irdNumber": null,
+      "grossEarnings": 0,
+      "payeDeducted": 0,
+      "netPay": 0
+    }
+  ]
+}

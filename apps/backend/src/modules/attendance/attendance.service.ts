@@ -16,7 +16,8 @@ import {
   WorksheetRowDto,
 } from "@hrm-plus/shared";
 import { ApiError } from "../../utils/ApiError";
-import { addMinutes, toDateOnlyUTC } from "../../utils/date";
+import { addMinutes, combineDateAndTimeUTC, toDateOnlyUTC } from "../../utils/date";
+import { assertNotPayrollLocked } from "../payroll/payrollLock";
 import { toAssignmentDto } from "../rosters/assignment.mapper";
 import {
   toAttendanceDto,
@@ -34,11 +35,6 @@ const assignmentWithAttendance = Prisma.validator<Prisma.DutyScheduleAssignmentD
   },
 });
 type AssignmentWithAttendance = Prisma.DutyScheduleAssignmentGetPayload<typeof assignmentWithAttendance>;
-
-function combineDateAndTimeUTC(date: Date, hhmm: string): Date {
-  const [hours, minutes] = hhmm.split(":").map(Number);
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), hours, minutes, 0, 0));
-}
 
 async function findAssignmentForDate(
   prisma: PrismaClient,
@@ -256,6 +252,7 @@ export async function checkIn(prisma: PrismaClient, employeeId: number, input: C
     latitude: input.latitude,
     longitude: input.longitude,
   });
+  await assertNotPayrollLocked(prisma, employeeId, assignment.date);
 
   const now = new Date();
   const scheduledStart = combineDateAndTimeUTC(assignment.date, assignment.dutySchedule.startTime);
@@ -353,6 +350,7 @@ export async function checkOut(prisma: PrismaClient, employeeId: number, input: 
     latitude: input.latitude,
     longitude: input.longitude,
   });
+  await assertNotPayrollLocked(prisma, employeeId, assignment.date);
 
   const now = new Date();
   const scheduledEnd = combineDateAndTimeUTC(assignment.date, assignment.dutySchedule.endTime);
@@ -400,6 +398,7 @@ export async function setManualAttendance(
   if (assignment.status === "Cancelled") {
     throw ApiError.badRequest("This day's assignment has been cancelled");
   }
+  await assertNotPayrollLocked(prisma, employeeId, assignment.date);
 
   const checkInAt = combineDateAndTimeUTC(assignment.date, input.checkInTime);
   const checkOutAt = input.checkOutTime ? combineDateAndTimeUTC(assignment.date, input.checkOutTime) : null;
@@ -471,6 +470,7 @@ export async function startBreak(prisma: PrismaClient, employeeId: number): Prom
   if (attendance.checkOutAt) throw ApiError.badRequest("You have already checked out today");
   const openBreak = attendance.breaks.find((b) => b.endAt === null);
   if (openBreak) throw ApiError.conflict("A break is already in progress");
+  await assertNotPayrollLocked(prisma, employeeId, attendance.date);
 
   await prisma.breakLog.create({ data: { attendanceId: attendance.id, startAt: new Date() } });
   return getTodayForEmployee(prisma, employeeId);
@@ -480,6 +480,7 @@ export async function endBreak(prisma: PrismaClient, employeeId: number): Promis
   const attendance = await todayAttendanceOrThrow(prisma, employeeId);
   const openBreak = attendance.breaks.find((b) => b.endAt === null);
   if (!openBreak) throw ApiError.badRequest("No break is currently in progress");
+  await assertNotPayrollLocked(prisma, employeeId, attendance.date);
 
   await prisma.breakLog.update({ where: { id: openBreak.id }, data: { endAt: new Date() } });
   return getTodayForEmployee(prisma, employeeId);

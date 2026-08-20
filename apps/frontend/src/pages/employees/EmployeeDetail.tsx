@@ -19,11 +19,15 @@ import { EmployeeDocumentsPanel } from "./EmployeeDocumentsPanel";
 import { EmployeeLeaveAllocationsPanel } from "./EmployeeLeaveAllocationsPanel";
 import { EmployeeAttendanceMethodsPanel } from "./EmployeeAttendanceMethodsPanel";
 import { EmployeeAttendanceRestrictionsPanel } from "./EmployeeAttendanceRestrictionsPanel";
+import { EmployeePayRatesPanel } from "./EmployeePayRatesPanel";
 import { DutyScheduleMonthCalendar } from "../../components/DutyScheduleMonthCalendar";
+import { useAuth } from "../../auth/AuthContext";
 
 export default function EmployeeDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const canManagePayRates = user?.role === "Admin" || user?.role === "HR" || user?.role === "Payroll";
   const [searchParams] = useSearchParams();
   const [employee, setEmployee] = useState<EmployeeDto | null>(null);
   const [departments, setDepartments] = useState<DepartmentDto[]>([]);
@@ -374,6 +378,8 @@ export default function EmployeeDetail() {
           </div>
         </div>
           </Card>
+
+          {canManagePayRates && <EmployeePayRatesPanel employeeId={employee.id} />}
 
           <EmployeeDocumentsPanel employeeId={employee.id} />
 

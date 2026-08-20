@@ -30,7 +30,7 @@ export default function PayRates() {
   const [effectiveTo, setEffectiveTo] = useState("");
 
   useEffect(() => {
-    listEmployees({ pageSize: 200 }).then((res) => {
+    listEmployees({ pageSize: 100 }).then((res) => {
       setEmployees(res.items);
       if (res.items.length > 0) setEmployeeId(res.items[0].id);
     });

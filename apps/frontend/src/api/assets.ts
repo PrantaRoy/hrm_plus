@@ -49,6 +49,11 @@ export async function listAssetsForEmployee(employeeId: number): Promise<AssetDt
   return res.data;
 }
 
+export async function listMyAssets(): Promise<AssetDto[]> {
+  const res = await apiClient.get<AssetDto[]>("/assets/my");
+  return res.data;
+}
+
 export interface OffboardingChecklistResult {
   documentRequestId: number;
   assets: AssetDto[];

@@ -89,6 +89,16 @@ export const getWorksheetHandler: RequestHandler = async (req, res, next) => {
   }
 };
 
+export const getMyWorksheetHandler: RequestHandler = async (req, res, next) => {
+  try {
+    const employee = await resolveEmployeeForUser(req.prisma!, req.user!.id);
+    const query = worksheetQuerySchema.parse(req.query);
+    res.json(await attendanceService.getWorksheet(req.prisma!, { ...query, employeeId: employee.id }));
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const getSettingsHandler: RequestHandler = async (req, res, next) => {
   try {
     res.json(await attendanceService.getAttendanceSettings(req.prisma!));

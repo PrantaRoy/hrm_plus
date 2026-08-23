@@ -30,12 +30,15 @@ import {
   Settings as SettingsIcon,
   Share2,
   ClipboardCheck,
+  ShieldCheck,
+  UserRound,
   Users,
 } from "lucide-react";
 import { Logo, Sidebar, SidebarGroup, Topbar } from "@hrm-plus/ui";
 import { useAuth } from "../auth/AuthContext";
 import { getGeneralSettings } from "../api/generalSettings";
 import { resolveFileUrl } from "../utils/fileUrl";
+import { useDashboardMode } from "../hooks/useDashboardMode";
 
 function applyBranding(settings: GeneralSettingsDto) {
   document.title = settings.siteTitle;
@@ -50,39 +53,108 @@ function applyBranding(settings: GeneralSettingsDto) {
   link.href = faviconUrl;
 }
 
-export default function DashboardShell() {
-  const { user, tenantSlug, logout } = useAuth();
-  const role = user?.role;
-  const isAdminOrHr = role === "Admin" || role === "HR";
-  const isApprover = role === "Admin" || role === "HR" || role === "Manager";
-  const isPayroll = role === "Admin" || role === "HR" || role === "Payroll";
-  const isPayrollProcessor = role === "Admin" || role === "Payroll" || role === "Finance";
-  const [branding, setBranding] = useState<GeneralSettingsDto | null>(null);
+const MY_WORK_ITEMS = [
+  { key: "my-schedule", label: "My Schedule", to: "/my-schedule", icon: Clock },
+  { key: "leave-apply", label: "Apply Leave", to: "/leave/apply", icon: CalendarPlus },
+  { key: "leave-my-requests", label: "My Leave Requests", to: "/leave/my-requests", icon: ListChecks },
+  { key: "documents-request", label: "Request Document", to: "/documents/request", icon: FilePlus },
+  { key: "documents-my-requests", label: "My Document Requests", to: "/documents/my-requests", icon: FileClock },
+  { key: "my-payslips", label: "My Payslips", to: "/payroll/my-payslips", icon: Receipt },
+];
 
-  useEffect(() => {
-    getGeneralSettings()
-      .then((settings) => {
-        setBranding(settings);
-        applyBranding(settings);
-      })
-      .catch(() => undefined);
-  }, []);
-
-  const groups: SidebarGroup[] = [
+function buildStaffViewGroups(): SidebarGroup[] {
+  return [
+    { items: [{ key: "dashboard", label: "Dashboard", to: "/", icon: LayoutDashboard, end: true }] },
+    { label: "My Work", items: MY_WORK_ITEMS },
     {
-      items: [{ key: "dashboard", label: "Dashboard", to: "/", icon: LayoutDashboard, end: true }],
+      label: "My Records",
+      items: [{ key: "my-records", label: "Records", to: "/my-records", icon: BarChart3 }],
     },
     {
-      label: "My Work",
+      label: "My Assets",
+      items: [{ key: "my-assets", label: "Assets", to: "/my-assets", icon: Package }],
+    },
+  ];
+}
+
+function buildAdminViewGroups(): SidebarGroup[] {
+  return [
+    { items: [{ key: "dashboard", label: "Dashboard", to: "/", icon: LayoutDashboard, end: true }] },
+    {
+      label: "Approvals",
       items: [
-        { key: "my-schedule", label: "My Schedule", to: "/my-schedule", icon: Clock },
-        { key: "leave-apply", label: "Apply Leave", to: "/leave/apply", icon: CalendarPlus },
-        { key: "leave-my-requests", label: "My Leave Requests", to: "/leave/my-requests", icon: ListChecks },
-        { key: "documents-request", label: "Request Document", to: "/documents/request", icon: FilePlus },
-        { key: "documents-my-requests", label: "My Document Requests", to: "/documents/my-requests", icon: FileClock },
-        { key: "my-payslips", label: "My Payslips", to: "/payroll/my-payslips", icon: Receipt },
+        { key: "leave-approvals", label: "Leave Approvals", to: "/leave/approvals", icon: ClipboardCheck },
+        { key: "document-approvals", label: "Document Approvals", to: "/documents/approvals", icon: FileCheck },
       ],
     },
+    {
+      label: "People",
+      items: [{ key: "employees", label: "Employees", to: "/employees", icon: Users }],
+    },
+    {
+      label: "Scheduling",
+      items: [
+        { key: "duty-schedules", label: "Duty Schedules", to: "/duty-schedules", icon: CalendarRange },
+        { key: "rosters", label: "Rosters", to: "/rosters", icon: CalendarDays },
+        { key: "holidays", label: "Holidays", to: "/holidays", icon: PartyPopper },
+      ],
+    },
+    {
+      label: "Reports",
+      items: [{ key: "records", label: "Records", to: "/records", icon: BarChart3 }],
+    },
+    {
+      label: "Recruitment",
+      items: [
+        { key: "jobs", label: "Job Circulars", to: "/jobs", icon: Briefcase },
+        { key: "screening-questions", label: "Screening Questions", to: "/screening-questions", icon: ListChecks },
+      ],
+    },
+    {
+      label: "Assets & Fleet",
+      items: [{ key: "assets", label: "Assets", to: "/assets", icon: Package }],
+    },
+    {
+      label: "Payroll",
+      items: [
+        { key: "payroll-pay-cycles", label: "Pay Cycles", to: "/payroll/pay-cycles", icon: CalendarRange },
+        { key: "payroll-pay-rates", label: "Employee Pay Rates", to: "/payroll/pay-rates", icon: DollarSign },
+        { key: "payroll-work-reports", label: "Work Reports", to: "/payroll/work-reports", icon: ClipboardCheck },
+        { key: "payroll-settings", label: "Payroll Settings", to: "/payroll/settings", icon: SettingsIcon },
+      ],
+    },
+    {
+      label: "Organisation",
+      items: [
+        { key: "document-templates", label: "Document Templates", to: "/document-templates", icon: LayoutTemplate },
+        { key: "settings", label: "Settings", to: "/settings", icon: SettingsIcon },
+      ],
+    },
+    {
+      label: "Website CMS",
+      items: [
+        { key: "cms-site-settings", label: "Site Settings", to: "/website-cms/settings", icon: Globe },
+        { key: "cms-sections", label: "Sections", to: "/website-cms/sections", icon: Layout },
+        { key: "cms-hero-slides", label: "Hero Slides", to: "/website-cms/hero-slides", icon: Image },
+        { key: "cms-services", label: "Services", to: "/website-cms/services", icon: Boxes },
+        { key: "cms-gallery", label: "Gallery", to: "/website-cms/gallery", icon: Images },
+        { key: "cms-blog", label: "Blog", to: "/website-cms/blog", icon: Newspaper },
+        { key: "cms-inquiries", label: "Contact Inquiries", to: "/website-cms/contact-inquiries", icon: Mail },
+        { key: "cms-social", label: "Social Links", to: "/website-cms/social-links", icon: Share2 },
+        { key: "cms-legal", label: "Legal Pages", to: "/website-cms/legal-pages", icon: FileText },
+      ],
+    },
+  ];
+}
+
+function buildDefaultViewGroups(role: string | undefined): SidebarGroup[] {
+  const isApprover = role === "Manager";
+  const isPayroll = role === "Payroll";
+  const isPayrollProcessor = role === "Payroll" || role === "Finance";
+
+  return [
+    { items: [{ key: "dashboard", label: "Dashboard", to: "/", icon: LayoutDashboard, end: true }] },
+    { label: "My Work", items: MY_WORK_ITEMS },
     ...(isApprover
       ? [
           {
@@ -94,21 +166,19 @@ export default function DashboardShell() {
           },
         ]
       : []),
-    {
-      label: "People",
-      items: [{ key: "employees", label: "Employees", to: "/employees", icon: Users }],
-    },
+    ...(isApprover
+      ? [
+          {
+            label: "People",
+            items: [{ key: "employees", label: "Employees", to: "/employees", icon: Users }],
+          },
+        ]
+      : []),
     ...(isApprover
       ? [
           {
             label: "Scheduling",
-            items: [
-              ...(isAdminOrHr
-                ? [{ key: "duty-schedules", label: "Duty Schedules", to: "/duty-schedules", icon: CalendarRange }]
-                : []),
-              { key: "rosters", label: "Rosters", to: "/rosters", icon: CalendarDays },
-              ...(isAdminOrHr ? [{ key: "holidays", label: "Holidays", to: "/holidays", icon: PartyPopper }] : []),
-            ],
+            items: [{ key: "rosters", label: "Rosters", to: "/rosters", icon: CalendarDays }],
           },
         ]
       : []),
@@ -120,18 +190,7 @@ export default function DashboardShell() {
           },
         ]
       : []),
-    ...(isAdminOrHr
-      ? [
-          {
-            label: "Recruitment",
-            items: [
-              { key: "jobs", label: "Job Circulars", to: "/jobs", icon: Briefcase },
-              { key: "screening-questions", label: "Screening Questions", to: "/screening-questions", icon: ListChecks },
-            ],
-          },
-        ]
-      : []),
-    ...(isAdminOrHr
+    ...(isApprover
       ? [
           {
             label: "Assets & Fleet",
@@ -154,49 +213,72 @@ export default function DashboardShell() {
               ...(isPayrollProcessor
                 ? [{ key: "payroll-runs", label: "Payroll Runs", to: "/payroll/runs", icon: Landmark }]
                 : []),
-              ...(role === "Admin" || role === "Payroll"
+              ...(role === "Payroll"
                 ? [{ key: "payroll-settings", label: "Payroll Settings", to: "/payroll/settings", icon: SettingsIcon }]
                 : []),
             ],
           },
         ]
       : []),
-    ...(isAdminOrHr
-      ? [
-          {
-            label: "Organisation",
-            items: [
-              { key: "document-templates", label: "Document Templates", to: "/document-templates", icon: LayoutTemplate },
-              { key: "settings", label: "Settings", to: "/settings", icon: SettingsIcon },
-            ],
-          },
-        ]
-      : []),
-    ...(isAdminOrHr
-      ? [
-          {
-            label: "Website CMS",
-            items: [
-              { key: "cms-site-settings", label: "Site Settings", to: "/website-cms/settings", icon: Globe },
-              { key: "cms-sections", label: "Sections", to: "/website-cms/sections", icon: Layout },
-              { key: "cms-hero-slides", label: "Hero Slides", to: "/website-cms/hero-slides", icon: Image },
-              { key: "cms-services", label: "Services", to: "/website-cms/services", icon: Boxes },
-              { key: "cms-gallery", label: "Gallery", to: "/website-cms/gallery", icon: Images },
-              { key: "cms-blog", label: "Blog", to: "/website-cms/blog", icon: Newspaper },
-              { key: "cms-inquiries", label: "Contact Inquiries", to: "/website-cms/contact-inquiries", icon: Mail },
-              { key: "cms-social", label: "Social Links", to: "/website-cms/social-links", icon: Share2 },
-              { key: "cms-legal", label: "Legal Pages", to: "/website-cms/legal-pages", icon: FileText },
-            ],
-          },
-        ]
-      : []),
   ];
+}
+
+export default function DashboardShell() {
+  const { user, tenantSlug, logout } = useAuth();
+  const role = user?.role;
+  const isAdminOrHr = role === "Admin" || role === "HR";
+  const [mode, setMode] = useDashboardMode();
+  const [branding, setBranding] = useState<GeneralSettingsDto | null>(null);
+
+  useEffect(() => {
+    getGeneralSettings()
+      .then((settings) => {
+        setBranding(settings);
+        applyBranding(settings);
+      })
+      .catch(() => undefined);
+  }, []);
+
+  const staffView = role === "Staff" || (isAdminOrHr && mode === "staff");
+  const adminView = isAdminOrHr && mode === "admin";
+
+  const groups: SidebarGroup[] = staffView
+    ? buildStaffViewGroups()
+    : adminView
+      ? buildAdminViewGroups()
+      : buildDefaultViewGroups(role);
 
   return (
     <div className="flex min-h-screen bg-slate-50">
       <Sidebar
         header={<Logo size="sm" imageSrc={resolveFileUrl(branding?.logoUrl)} wordmark={branding?.siteTitle} />}
         groups={groups}
+        footer={
+          isAdminOrHr ? (
+            <div className="flex rounded-md border border-slate-200 p-0.5 text-xs font-medium">
+              <button
+                type="button"
+                onClick={() => setMode("staff")}
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded px-2 py-1.5 transition-colors ${
+                  mode === "staff" ? "bg-brand-600 text-white" : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                <UserRound className="h-3.5 w-3.5" />
+                Staff
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("admin")}
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded px-2 py-1.5 transition-colors ${
+                  mode === "admin" ? "bg-brand-600 text-white" : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Admin
+              </button>
+            </div>
+          ) : undefined
+        }
       />
       <div className="flex flex-1 flex-col">
         <Topbar
@@ -205,7 +287,7 @@ export default function DashboardShell() {
           onSignOut={logout}
         />
         <main className="flex-1 p-6">
-          <Outlet />
+          <Outlet context={{ dashboardMode: mode }} />
         </main>
       </div>
     </div>

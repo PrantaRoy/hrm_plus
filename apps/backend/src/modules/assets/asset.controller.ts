@@ -8,6 +8,7 @@ import {
 } from "./asset.schemas";
 import * as assetService from "./asset.service";
 import { ApiError } from "../../utils/ApiError";
+import { resolveEmployeeForUser } from "../leave-requests/leaveRequest.service";
 
 function parseId(raw: string): number {
   const id = Number(raw);
@@ -19,6 +20,15 @@ export const listAssetsHandler: RequestHandler = async (req, res, next) => {
   try {
     const query = listAssetsQuerySchema.parse(req.query);
     res.json(await assetService.listAssets(req.prisma!, query));
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const listMyAssetsHandler: RequestHandler = async (req, res, next) => {
+  try {
+    const employee = await resolveEmployeeForUser(req.prisma!, req.user!.id);
+    res.json(await assetService.listAssetsForEmployee(req.prisma!, employee.id));
   } catch (err) {
     next(err);
   }

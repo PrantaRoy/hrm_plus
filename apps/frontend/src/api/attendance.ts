@@ -58,6 +58,11 @@ export async function getWorksheet(query: WorksheetQuery): Promise<WorksheetRowD
   return res.data;
 }
 
+export async function getMyWorksheet(query: WorksheetQuery): Promise<WorksheetRowDto[]> {
+  const res = await apiClient.get<WorksheetRowDto[]>("/attendance/worksheet/my", { params: query });
+  return res.data;
+}
+
 export async function setManualAttendance(employeeId: number, input: ManualAttendanceInput): Promise<AttendanceDto> {
   const res = await apiClient.put<AttendanceDto>(`/attendance/employees/${employeeId}/manual-entry`, input);
   return res.data;

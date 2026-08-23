@@ -6,6 +6,7 @@ import {
   getAssetHandler,
   listAssetsForEmployeeHandler,
   listAssetsHandler,
+  listMyAssetsHandler,
   retireAssetHandler,
   returnAssetHandler,
   startOffboardingChecklistHandler,
@@ -18,6 +19,7 @@ assetRouter.use(requireAuth);
 
 // Reads: any authenticated user (an employee can see the assets currently assigned to them).
 assetRouter.get("/", listAssetsHandler);
+assetRouter.get("/my", listMyAssetsHandler);
 assetRouter.get("/:id", getAssetHandler);
 assetRouter.get("/employee/:employeeId", listAssetsForEmployeeHandler);
 

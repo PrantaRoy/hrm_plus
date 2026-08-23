@@ -39,6 +39,10 @@ import AttendanceReport from "./pages/records/AttendanceReport";
 import LeaveReport from "./pages/records/LeaveReport";
 import Worksheet from "./pages/records/Worksheet";
 import ManualAttendanceEntry from "./pages/records/ManualAttendanceEntry";
+import MyRecordsLayout from "./pages/records/MyRecordsLayout";
+import MyAttendanceReport from "./pages/records/MyAttendanceReport";
+import MyWorksheet from "./pages/records/MyWorksheet";
+import MyAssets from "./pages/assets/MyAssets";
 import DocumentTemplateList from "./pages/document-templates/DocumentTemplateList";
 import DocumentTemplateCreate from "./pages/document-templates/DocumentTemplateCreate";
 import DocumentTemplateEdit from "./pages/document-templates/DocumentTemplateEdit";
@@ -127,7 +131,9 @@ export default function App() {
         <Route path="/change-password" element={<ChangePassword />} />
 
         <Route element={<DashboardShell />}>
-          <Route path="/employees" element={<EmployeeList />} />
+          <Route element={<RequireAuth roles={["Admin", "HR", "Manager"]} />}>
+            <Route path="/employees" element={<EmployeeList />} />
+          </Route>
           <Route
             path="/employees/new"
             element={
@@ -148,8 +154,18 @@ export default function App() {
           <Route path="/documents/my-requests" element={<MyDocumentRequests />} />
           <Route path="/documents/approvals" element={<DocumentApprovals />} />
 
-          <Route path="/assets" element={<AssetList />} />
+          <Route element={<RequireAuth roles={["Admin", "HR", "Manager"]} />}>
+            <Route path="/assets" element={<AssetList />} />
+          </Route>
           <Route path="/assets/:id" element={<AssetDetail />} />
+          <Route path="/my-assets" element={<MyAssets />} />
+
+          <Route path="/my-records" element={<MyRecordsLayout />}>
+            <Route index element={<Navigate to="/my-records/attendance" replace />} />
+            <Route path="attendance" element={<MyAttendanceReport />} />
+            <Route path="leave" element={<MyLeaveRequests />} />
+            <Route path="worksheet" element={<MyWorksheet />} />
+          </Route>
 
           <Route element={<RequireAuth roles={["Admin", "HR"]} />}>
             <Route path="/duty-schedules" element={<DutyScheduleList />} />

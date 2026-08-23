@@ -8,6 +8,7 @@ import {
   getEmployeeMethodsHandler,
   getEmployeeRulesHandler,
   getSettingsHandler,
+  getMyWorksheetHandler,
   getTodayHandler,
   getWorksheetHandler,
   listAttendanceHandler,
@@ -31,6 +32,7 @@ attendanceRouter.post("/check-out", checkOutHandler);
 attendanceRouter.post("/breaks/start", startBreakHandler);
 attendanceRouter.post("/breaks/end", endBreakHandler);
 attendanceRouter.get("/my", listMyAttendanceHandler);
+attendanceRouter.get("/worksheet/my", getMyWorksheetHandler);
 
 attendanceRouter.get("/", requireRole("Admin", "HR", "Manager"), listAttendanceHandler);
 attendanceRouter.get("/worksheet", requireRole("Admin", "HR", "Manager"), getWorksheetHandler);

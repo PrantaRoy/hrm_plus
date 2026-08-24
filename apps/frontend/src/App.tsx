@@ -50,6 +50,9 @@ import RequestDocument from "./pages/documents/RequestDocument";
 import MyDocumentRequests from "./pages/documents/MyDocumentRequests";
 import DocumentApprovals from "./pages/documents/DocumentApprovals";
 import VerifyDocument from "./pages/public/VerifyDocument";
+import MyTickets from "./pages/support-tickets/MyTickets";
+import NewTicket from "./pages/support-tickets/NewTicket";
+import TicketDetail from "./pages/support-tickets/TicketDetail";
 import JobApplication from "./pages/public/JobApplication";
 import CandidatePortal from "./pages/public/CandidatePortal";
 import CandidateAssessment from "./pages/public/CandidateAssessment";
@@ -153,6 +156,12 @@ export default function App() {
           <Route path="/documents/request" element={<RequestDocument />} />
           <Route path="/documents/my-requests" element={<MyDocumentRequests />} />
           <Route path="/documents/approvals" element={<DocumentApprovals />} />
+
+          <Route element={<RequireAuth roles={["Admin"]} />}>
+            <Route path="/support-tickets" element={<MyTickets />} />
+            <Route path="/support-tickets/new" element={<NewTicket />} />
+            <Route path="/support-tickets/:id" element={<TicketDetail />} />
+          </Route>
 
           <Route element={<RequireAuth roles={["Admin", "HR", "Manager"]} />}>
             <Route path="/assets" element={<AssetList />} />

@@ -183,6 +183,32 @@ export async function sendAssetExpiryReminderEmail(
   );
 }
 
+export async function sendNewSupportTicketEmail(to: string, tenantName: string, subject: string): Promise<void> {
+  await send(
+    to,
+    `New support ticket: ${subject}`,
+    `<p><strong>${tenantName}</strong> has opened a new support ticket: <strong>${subject}</strong>.</p>
+     <p>Please review it from the Support Tickets inbox.</p>`
+  );
+}
+
+export async function sendTicketReplyEmail(to: string, subject: string, repliedBy: string): Promise<void> {
+  await send(
+    to,
+    `New reply on ticket: ${subject}`,
+    `<p>${repliedBy} replied to the support ticket <strong>${subject}</strong>.</p>
+     <p>Please check the ticket thread for details.</p>`
+  );
+}
+
+export async function sendTicketStatusChangedEmail(to: string, subject: string, status: string): Promise<void> {
+  await send(
+    to,
+    `Your ticket status changed: ${subject}`,
+    `<p>Your support ticket <strong>${subject}</strong> is now <strong>${status}</strong>.</p>`
+  );
+}
+
 export async function sendDocumentIssuedEmail(
   to: string,
   documentTypeName: string,

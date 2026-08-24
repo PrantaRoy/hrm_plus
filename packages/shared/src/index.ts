@@ -362,6 +362,23 @@ export type {
   ListAssetsQuery,
 } from "./asset";
 
+export { SUPPORT_TICKET_STATUSES, SUPPORT_TICKET_PRIORITIES } from "./supportTicket";
+export type {
+  SupportTicketStatus,
+  SupportTicketPriority,
+  SupportTicketAuthorType,
+  TicketCategoryDto,
+  CreateTicketCategoryInput,
+  UpdateTicketCategoryInput,
+  SupportTicketReplyDto,
+  SupportTicketDto,
+  CreateSupportTicketInput,
+  CreateTicketReplyInput,
+  UpdateTicketStatusInput,
+  ListSupportTicketsQuery,
+  SupportTicketPaginatedResult,
+} from "./supportTicket";
+
 export {
   PAY_CYCLE_FREQUENCIES,
   PAY_RATE_TYPES,

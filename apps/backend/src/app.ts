@@ -57,6 +57,10 @@ import { socialLinkRouter } from "./modules/social-links/socialLink.routes";
 import { legalPageRouter } from "./modules/legal-pages/legalPage.routes";
 import { publicSiteContentRouter } from "./modules/site-content/siteContent.routes";
 import { assetRouter } from "./modules/assets/asset.routes";
+import { supportTicketRouter } from "./modules/support-tickets/supportTicket.routes";
+import { ticketCategoryRouter } from "./modules/ticket-categories/ticketCategory.routes";
+import { saasSupportTicketRouter } from "./modules/saas/support-tickets/saasSupportTicket.routes";
+import { saasTicketCategoryRouter } from "./modules/saas/ticket-categories/saasTicketCategory.routes";
 import { payCycleRouter } from "./modules/payroll/payCycle.routes";
 import { payRateRouter } from "./modules/payroll/payRate.routes";
 import { payrollSettingsRouter } from "./modules/payroll/payrollSettings.routes";
@@ -123,6 +127,8 @@ export function createApp(): Express {
   app.use("/api/pipeline", tenantResolver, pipelineRouter);
   app.use("/api/assessments", tenantResolver, adminAssessmentRouter);
   app.use("/api/public/assessment", tenantResolver, publicAssessmentRouter); // public — token auth, no requireAuth
+  app.use("/api/support-tickets", tenantResolver, supportTicketRouter);
+  app.use("/api/ticket-categories", tenantResolver, ticketCategoryRouter);
 
   // Payroll module — separation of duties: HR approves hours, Payroll processes
   // runs, Finance (or Admin) approves payment.
@@ -154,6 +160,8 @@ export function createApp(): Express {
   app.use("/saas/admin/applications", adminApplicationRouter);
   app.use("/saas/admin/tenants", saasTenantRouter);
   app.use("/saas/admin/stats", statsRouter);
+  app.use("/saas/admin/support-tickets", saasSupportTicketRouter);
+  app.use("/saas/admin/ticket-categories", saasTicketCategoryRouter);
 
   app.use(errorHandler);
 

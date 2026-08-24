@@ -21,6 +21,7 @@ import {
   Layout,
   LayoutDashboard,
   LayoutTemplate,
+  LifeBuoy,
   ListChecks,
   Mail,
   Newspaper,
@@ -77,9 +78,17 @@ function buildStaffViewGroups(): SidebarGroup[] {
   ];
 }
 
-function buildAdminViewGroups(): SidebarGroup[] {
+function buildAdminViewGroups(isAdmin: boolean): SidebarGroup[] {
   return [
     { items: [{ key: "dashboard", label: "Dashboard", to: "/", icon: LayoutDashboard, end: true }] },
+    ...(isAdmin
+      ? [
+          {
+            label: "Support",
+            items: [{ key: "support-tickets", label: "Support Tickets", to: "/support-tickets", icon: LifeBuoy }],
+          },
+        ]
+      : []),
     {
       label: "Approvals",
       items: [
@@ -245,7 +254,7 @@ export default function DashboardShell() {
   const groups: SidebarGroup[] = staffView
     ? buildStaffViewGroups()
     : adminView
-      ? buildAdminViewGroups()
+      ? buildAdminViewGroups(role === "Admin")
       : buildDefaultViewGroups(role);
 
   return (

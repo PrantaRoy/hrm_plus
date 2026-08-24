@@ -6,6 +6,7 @@ import { getTenantClient } from "../src/db/tenantClientPool";
 import { tenantDatabaseUrl } from "../src/config/env";
 import { redisConnection } from "../src/queue/redisConnection";
 import { createPlaceholderImage } from "../src/utils/placeholderImage";
+import { seedDefaultTicketCategories } from "../src/modules/ticket-categories/ticketCategory.service";
 import {
   createTenantDatabase,
   runTenantMigrations,
@@ -1141,6 +1142,7 @@ export async function seedFullDemoData(
 async function main(): Promise<void> {
   await seedSaasAdmin();
   await seedDemoTenant();
+  await seedDefaultTicketCategories();
   console.log("\nDemo seed complete — credentials match README 'Demo login details'.");
 }
 

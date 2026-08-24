@@ -70,3 +70,15 @@ export const blogFeaturedImageUpload = createUploadMiddleware({
   allowedMimeTypes: ["image/png", "image/jpeg", "image/webp"],
   maxSizeBytes: 5 * 1024 * 1024,
 });
+
+export const ticketAttachmentUpload = createUploadMiddleware({
+  allowedMimeTypes: [
+    "image/png",
+    "image/jpeg",
+    "image/webp",
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ],
+  maxSizeBytes: 10 * 1024 * 1024,
+});

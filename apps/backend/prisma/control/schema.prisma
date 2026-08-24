@@ -26,6 +26,7 @@ model Tenant {
   startDate         DateTime           @default(now())
   endDate           DateTime?
   createdAt         DateTime           @default(now())
+  tickets           SupportTicket[]
 }
 
 model PlatformAdmin {
@@ -62,4 +63,54 @@ model TenantApplication {
   submittedAt       DateTime  @default(now())
   reviewedAt        DateTime?
   tenant            Tenant?
+}
+
+model SupportTicketCategory {
+  id        Int             @id @default(autoincrement())
+  name      String          @unique
+  isDefault Boolean         @default(false)
+  isActive  Boolean         @default(true)
+  createdAt DateTime        @default(now())
+  tickets   SupportTicket[]
+}
+
+model SupportTicket {
+  id                Int                    @id @default(autoincrement())
+  tenantId          Int
+  tenant            Tenant                 @relation(fields: [tenantId], references: [id])
+  categoryId        Int
+  category          SupportTicketCategory  @relation(fields: [categoryId], references: [id])
+  subject           String
+  message           String                 @db.Text
+  status            String                 @default("Pending")
+  priority          String?
+  attachmentFileUrl String?
+  attachmentFileKey String?
+  createdByUserId   Int
+  createdByName     String
+  createdByEmail    String
+  closedAt          DateTime?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  replies           SupportTicketReply[]
+
+  @@index([tenantId])
+  @@index([categoryId])
+  @@index([status])
+}
+
+model SupportTicketReply {
+  id                Int           @id @default(autoincrement())
+  ticketId          Int
+  ticket            SupportTicket @relation(fields: [ticketId], references: [id])
+  authorType        String
+  authorId          Int
+  authorName        String
+  authorEmail       String
+  message           String        @db.Text
+  attachmentFileUrl String?
+  attachmentFileKey String?
+  createdAt         DateTime      @default(now())
+
+  @@index([ticketId])
 }

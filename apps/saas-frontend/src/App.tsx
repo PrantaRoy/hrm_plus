@@ -10,6 +10,7 @@ import PackageList from "./pages/admin/packages/PackageList";
 import ApplicationList from "./pages/admin/applications/ApplicationList";
 import ApplicationDetail from "./pages/admin/applications/ApplicationDetail";
 import TenantList from "./pages/admin/tenants/TenantList";
+import TenantCreate from "./pages/admin/tenants/TenantCreate";
 import TicketList from "./pages/admin/support-tickets/TicketList";
 import TicketDetail from "./pages/admin/support-tickets/TicketDetail";
 import TicketCategoryList from "./pages/admin/ticket-categories/TicketCategoryList";
@@ -31,6 +32,7 @@ export default function App() {
           <Route path="applications" element={<ApplicationList />} />
           <Route path="applications/:id" element={<ApplicationDetail />} />
           <Route path="tenants" element={<TenantList />} />
+          <Route path="tenants/new" element={<TenantCreate />} />
           <Route path="support-tickets" element={<TicketList />} />
           <Route path="support-tickets/:id" element={<TicketDetail />} />
           <Route path="ticket-categories" element={<TicketCategoryList />} />

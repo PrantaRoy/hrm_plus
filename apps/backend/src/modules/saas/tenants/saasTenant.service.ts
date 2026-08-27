@@ -1,7 +1,51 @@
-import { SaasTenantDto, UpdateSaasTenantInput } from "@hrm-plus/shared";
+import { SaasTenantDto, SubmitApplicationInput, UpdateSaasTenantInput } from "@hrm-plus/shared";
 import { controlClient } from "../../../db/controlClient";
 import { ApiError } from "../../../utils/ApiError";
+import { assertSlugAvailable } from "../applications/application.service";
+import { approveApplication } from "../applications/approvalService";
 import { tenantInclude, toSaasTenantDto } from "./saasTenant.mapper";
+
+export async function createTenantByAdmin(
+  input: SubmitApplicationInput,
+  companyLogoUrl: string | null
+): Promise<SaasTenantDto> {
+  const pkg = await controlClient.package.findUnique({ where: { id: input.packageId } });
+  if (!pkg || !pkg.isActive) {
+    throw ApiError.badRequest("Selected package is not available");
+  }
+
+  await assertSlugAvailable(input.subdomainSlug);
+
+  // SaaS-admin-created companies skip the review queue: we still record a
+  // TenantApplication (so provisioning has a single source of truth) but
+  // immediately run the same approval path, which provisions the tenant
+  // database, seeds it, and emails the admin their login + password.
+  const application = await controlClient.tenantApplication.create({
+    data: {
+      companyName: input.companyName,
+      companyType: input.companyType,
+      overview: input.overview,
+      numberOfEmployees: input.numberOfEmployees,
+      contactEmail: input.contactEmail,
+      subdomainSlug: input.subdomainSlug,
+      packageId: input.packageId,
+      companyLogoUrl,
+      status: "Pending",
+    },
+  });
+
+  await approveApplication(application.id);
+
+  const tenant = await controlClient.tenant.findUnique({
+    where: { applicationId: application.id },
+    include: tenantInclude,
+  });
+  if (!tenant) {
+    throw new Error("Tenant provisioning did not produce a tenant record");
+  }
+
+  return toSaasTenantDto(tenant);
+}
 
 export async function listSaasTenants(): Promise<SaasTenantDto[]> {
   const tenants = await controlClient.tenant.findMany({

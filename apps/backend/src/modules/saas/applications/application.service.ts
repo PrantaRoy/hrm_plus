@@ -4,7 +4,7 @@ import { ApiError } from "../../../utils/ApiError";
 import { sendApplicationPendingEmail, sendApplicationRejectedEmail } from "../../notifications/email.service";
 import { applicationInclude, toApplicationDto } from "./application.mapper";
 
-async function assertSlugAvailable(slug: string): Promise<void> {
+export async function assertSlugAvailable(slug: string): Promise<void> {
   const [existingTenant, existingApplication] = await Promise.all([
     controlClient.tenant.findUnique({ where: { slug } }),
     controlClient.tenantApplication.findUnique({ where: { subdomainSlug: slug } }),

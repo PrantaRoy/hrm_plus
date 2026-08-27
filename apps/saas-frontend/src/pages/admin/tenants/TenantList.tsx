@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { SaasTenantDto } from "@hrm-plus/shared";
 import {
   Button,
@@ -54,7 +55,15 @@ export default function TenantList() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Companies" description="Every tenant provisioned on the platform." />
+      <PageHeader
+        title="Companies"
+        description="Every tenant provisioned on the platform."
+        actions={
+          <Link to="/admin/tenants/new">
+            <Button size="sm">Create company</Button>
+          </Link>
+        }
+      />
 
       {error && (
         <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</div>

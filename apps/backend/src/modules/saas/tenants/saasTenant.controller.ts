@@ -1,7 +1,18 @@
 import { RequestHandler } from "express";
-import { updateSaasTenantSchema } from "./saasTenant.schemas";
+import { createSaasTenantSchema, updateSaasTenantSchema } from "./saasTenant.schemas";
 import * as saasTenantService from "./saasTenant.service";
 import { ApiError } from "../../../utils/ApiError";
+
+export const createSaasTenantHandler: RequestHandler = async (req, res, next) => {
+  try {
+    const input = createSaasTenantSchema.parse(req.body);
+    const logoUrl = req.file ? `/uploads/logos/${req.file.filename}` : null;
+    const result = await saasTenantService.createTenantByAdmin(input, logoUrl);
+    res.status(201).json(result);
+  } catch (err) {
+    next(err);
+  }
+};
 
 export const listSaasTenantsHandler: RequestHandler = async (_req, res, next) => {
   try {

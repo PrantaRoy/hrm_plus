@@ -1,6 +1,8 @@
 import {
   AutoGenerateRosterInput,
   AutoGenerateRosterResult,
+  BulkDeleteAssignmentsQuery,
+  BulkDeleteAssignmentsResult,
   CreateAssignmentInput,
   CreateRosterInput,
   DutyScheduleAssignmentDto,
@@ -86,6 +88,14 @@ export async function updateAssignment(
 
 export async function deleteAssignment(rosterId: number, assignmentId: number): Promise<void> {
   await apiClient.delete(`/rosters/${rosterId}/assignments/${assignmentId}`);
+}
+
+export async function bulkDeleteAssignments(
+  rosterId: number,
+  params: BulkDeleteAssignmentsQuery
+): Promise<BulkDeleteAssignmentsResult> {
+  const res = await apiClient.delete<BulkDeleteAssignmentsResult>(`/rosters/${rosterId}/assignments`, { params });
+  return res.data;
 }
 
 export async function getMySchedule(params: { startDate?: string; endDate?: string }): Promise<

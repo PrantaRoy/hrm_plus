@@ -99,3 +99,13 @@ export interface ListAssignmentsQuery {
   employeeId?: number;
   departmentId?: number;
 }
+
+export interface BulkDeleteAssignmentsQuery {
+  startDate?: string;
+  endDate?: string;
+  employeeId?: number;
+}
+
+export interface BulkDeleteAssignmentsResult {
+  deleted: number;
+}

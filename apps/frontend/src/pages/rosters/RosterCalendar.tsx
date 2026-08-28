@@ -9,8 +9,16 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { DutyScheduleAssignmentDto, RosterDto } from "@hrm-plus/shared";
-import { Button, Card, PageHeader, Spinner, StatusPill } from "@hrm-plus/ui";
-import { autoGenerateRoster, approveRoster, getRoster, listAssignments, updateAssignment } from "../../api/rosters";
+import { Button, Card, Field, PageHeader, Select, Spinner, StatusPill, Input } from "@hrm-plus/ui";
+import {
+  autoGenerateRoster,
+  approveRoster,
+  bulkDeleteAssignments,
+  deleteAssignment,
+  getRoster,
+  listAssignments,
+  updateAssignment,
+} from "../../api/rosters";
 import { listEmployees } from "../../api/employees";
 import { CalendarEmployee, CalendarGrid } from "./components/CalendarGrid";
 
@@ -39,6 +47,11 @@ export default function RosterCalendar() {
   const [loading, setLoading] = useState(true);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const [bulkEmployeeId, setBulkEmployeeId] = useState("");
+  const [bulkStartDate, setBulkStartDate] = useState("");
+  const [bulkEndDate, setBulkEndDate] = useState("");
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -75,6 +88,13 @@ export default function RosterCalendar() {
     () => (roster ? enumerateDateKeys(roster.startDate, roster.endDate) : []),
     [roster]
   );
+
+  useEffect(() => {
+    if (dates.length > 0 && !bulkStartDate && !bulkEndDate) {
+      setBulkStartDate(dates[0]);
+      setBulkEndDate(dates[dates.length - 1]);
+    }
+  }, [dates, bulkStartDate, bulkEndDate]);
 
   const assignmentsByKey = useMemo(() => {
     const map = new Map<string, DutyScheduleAssignmentDto>();
@@ -158,6 +178,75 @@ export default function RosterCalendar() {
     }
   }
 
+  async function handleDeleteAssignment(assignment: DutyScheduleAssignmentDto) {
+    const label = assignment.dutyScheduleName ?? "assignment";
+    if (
+      !window.confirm(
+        `Delete ${assignment.employeeName ?? "this employee"}'s ${label} on ${toDateKey(assignment.date)}?`
+      )
+    ) {
+      return;
+    }
+    setActionError(null);
+    try {
+      await deleteAssignment(rosterId, assignment.id);
+      setAssignments((prev) => prev.filter((a) => a.id !== assignment.id));
+    } catch (err: any) {
+      setActionError(err.response?.data?.error?.message ?? "Failed to delete assignment");
+    }
+  }
+
+  function countMatching(employeeId: string, startDate: string, endDate: string): number {
+    return assignments.filter((a) => {
+      if (employeeId && a.employeeId !== Number(employeeId)) return false;
+      const d = toDateKey(a.date);
+      if (startDate && d < startDate) return false;
+      if (endDate && d > endDate) return false;
+      return true;
+    }).length;
+  }
+
+  async function runBulkDelete(employeeId: string, startDate: string, endDate: string, confirmMessage: string) {
+    const count = countMatching(employeeId, startDate, endDate);
+    if (count === 0) {
+      window.alert("No assignments match that filter.");
+      return;
+    }
+    if (!window.confirm(`${confirmMessage} (${count} assignment${count === 1 ? "" : "s"}). This cannot be undone.`)) {
+      return;
+    }
+    setBulkBusy(true);
+    setActionError(null);
+    try {
+      await bulkDeleteAssignments(rosterId, {
+        employeeId: employeeId ? Number(employeeId) : undefined,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+      });
+      await refresh();
+    } catch (err: any) {
+      setActionError(err.response?.data?.error?.message ?? "Failed to delete assignments");
+    } finally {
+      setBulkBusy(false);
+    }
+  }
+
+  async function handleBulkDelete() {
+    const employeeLabel = bulkEmployeeId
+      ? (employees.find((e) => e.id === Number(bulkEmployeeId))?.name ?? "this employee")
+      : "all employees";
+    await runBulkDelete(
+      bulkEmployeeId,
+      bulkStartDate,
+      bulkEndDate,
+      `Delete assignments for ${employeeLabel} from ${bulkStartDate} to ${bulkEndDate}?`
+    );
+  }
+
+  async function handleDeleteAll() {
+    await runBulkDelete("", "", "", "Delete ALL assignments in this roster?");
+  }
+
   if (loading || !roster) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -202,7 +291,8 @@ export default function RosterCalendar() {
 
       {!isDraft && (
         <div className="text-sm text-slate-600 bg-slate-50 border border-slate-200 rounded-md px-3 py-2">
-          This roster is {roster.status.toLowerCase()} and is read-only.
+          This roster is {roster.status.toLowerCase()}. Employees can already see it — you can still drag to
+          reassign, hover a chip to delete it, or use bulk delete below.
         </div>
       )}
 
@@ -215,11 +305,51 @@ export default function RosterCalendar() {
               employees={employees}
               dates={dates}
               assignmentsByKey={assignmentsByKey}
-              readOnly={!isDraft}
+              onDeleteAssignment={handleDeleteAssignment}
             />
           </DndContext>
         )}
       </Card>
+
+      {employees.length > 0 && (
+        <Card
+          title="Bulk delete assignments"
+          description="Clear a date range for one employee or everyone, or wipe the whole roster."
+          actions={
+            <Button
+              variant="danger"
+              size="sm"
+              isLoading={bulkBusy}
+              disabled={assignments.length === 0}
+              onClick={handleDeleteAll}
+            >
+              Delete All
+            </Button>
+          }
+        >
+          <div className="flex flex-wrap items-end gap-3">
+            <Field label="Employee">
+              <Select value={bulkEmployeeId} onChange={(e) => setBulkEmployeeId(e.target.value)} className="w-48">
+                <option value="">All employees</option>
+                {employees.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="From">
+              <Input type="date" value={bulkStartDate} onChange={(e) => setBulkStartDate(e.target.value)} />
+            </Field>
+            <Field label="To">
+              <Input type="date" value={bulkEndDate} onChange={(e) => setBulkEndDate(e.target.value)} />
+            </Field>
+            <Button variant="danger" isLoading={bulkBusy} onClick={handleBulkDelete}>
+              Delete Matching
+            </Button>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }

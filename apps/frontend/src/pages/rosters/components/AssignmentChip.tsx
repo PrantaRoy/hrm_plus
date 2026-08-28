@@ -1,3 +1,4 @@
+import { X } from "lucide-react";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { DutyScheduleAssignmentDto } from "@hrm-plus/shared";
@@ -5,9 +6,10 @@ import { DutyScheduleAssignmentDto } from "@hrm-plus/shared";
 interface AssignmentChipProps {
   assignment: DutyScheduleAssignmentDto;
   disabled?: boolean;
+  onDelete?: () => void;
 }
 
-export function AssignmentChip({ assignment, disabled }: AssignmentChipProps) {
+export function AssignmentChip({ assignment, disabled, onDelete }: AssignmentChipProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: String(assignment.id),
     disabled,
@@ -55,13 +57,29 @@ export function AssignmentChip({ assignment, disabled }: AssignmentChipProps) {
       style={style}
       {...listeners}
       {...attributes}
-      className={`rounded-md border px-2 py-1 text-xs font-medium ${tone} ${
+      className={`group relative flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium ${tone} ${
         disabled ? "cursor-default" : "cursor-grab active:cursor-grabbing"
       } ${isDragging ? "opacity-50" : ""}`}
       title={assignment.comment ?? undefined}
     >
-      {label}
-      {statusSuffix}
+      <span className="truncate">
+        {label}
+        {statusSuffix}
+      </span>
+      {!disabled && onDelete && (
+        <button
+          type="button"
+          title="Delete assignment"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          className="ml-auto hidden shrink-0 rounded-full p-0.5 hover:bg-black/10 group-hover:block"
+        >
+          <X className="h-3 w-3" />
+        </button>
+      )}
     </div>
   );
 }

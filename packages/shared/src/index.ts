@@ -85,6 +85,8 @@ export type {
   CreateAssignmentInput,
   UpdateAssignmentInput,
   ListAssignmentsQuery,
+  BulkDeleteAssignmentsQuery,
+  BulkDeleteAssignmentsResult,
 } from "./roster";
 
 export { ATTENDANCE_METHODS, ATTENDANCE_DEVICE_STATUSES } from "./attendance";

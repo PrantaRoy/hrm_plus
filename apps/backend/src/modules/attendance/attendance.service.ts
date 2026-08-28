@@ -16,7 +16,8 @@ import {
   WorksheetRowDto,
 } from "@hrm-plus/shared";
 import { ApiError } from "../../utils/ApiError";
-import { addMinutes, combineDateAndTimeUTC, toDateOnlyUTC } from "../../utils/date";
+import { addMinutes, combineDateAndTimeInZone, toDateOnlyUTC } from "../../utils/date";
+import { getTenantTimezone } from "../general-settings/generalSettings.service";
 import { assertNotPayrollLocked } from "../payroll/payrollLock";
 import { toAssignmentDto } from "../rosters/assignment.mapper";
 import {
@@ -138,7 +139,8 @@ interface RestrictionFlags {
 function buildTodayDto(
   assignment: AssignmentWithAttendance | null,
   availableMethods: AttendanceMethod[],
-  restrictionFlags: RestrictionFlags
+  restrictionFlags: RestrictionFlags,
+  timezone: string
 ): TodayAttendanceDto {
   if (!assignment) {
     return {
@@ -178,7 +180,7 @@ function buildTodayDto(
 
   let canResumeAfterCheckout = false;
   if (!blockedReason && attendance?.checkOutAt && assignment.dutySchedule) {
-    const scheduledEnd = combineDateAndTimeUTC(assignment.date, assignment.dutySchedule.endTime);
+    const scheduledEnd = combineDateAndTimeInZone(assignment.date, assignment.dutySchedule.endTime, timezone);
     canResumeAfterCheckout = new Date() < scheduledEnd && availableMethods.length > 0;
   }
 
@@ -213,13 +215,14 @@ async function getRestrictionFlags(prisma: PrismaClient, employeeId: number): Pr
 export async function getTodayForEmployee(prisma: PrismaClient, employeeId: number): Promise<TodayAttendanceDto> {
   await markIncompleteAssignments(prisma, { employeeId, lookbackDays: 14 });
 
-  const [assignment, availableMethods, restrictionFlags] = await Promise.all([
+  const [assignment, availableMethods, restrictionFlags, timezone] = await Promise.all([
     findTodayAssignment(prisma, employeeId),
     getAvailableMethods(prisma, employeeId),
     getRestrictionFlags(prisma, employeeId),
+    getTenantTimezone(prisma),
   ]);
 
-  return buildTodayDto(assignment, availableMethods, restrictionFlags);
+  return buildTodayDto(assignment, availableMethods, restrictionFlags, timezone);
 }
 
 export interface CheckInServiceInput extends CheckInInput {
@@ -255,13 +258,14 @@ export async function checkIn(prisma: PrismaClient, employeeId: number, input: C
   await assertNotPayrollLocked(prisma, employeeId, assignment.date);
 
   const now = new Date();
-  const scheduledStart = combineDateAndTimeUTC(assignment.date, assignment.dutySchedule.startTime);
+  const timezone = await getTenantTimezone(prisma);
+  const scheduledStart = combineDateAndTimeInZone(assignment.date, assignment.dutySchedule.startTime, timezone);
 
   if (isResume) {
     // Correcting an accidental checkout: resume is allowed any number of times as
     // long as the shift isn't over yet. The checkout→checkin gap is logged as an
     // automatic break; the day's original checkInAt/isLate/lateReason are untouched.
-    const scheduledEnd = combineDateAndTimeUTC(assignment.date, assignment.dutySchedule.endTime);
+    const scheduledEnd = combineDateAndTimeInZone(assignment.date, assignment.dutySchedule.endTime, timezone);
     if (now > scheduledEnd) {
       throw ApiError.badRequest("Cannot check in again — today's shift has ended");
     }
@@ -353,7 +357,8 @@ export async function checkOut(prisma: PrismaClient, employeeId: number, input: 
   await assertNotPayrollLocked(prisma, employeeId, assignment.date);
 
   const now = new Date();
-  const scheduledEnd = combineDateAndTimeUTC(assignment.date, assignment.dutySchedule.endTime);
+  const timezone = await getTenantTimezone(prisma);
+  const scheduledEnd = combineDateAndTimeInZone(assignment.date, assignment.dutySchedule.endTime, timezone);
   const earlyThreshold = addMinutes(scheduledEnd, -assignment.dutySchedule.checkoutConsiderMinutes);
   const isEarlyCheckout = now < earlyThreshold;
   const reason = input.reason?.trim() || "";
@@ -400,19 +405,22 @@ export async function setManualAttendance(
   }
   await assertNotPayrollLocked(prisma, employeeId, assignment.date);
 
-  const checkInAt = combineDateAndTimeUTC(assignment.date, input.checkInTime);
-  const checkOutAt = input.checkOutTime ? combineDateAndTimeUTC(assignment.date, input.checkOutTime) : null;
+  const timezone = await getTenantTimezone(prisma);
+  const checkInAt = combineDateAndTimeInZone(assignment.date, input.checkInTime, timezone);
+  const checkOutAt = input.checkOutTime
+    ? combineDateAndTimeInZone(assignment.date, input.checkOutTime, timezone)
+    : null;
   if (checkOutAt && checkOutAt <= checkInAt) {
     throw ApiError.badRequest("Check-out time must be after check-in time");
   }
 
-  const scheduledStart = combineDateAndTimeUTC(assignment.date, assignment.dutySchedule.startTime);
+  const scheduledStart = combineDateAndTimeInZone(assignment.date, assignment.dutySchedule.startTime, timezone);
   const lateThreshold = addMinutes(scheduledStart, assignment.dutySchedule.checkinConsiderMinutes);
   const isLate = checkInAt > lateThreshold;
 
   let isEarlyCheckout = false;
   if (checkOutAt) {
-    const scheduledEnd = combineDateAndTimeUTC(assignment.date, assignment.dutySchedule.endTime);
+    const scheduledEnd = combineDateAndTimeInZone(assignment.date, assignment.dutySchedule.endTime, timezone);
     const earlyThreshold = addMinutes(scheduledEnd, -assignment.dutySchedule.checkoutConsiderMinutes);
     isEarlyCheckout = checkOutAt < earlyThreshold;
   }
@@ -500,6 +508,7 @@ export interface MarkIncompleteOptions {
 export async function markIncompleteAssignments(prisma: PrismaClient, options: MarkIncompleteOptions): Promise<void> {
   const now = new Date();
   const today = toDateOnlyUTC(now);
+  const timezone = await getTenantTimezone(prisma);
   const rangeStart =
     options.startDate ?? (options.lookbackDays ? addMinutes(today, -options.lookbackDays * 24 * 60) : undefined);
 
@@ -530,7 +539,7 @@ export async function markIncompleteAssignments(prisma: PrismaClient, options: M
       continue;
     }
     if (assignmentDay.getTime() === today.getTime()) {
-      const scheduledEnd = combineDateAndTimeUTC(assignment.date, assignment.dutySchedule.endTime);
+      const scheduledEnd = combineDateAndTimeInZone(assignment.date, assignment.dutySchedule.endTime, timezone);
       const cutoff = addMinutes(scheduledEnd, assignment.dutySchedule.checkoutConsiderMinutes);
       if (now > cutoff) idsToMark.push(assignment.id);
     }

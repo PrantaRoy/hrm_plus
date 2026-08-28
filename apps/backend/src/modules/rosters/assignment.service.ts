@@ -64,9 +64,6 @@ export async function createAssignment(
   createdById: number
 ): Promise<DutyScheduleAssignmentDto> {
   const roster = await getRosterOrThrow(prisma, rosterId);
-  if (roster.status === "Approved") {
-    throw ApiError.conflict("Cannot modify assignments on an approved roster");
-  }
 
   await assertEmployeeInDepartment(prisma, input.employeeId, roster.departmentId);
 
@@ -110,9 +107,6 @@ export async function updateAssignment(
   updatedById: number
 ): Promise<DutyScheduleAssignmentDto> {
   const roster = await getRosterOrThrow(prisma, rosterId);
-  if (roster.status === "Approved") {
-    throw ApiError.conflict("Cannot modify assignments on an approved roster");
-  }
 
   const existing = await prisma.dutyScheduleAssignment.findUnique({ where: { id: assignmentId } });
   if (!existing || existing.rosterId !== rosterId) {
@@ -164,15 +158,50 @@ export async function deleteAssignment(
   rosterId: number,
   assignmentId: number
 ): Promise<void> {
-  const roster = await getRosterOrThrow(prisma, rosterId);
-  if (roster.status === "Approved") {
-    throw ApiError.conflict("Cannot modify assignments on an approved roster");
-  }
+  await getRosterOrThrow(prisma, rosterId);
 
   const existing = await prisma.dutyScheduleAssignment.findUnique({ where: { id: assignmentId } });
   if (!existing || existing.rosterId !== rosterId) {
     throw ApiError.notFound("Assignment not found");
   }
 
-  await prisma.dutyScheduleAssignment.delete({ where: { id: assignmentId } });
+  await prisma.$transaction([
+    prisma.breakLog.deleteMany({ where: { attendance: { dutyScheduleAssignmentId: assignmentId } } }),
+    prisma.attendance.deleteMany({ where: { dutyScheduleAssignmentId: assignmentId } }),
+    prisma.dutyScheduleAssignment.delete({ where: { id: assignmentId } }),
+  ]);
+}
+
+export interface BulkDeleteAssignmentsOptions {
+  employeeId?: number;
+  startDate?: string;
+  endDate?: string;
+}
+
+export async function bulkDeleteAssignments(
+  prisma: PrismaClient,
+  rosterId: number,
+  options: BulkDeleteAssignmentsOptions
+): Promise<number> {
+  await getRosterOrThrow(prisma, rosterId);
+
+  const where: Prisma.DutyScheduleAssignmentWhereInput = {
+    rosterId,
+    ...(options.employeeId ? { employeeId: options.employeeId } : {}),
+    ...(options.startDate || options.endDate
+      ? {
+          date: {
+            ...(options.startDate ? { gte: new Date(options.startDate) } : {}),
+            ...(options.endDate ? { lte: new Date(options.endDate) } : {}),
+          },
+        }
+      : {}),
+  };
+
+  const [, , result] = await prisma.$transaction([
+    prisma.breakLog.deleteMany({ where: { attendance: { dutyScheduleAssignment: where } } }),
+    prisma.attendance.deleteMany({ where: { dutyScheduleAssignment: where } }),
+    prisma.dutyScheduleAssignment.deleteMany({ where }),
+  ]);
+  return result.count;
 }

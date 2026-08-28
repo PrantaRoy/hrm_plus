@@ -7,6 +7,12 @@ export const listAssignmentsQuerySchema = z.object({
   employeeId: z.coerce.number().int().optional(),
 });
 
+export const bulkDeleteAssignmentsQuerySchema = z.object({
+  startDate: z.string().min(1).optional(),
+  endDate: z.string().min(1).optional(),
+  employeeId: z.coerce.number().int().optional(),
+});
+
 export const createAssignmentSchema = z.object({
   employeeId: z.coerce.number().int(),
   dutyScheduleId: z.number().int().nullable().optional(),

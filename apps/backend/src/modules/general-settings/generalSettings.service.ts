@@ -15,6 +15,13 @@ export async function getGeneralSettings(prisma: PrismaClient): Promise<GeneralS
   return toGeneralSettingsDto(await getOrCreateSettings(prisma));
 }
 
+// Convenience for callers (attendance, payroll) that only need the tenant's
+// configured IANA timezone to interpret "HH:mm" wall-clock times correctly.
+export async function getTenantTimezone(prisma: PrismaClient): Promise<string> {
+  const settings = await getOrCreateSettings(prisma);
+  return settings.timezone;
+}
+
 export async function updateGeneralSettings(
   prisma: PrismaClient,
   input: UpdateGeneralSettingsInput,

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { requireRole } from "../../middleware/auth";
 import {
+  bulkDeleteAssignmentsHandler,
   createAssignmentHandler,
   deleteAssignmentHandler,
   listAssignmentsHandler,
@@ -13,3 +14,4 @@ assignmentRouter.get("/", listAssignmentsHandler);
 assignmentRouter.post("/", requireRole("Admin", "HR", "Manager"), createAssignmentHandler);
 assignmentRouter.patch("/:assignmentId", requireRole("Admin", "HR", "Manager"), updateAssignmentHandler);
 assignmentRouter.delete("/:assignmentId", requireRole("Admin", "HR", "Manager"), deleteAssignmentHandler);
+assignmentRouter.delete("/", requireRole("Admin", "HR", "Manager"), bulkDeleteAssignmentsHandler);

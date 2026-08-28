@@ -13,6 +13,7 @@ interface CalendarGridProps {
   dates: string[];
   assignmentsByKey: Map<string, DutyScheduleAssignmentDto>;
   readOnly?: boolean;
+  onDeleteAssignment?: (assignment: DutyScheduleAssignmentDto) => void;
 }
 
 function formatDateHeader(dateStr: string): { weekday: string; day: string } {
@@ -27,7 +28,13 @@ export function cellId(employeeId: number, date: string): string {
   return `cell:${employeeId}:${date}`;
 }
 
-export function CalendarGrid({ employees, dates, assignmentsByKey, readOnly }: CalendarGridProps) {
+export function CalendarGrid({
+  employees,
+  dates,
+  assignmentsByKey,
+  readOnly,
+  onDeleteAssignment,
+}: CalendarGridProps) {
   return (
     <div className="overflow-x-auto rounded-md border border-slate-200">
       <table className="min-w-full border-collapse text-sm">
@@ -62,7 +69,13 @@ export function CalendarGrid({ employees, dates, assignmentsByKey, readOnly }: C
                 return (
                   <td key={date} className="p-0">
                     <DroppableCell id={cellId(employee.id, date)}>
-                      {assignment && <AssignmentChip assignment={assignment} disabled={readOnly} />}
+                      {assignment && (
+                        <AssignmentChip
+                          assignment={assignment}
+                          disabled={readOnly}
+                          onDelete={onDeleteAssignment ? () => onDeleteAssignment(assignment) : undefined}
+                        />
+                      )}
                     </DroppableCell>
                   </td>
                 );

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, Textarea, cn } from "@hrm-plus/ui";
 import { CheckInInput, TodayAttendanceDto } from "@hrm-plus/shared";
 import { checkIn, checkOut, endBreak, getTodayAttendance, startBreak } from "../../api/attendance";
+import { getGeneralSettings } from "../../api/generalSettings";
 import { useAuth } from "../../auth/AuthContext";
 import { useLongPress } from "../../hooks/useLongPress";
 import { getDeviceToken } from "../../utils/deviceToken";
@@ -21,11 +22,22 @@ function greetingWord(date: Date): string {
   return "Good evening";
 }
 
-// The backend has no per-tenant timezone support yet, so "HH:mm" schedule times
-// are compared against the current UTC time-of-day — mirrored here so the reason
-// field appears before the round trip, not after a server-side rejection.
-function minutesSinceMidnightUTC(date: Date): number {
-  return date.getUTCHours() * 60 + date.getUTCMinutes();
+// Duty schedule "HH:mm" times are wall-clock in the tenant's configured timezone
+// (General Settings), not UTC — mirrored here (via Intl, same approach as the
+// backend's combineDateAndTimeInZone) so the reason field appears before the round
+// trip, not after a server-side rejection.
+function minutesSinceMidnightInZone(date: Date, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).formatToParts(date);
+  const map: Record<string, string> = {};
+  for (const part of parts) {
+    if (part.type !== "literal") map[part.type] = part.value;
+  }
+  return (Number(map.hour) % 24) * 60 + Number(map.minute);
 }
 
 function parseHHMM(value: string): number {
@@ -99,6 +111,7 @@ export function AttendanceWidget() {
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [timezone, setTimezone] = useState("UTC");
 
   function refresh() {
     setLoading(true);
@@ -109,6 +122,12 @@ export function AttendanceWidget() {
   }
 
   useEffect(refresh, []);
+
+  useEffect(() => {
+    getGeneralSettings()
+      .then((settings) => setTimezone(settings.timezone))
+      .catch(() => setTimezone("UTC"));
+  }, []);
 
   useEffect(() => {
     if (!banner) return;
@@ -151,7 +170,7 @@ export function AttendanceWidget() {
     return null;
   }
 
-  const nowMinutes = minutesSinceMidnightUTC(new Date());
+  const nowMinutes = minutesSinceMidnightInZone(new Date(), timezone);
   const startMinutes = today.scheduledStart ? parseHHMM(today.scheduledStart) : null;
   const endMinutes = today.scheduledEnd ? parseHHMM(today.scheduledEnd) : null;
   const isLikelyLate =

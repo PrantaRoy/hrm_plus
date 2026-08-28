@@ -139,6 +139,8 @@ export async function deleteRoster(prisma: PrismaClient, id: number): Promise<vo
     throw ApiError.conflict("Only draft rosters can be deleted");
   }
   await prisma.$transaction([
+    prisma.breakLog.deleteMany({ where: { attendance: { dutyScheduleAssignment: { rosterId: id } } } }),
+    prisma.attendance.deleteMany({ where: { dutyScheduleAssignment: { rosterId: id } } }),
     prisma.dutyScheduleAssignment.deleteMany({ where: { rosterId: id } }),
     prisma.roster.delete({ where: { id } }),
   ]);
@@ -227,6 +229,8 @@ export async function autoGenerateRoster(
 
   const assignmentsCreated = await prisma.$transaction(async (tx) => {
     if (existingCount > 0) {
+      await tx.breakLog.deleteMany({ where: { attendance: { dutyScheduleAssignment: { rosterId: id } } } });
+      await tx.attendance.deleteMany({ where: { dutyScheduleAssignment: { rosterId: id } } });
       await tx.dutyScheduleAssignment.deleteMany({ where: { rosterId: id } });
     }
 

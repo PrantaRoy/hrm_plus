@@ -7,6 +7,7 @@ import { listMyAllocations, listMyLeaveRequests } from "../../api/leaveRequests"
 import { useAuth } from "../../auth/AuthContext";
 import { AttendanceWidget } from "../../components/attendance/AttendanceWidget";
 import { DutyScheduleMonthCalendar } from "../../components/DutyScheduleMonthCalendar";
+import { LiveClock } from "../../components/LiveClock";
 
 export default function StaffDashboard() {
   const { user } = useAuth();
@@ -28,6 +29,8 @@ export default function StaffDashboard() {
         title={`Welcome back, ${user?.firstName ?? ""}`}
         description="Here's your attendance, schedule, and leave at a glance."
       />
+
+      <LiveClock />
 
       <AttendanceWidget />
 

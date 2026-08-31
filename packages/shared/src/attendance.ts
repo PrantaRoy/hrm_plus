@@ -183,6 +183,48 @@ export interface WorksheetRowDto {
   workingMinutes: number;
 }
 
+export interface ShiftAttendanceLogQuery {
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface ShiftAttendanceLogEntryDto {
+  employeeId: number;
+  employeeName: string | null;
+  employeeCode: string | null;
+  date: string;
+  status: AssignmentStatus;
+  isLeave: boolean;
+  isHoliday: boolean;
+  isWeekend: boolean;
+  checkInAt: string | null;
+  checkOutAt: string | null;
+  /** Minutes checked in after the scheduled start (0 if on time or not checked in). */
+  lateMinutes: number;
+  /** Minutes checked out before the scheduled end (0 otherwise). */
+  earlyLeaveMinutes: number;
+  /** Minutes worked past the scheduled end (0 otherwise). */
+  overtimeMinutes: number;
+  lateReason: string | null;
+  earlyCheckoutReason: string | null;
+  totalBreakMinutes: number;
+  isManualEntry: boolean;
+}
+
+export interface ShiftAttendanceLogGroupDto {
+  dutyScheduleId: number | null;
+  dutyScheduleName: string;
+  startTime: string | null;
+  endTime: string | null;
+  entries: ShiftAttendanceLogEntryDto[];
+}
+
+export interface ShiftAttendanceLogDto {
+  startDate: string;
+  endDate: string;
+  shifts: ShiftAttendanceLogGroupDto[];
+}
+
 export interface ListAttendanceItemDto {
   id: number;
   employeeId: number;

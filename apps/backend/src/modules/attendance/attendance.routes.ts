@@ -9,6 +9,7 @@ import {
   getEmployeeRulesHandler,
   getSettingsHandler,
   getMyWorksheetHandler,
+  getShiftAttendanceLogHandler,
   getTodayHandler,
   getWorksheetHandler,
   listAttendanceHandler,
@@ -35,6 +36,7 @@ attendanceRouter.get("/my", listMyAttendanceHandler);
 attendanceRouter.get("/worksheet/my", getMyWorksheetHandler);
 
 attendanceRouter.get("/", requireRole("Admin", "HR", "Manager"), listAttendanceHandler);
+attendanceRouter.get("/shift-log", requireRole("Admin", "HR", "Manager"), getShiftAttendanceLogHandler);
 attendanceRouter.get("/worksheet", requireRole("Admin", "HR", "Manager"), getWorksheetHandler);
 attendanceRouter.get("/settings", requireRole("Admin", "HR"), getSettingsHandler);
 attendanceRouter.patch("/settings", requireRole("Admin", "HR"), updateSettingsHandler);

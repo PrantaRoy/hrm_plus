@@ -8,6 +8,7 @@ import {
   getEmployeeScheduleHandler,
   getMyScheduleHandler,
   getRosterHandler,
+  getScheduleReportHandler,
   listRostersHandler,
   updateRosterHandler,
 } from "./roster.controller";
@@ -18,6 +19,7 @@ export const rosterRouter = Router();
 rosterRouter.use(requireAuth);
 
 rosterRouter.get("/my-schedule", getMyScheduleHandler);
+rosterRouter.get("/schedule-report", getScheduleReportHandler);
 rosterRouter.get("/employees/:employeeId/schedule", getEmployeeScheduleHandler);
 rosterRouter.get("/", listRostersHandler);
 rosterRouter.get("/:id", getRosterHandler);

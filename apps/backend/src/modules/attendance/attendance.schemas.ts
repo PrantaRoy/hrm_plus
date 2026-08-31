@@ -35,6 +35,11 @@ export const listAttendanceQuerySchema = z.object({
   dutyScheduleId: z.coerce.number().int().optional(),
 });
 
+export const shiftAttendanceLogQuerySchema = z.object({
+  startDate: z.string().min(1).optional(),
+  endDate: z.string().min(1).optional(),
+});
+
 export const worksheetQuerySchema = z.object({
   startDate: z.string().min(1),
   endDate: z.string().min(1),

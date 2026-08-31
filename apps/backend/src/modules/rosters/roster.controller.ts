@@ -4,6 +4,7 @@ import {
   autoGenerateRosterSchema,
   createRosterSchema,
   listRostersQuerySchema,
+  scheduleReportQuerySchema,
   updateRosterSchema,
 } from "./roster.schemas";
 import * as rosterService from "./roster.service";
@@ -36,6 +37,15 @@ export const getEmployeeScheduleHandler: RequestHandler = async (req, res, next)
     if (Number.isNaN(employeeId)) throw ApiError.badRequest("Invalid employee id");
     const { startDate, endDate } = req.query as { startDate?: string; endDate?: string };
     res.json(await rosterService.getMyScheduleForEmployee(req.prisma!, employeeId, { startDate, endDate }));
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getScheduleReportHandler: RequestHandler = async (req, res, next) => {
+  try {
+    const query = scheduleReportQuerySchema.parse(req.query);
+    res.json(await rosterService.getScheduleReport(req.prisma!, query));
   } catch (err) {
     next(err);
   }

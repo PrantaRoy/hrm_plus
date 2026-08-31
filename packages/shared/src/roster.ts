@@ -61,6 +61,8 @@ export interface DutyScheduleAssignmentDto {
   employeeCode: string | null;
   dutyScheduleId: number | null;
   dutyScheduleName: string | null;
+  dutyScheduleStartTime: string | null;
+  dutyScheduleEndTime: string | null;
   departmentId: number;
   date: string;
   status: AssignmentStatus;

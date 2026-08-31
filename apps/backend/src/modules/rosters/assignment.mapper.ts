@@ -23,6 +23,8 @@ export function toAssignmentDto(assignment: AssignmentWithRelations): DutySchedu
     employeeCode: assignment.employee?.employeeCode ?? null,
     dutyScheduleId: assignment.dutyScheduleId,
     dutyScheduleName: assignment.dutySchedule?.name ?? null,
+    dutyScheduleStartTime: assignment.dutySchedule?.startTime ?? null,
+    dutyScheduleEndTime: assignment.dutySchedule?.endTime ?? null,
     departmentId: assignment.departmentId,
     date: assignment.date.toISOString(),
     status: assignment.status as DutyScheduleAssignmentDto["status"],

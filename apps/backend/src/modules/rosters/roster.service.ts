@@ -309,3 +309,19 @@ export async function getMyScheduleForEmployee(
 
   return assignments.map(toAssignmentDto);
 }
+
+export async function getScheduleReport(
+  prisma: PrismaClient,
+  options: { startDate: string; endDate: string }
+): Promise<DutyScheduleAssignmentDto[]> {
+  const assignments = await prisma.dutyScheduleAssignment.findMany({
+    where: {
+      roster: { status: "Approved" },
+      date: { gte: new Date(options.startDate), lte: new Date(options.endDate) },
+    },
+    include: { employee: true, dutySchedule: true },
+    orderBy: [{ employee: { firstName: "asc" } }, { employee: { lastName: "asc" } }, { date: "asc" }],
+  });
+
+  return assignments.map(toAssignmentDto);
+}

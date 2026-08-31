@@ -1,5 +1,6 @@
 import { PrismaClient, Prisma } from "../../../generated/tenant";
 import {
+  AssignmentStatus,
   AttendanceDto,
   AttendanceMethod,
   AttendanceSettingsDto,
@@ -10,13 +11,15 @@ import {
   ListAttendanceQuery,
   ManualAttendanceInput,
   SetEmployeeAttendanceMethodsInput,
+  ShiftAttendanceLogDto,
+  ShiftAttendanceLogGroupDto,
   TodayAttendanceDto,
   UpdateAttendanceSettingsInput,
   WorksheetQuery,
   WorksheetRowDto,
 } from "@hrm-plus/shared";
 import { ApiError } from "../../utils/ApiError";
-import { addMinutes, combineDateAndTimeInZone, toDateOnlyUTC } from "../../utils/date";
+import { addMinutes, combineDateAndTimeInZone, toDateKey, toDateOnlyUTC } from "../../utils/date";
 import { getTenantTimezone } from "../general-settings/generalSettings.service";
 import { assertNotPayrollLocked } from "../payroll/payrollLock";
 import { toAssignmentDto } from "../rosters/assignment.mapper";
@@ -582,6 +585,112 @@ export async function listAttendance(prisma: PrismaClient, query: ListAttendance
   });
 
   return assignments.map(toListAttendanceItemDto);
+}
+
+interface AttendanceDeltaInput {
+  date: Date;
+  dutySchedule: { startTime: string; endTime: string } | null;
+}
+
+// Raw wall-clock differences against the scheduled shift boundaries — no grace
+// period applied (isLate/isEarlyCheckout on the Attendance row already carry the
+// graced verdict; this report shows the actual minutes early/late/over).
+function computeAttendanceDeltas(
+  assignment: AttendanceDeltaInput,
+  attendance: { checkInAt: Date | null; checkOutAt: Date | null } | null,
+  timezone: string
+): { lateMinutes: number; earlyLeaveMinutes: number; overtimeMinutes: number } {
+  if (!attendance?.checkInAt || !assignment.dutySchedule) {
+    return { lateMinutes: 0, earlyLeaveMinutes: 0, overtimeMinutes: 0 };
+  }
+
+  const scheduledStart = combineDateAndTimeInZone(assignment.date, assignment.dutySchedule.startTime, timezone);
+  let scheduledEnd = combineDateAndTimeInZone(assignment.date, assignment.dutySchedule.endTime, timezone);
+  if (scheduledEnd.getTime() <= scheduledStart.getTime()) {
+    scheduledEnd = addMinutes(scheduledEnd, 24 * 60); // overnight shift
+  }
+
+  const lateMinutes = Math.max(
+    0,
+    Math.round((attendance.checkInAt.getTime() - scheduledStart.getTime()) / 60_000)
+  );
+
+  let earlyLeaveMinutes = 0;
+  let overtimeMinutes = 0;
+  if (attendance.checkOutAt) {
+    const diff = Math.round((attendance.checkOutAt.getTime() - scheduledEnd.getTime()) / 60_000);
+    if (diff >= 0) overtimeMinutes = diff;
+    else earlyLeaveMinutes = -diff;
+  }
+
+  return { lateMinutes, earlyLeaveMinutes, overtimeMinutes };
+}
+
+export async function getShiftAttendanceLog(
+  prisma: PrismaClient,
+  range: { startDate: Date; endDate: Date }
+): Promise<ShiftAttendanceLogDto> {
+  await markIncompleteAssignments(prisma, { startDate: range.startDate, endDate: range.endDate });
+  const timezone = await getTenantTimezone(prisma);
+
+  const assignments = await prisma.dutyScheduleAssignment.findMany({
+    where: {
+      date: { gte: range.startDate, lte: range.endDate },
+      OR: [{ dutyScheduleId: { not: null } }, { isLeave: true }],
+    },
+    include: { employee: true, dutySchedule: true, attendance: { include: { breaks: true } } },
+    orderBy: [{ date: "asc" }, { employeeId: "asc" }],
+  });
+
+  const NO_SHIFT_KEY = "none";
+  const groups = new Map<string, ShiftAttendanceLogGroupDto>();
+
+  for (const a of assignments) {
+    const key = a.dutyScheduleId ? String(a.dutyScheduleId) : NO_SHIFT_KEY;
+    let group = groups.get(key);
+    if (!group) {
+      group = {
+        dutyScheduleId: a.dutyScheduleId,
+        dutyScheduleName: a.dutySchedule?.name ?? "On leave (no shift assigned)",
+        startTime: a.dutySchedule?.startTime ?? null,
+        endTime: a.dutySchedule?.endTime ?? null,
+        entries: [],
+      };
+      groups.set(key, group);
+    }
+
+    const att = a.attendance;
+    const deltas = computeAttendanceDeltas(a, att, timezone);
+
+    group.entries.push({
+      employeeId: a.employeeId,
+      employeeName: a.employee ? `${a.employee.firstName} ${a.employee.lastName}` : null,
+      employeeCode: a.employee?.employeeCode ?? null,
+      date: a.date.toISOString(),
+      status: a.status as AssignmentStatus,
+      isLeave: a.isLeave,
+      isHoliday: a.isHoliday,
+      isWeekend: a.isWeekend,
+      checkInAt: att?.checkInAt?.toISOString() ?? null,
+      checkOutAt: att?.checkOutAt?.toISOString() ?? null,
+      lateMinutes: deltas.lateMinutes,
+      earlyLeaveMinutes: deltas.earlyLeaveMinutes,
+      overtimeMinutes: deltas.overtimeMinutes,
+      lateReason: att?.lateReason ?? null,
+      earlyCheckoutReason: att?.earlyCheckoutReason ?? null,
+      totalBreakMinutes: att ? totalBreakMinutes(att.breaks) : 0,
+      isManualEntry: att?.isManualEntry ?? false,
+    });
+  }
+
+  const shifts = [...groups.values()].sort((x, y) => {
+    if (x.startTime && y.startTime) return x.startTime.localeCompare(y.startTime);
+    if (x.startTime) return -1;
+    if (y.startTime) return 1;
+    return x.dutyScheduleName.localeCompare(y.dutyScheduleName);
+  });
+
+  return { startDate: toDateKey(range.startDate), endDate: toDateKey(range.endDate), shifts };
 }
 
 export async function getWorksheet(prisma: PrismaClient, query: WorksheetQuery): Promise<WorksheetRowDto[]> {

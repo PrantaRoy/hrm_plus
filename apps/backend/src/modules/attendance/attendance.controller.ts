@@ -8,10 +8,12 @@ import {
   manualAttendanceSchema,
   setEmployeeMethodsSchema,
   setEmployeeRulesSchema,
+  shiftAttendanceLogQuerySchema,
   updateAttendanceSettingsSchema,
   worksheetQuerySchema,
 } from "./attendance.schemas";
 import * as attendanceService from "./attendance.service";
+import { toDateOnlyUTC } from "../../utils/date";
 import * as restrictionsService from "./attendanceRestrictions.service";
 
 export const getTodayHandler: RequestHandler = async (req, res, next) => {
@@ -75,6 +77,18 @@ export const listAttendanceHandler: RequestHandler = async (req, res, next) => {
   try {
     const query = listAttendanceQuerySchema.parse(req.query);
     res.json(await attendanceService.listAttendance(req.prisma!, query));
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getShiftAttendanceLogHandler: RequestHandler = async (req, res, next) => {
+  try {
+    const query = shiftAttendanceLogQuerySchema.parse(req.query);
+    const today = toDateOnlyUTC(new Date());
+    const startDate = query.startDate ? toDateOnlyUTC(new Date(query.startDate)) : today;
+    const endDate = query.endDate ? toDateOnlyUTC(new Date(query.endDate)) : startDate;
+    res.json(await attendanceService.getShiftAttendanceLog(req.prisma!, { startDate, endDate }));
   } catch (err) {
     next(err);
   }

@@ -11,6 +11,7 @@ import {
   ManualAttendanceInput,
   SetEmployeeAttendanceMethodsInput,
   SetEmployeeAttendanceRulesInput,
+  ShiftAttendanceLogDto,
   TodayAttendanceDto,
   UpdateAttendanceSettingsInput,
   WorksheetQuery,
@@ -50,6 +51,14 @@ export async function listMyAttendance(query: ListAttendanceQuery): Promise<List
 
 export async function listAttendance(query: ListAttendanceQuery): Promise<ListAttendanceItemDto[]> {
   const res = await apiClient.get<ListAttendanceItemDto[]>("/attendance", { params: query });
+  return res.data;
+}
+
+export async function getShiftAttendanceLog(query: {
+  startDate: string;
+  endDate: string;
+}): Promise<ShiftAttendanceLogDto> {
+  const res = await apiClient.get<ShiftAttendanceLogDto>("/attendance/shift-log", { params: query });
   return res.data;
 }
 

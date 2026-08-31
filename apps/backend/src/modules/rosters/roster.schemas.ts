@@ -24,3 +24,8 @@ export const updateRosterSchema = z.object({
 export const autoGenerateRosterSchema = z.object({
   overwriteExisting: z.boolean().optional().default(false),
 });
+
+export const scheduleReportQuerySchema = z.object({
+  startDate: z.string().min(1),
+  endDate: z.string().min(1),
+});

@@ -59,6 +59,8 @@ import { publicSiteContentRouter } from "./modules/site-content/siteContent.rout
 import { assetRouter } from "./modules/assets/asset.routes";
 import { supportTicketRouter } from "./modules/support-tickets/supportTicket.routes";
 import { ticketCategoryRouter } from "./modules/ticket-categories/ticketCategory.routes";
+import { meetingRouter } from "./modules/meetings/meeting.routes";
+import { schedulerSettingsRouter } from "./modules/scheduler-settings/schedulerSettings.routes";
 import { saasSupportTicketRouter } from "./modules/saas/support-tickets/saasSupportTicket.routes";
 import { saasTicketCategoryRouter } from "./modules/saas/ticket-categories/saasTicketCategory.routes";
 import { payCycleRouter } from "./modules/payroll/payCycle.routes";
@@ -129,6 +131,8 @@ export function createApp(): Express {
   app.use("/api/public/assessment", tenantResolver, publicAssessmentRouter); // public — token auth, no requireAuth
   app.use("/api/support-tickets", tenantResolver, supportTicketRouter);
   app.use("/api/ticket-categories", tenantResolver, ticketCategoryRouter);
+  app.use("/api/meetings", tenantResolver, meetingRouter);
+  app.use("/api/scheduler-settings", tenantResolver, schedulerSettingsRouter);
 
   // Payroll module — separation of duties: HR approves hours, Payroll processes
   // runs, Finance (or Admin) approves payment.

@@ -11,6 +11,11 @@ import EmployeeList from "./pages/employees/EmployeeList";
 import EmployeeCreate from "./pages/employees/EmployeeCreate";
 import EmployeeDetail from "./pages/employees/EmployeeDetail";
 import MySchedule from "./pages/MySchedule";
+import MyMeetings from "./pages/meetings/MyMeetings";
+import ScheduleMeeting from "./pages/meetings/ScheduleMeeting";
+import MeetingDetail from "./pages/meetings/MeetingDetail";
+import EditMeeting from "./pages/meetings/EditMeeting";
+import AllMeetings from "./pages/meetings/AllMeetings";
 import ApplyLeave from "./pages/leave/ApplyLeave";
 import MyLeaveRequests from "./pages/leave/MyLeaveRequests";
 import LeaveApprovals from "./pages/leave/LeaveApprovals";
@@ -30,6 +35,7 @@ import DepartmentSettings from "./pages/settings/DepartmentSettings";
 import DesignationSettings from "./pages/settings/DesignationSettings";
 import RoleSettings from "./pages/settings/RoleSettings";
 import AttendanceSettings from "./pages/settings/AttendanceSettings";
+import SchedulerSettings from "./pages/settings/SchedulerSettings";
 import AttendanceIpRuleSettings from "./pages/settings/AttendanceIpRuleSettings";
 import AttendanceLocationList from "./pages/attendance/AttendanceLocationList";
 import AttendanceLocationCreate from "./pages/attendance/AttendanceLocationCreate";
@@ -153,6 +159,14 @@ export default function App() {
           <Route path="/leave/my-requests" element={<MyLeaveRequests />} />
           <Route path="/leave/approvals" element={<LeaveApprovals />} />
 
+          <Route path="/meetings" element={<MyMeetings />} />
+          <Route path="/meetings/new" element={<ScheduleMeeting />} />
+          <Route element={<RequireAuth roles={["Admin", "HR", "Manager"]} />}>
+            <Route path="/meetings/all" element={<AllMeetings />} />
+          </Route>
+          <Route path="/meetings/:id" element={<MeetingDetail />} />
+          <Route path="/meetings/:id/edit" element={<EditMeeting />} />
+
           <Route path="/documents/request" element={<RequestDocument />} />
           <Route path="/documents/my-requests" element={<MyDocumentRequests />} />
           <Route path="/documents/approvals" element={<DocumentApprovals />} />
@@ -233,6 +247,7 @@ export default function App() {
               <Route path="designations" element={<DesignationSettings />} />
               <Route path="roles" element={<RoleSettings />} />
               <Route path="attendance" element={<AttendanceSettings />} />
+              <Route path="scheduler" element={<SchedulerSettings />} />
               <Route path="attendance-ip-rules" element={<AttendanceIpRuleSettings />} />
               <Route path="attendance-locations" element={<AttendanceLocationList />} />
               <Route path="attendance-locations/new" element={<AttendanceLocationCreate />} />

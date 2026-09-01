@@ -7,6 +7,7 @@ import {
   Briefcase,
   CalendarDays,
   CalendarPlus,
+  CalendarClock,
   CalendarRange,
   Clock,
   DollarSign,
@@ -56,6 +57,7 @@ function applyBranding(settings: GeneralSettingsDto) {
 
 const MY_WORK_ITEMS = [
   { key: "my-schedule", label: "My Schedule", to: "/my-schedule", icon: Clock },
+  { key: "my-meetings", label: "My Meetings", to: "/meetings", icon: CalendarClock },
   { key: "leave-apply", label: "Apply Leave", to: "/leave/apply", icon: CalendarPlus },
   { key: "leave-my-requests", label: "My Leave Requests", to: "/leave/my-requests", icon: ListChecks },
   { key: "documents-request", label: "Request Document", to: "/documents/request", icon: FilePlus },
@@ -105,6 +107,7 @@ function buildAdminViewGroups(isAdmin: boolean): SidebarGroup[] {
       items: [
         { key: "duty-schedules", label: "Duty Schedules", to: "/duty-schedules", icon: CalendarRange },
         { key: "rosters", label: "Rosters", to: "/rosters", icon: CalendarDays },
+        { key: "meetings-all", label: "Meetings", to: "/meetings/all", icon: CalendarClock },
         { key: "holidays", label: "Holidays", to: "/holidays", icon: PartyPopper },
       ],
     },
@@ -187,7 +190,10 @@ function buildDefaultViewGroups(role: string | undefined): SidebarGroup[] {
       ? [
           {
             label: "Scheduling",
-            items: [{ key: "rosters", label: "Rosters", to: "/rosters", icon: CalendarDays }],
+            items: [
+              { key: "rosters", label: "Rosters", to: "/rosters", icon: CalendarDays },
+              { key: "meetings-all", label: "Meetings", to: "/meetings/all", icon: CalendarClock },
+            ],
           },
         ]
       : []),

@@ -311,4 +311,20 @@ describe("Meeting & Appointment Scheduler", () => {
     expect(listed.myResponseStatus).toBe("Declined");
     expect(listed.isOrganizer).toBe(false);
   });
+
+  it("filters the dashboard 'my meetings' feed by start date", async () => {
+    const fromToday = await asUser(
+      request(app).get("/api/meetings/my").query({ startDate: D_OK }),
+      organizerToken
+    );
+    expect(fromToday.status).toBe(200);
+    expect(fromToday.body.length).toBeGreaterThan(0);
+    expect(fromToday.body.every((m: { isOrganizer: boolean }) => m.isOrganizer)).toBe(true);
+
+    const farFuture = await asUser(
+      request(app).get("/api/meetings/my").query({ startDate: "2027-01-01" }),
+      organizerToken
+    );
+    expect(farFuture.body).toEqual([]);
+  });
 });

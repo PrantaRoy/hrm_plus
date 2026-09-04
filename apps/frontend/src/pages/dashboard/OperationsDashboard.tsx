@@ -8,6 +8,7 @@ import { TodayOverviewCard } from "../../components/dashboard/TodayOverviewCard"
 import { DutyScheduleReport } from "../../components/dashboard/DutyScheduleReport";
 import { ShiftAttendanceLog } from "../../components/dashboard/ShiftAttendanceLog";
 import { PendingLeaveApprovalsCard } from "../../components/dashboard/PendingLeaveApprovalsCard";
+import { MyMeetingsCard } from "../../components/dashboard/MyMeetingsCard";
 import { AttendanceTrendChart } from "../../components/dashboard/charts/AttendanceTrendChart";
 import { LeaveStatusBreakdownChart } from "../../components/dashboard/charts/LeaveStatusBreakdownChart";
 
@@ -68,6 +69,8 @@ export default function OperationsDashboard() {
           count={summary?.pendingLeaveApprovalsCount ?? 0}
           preview={summary?.pendingLeaveApprovalsPreview ?? []}
         />
+
+        <MyMeetingsCard />
       </div>
 
       <DutyScheduleReport />

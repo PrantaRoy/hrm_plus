@@ -8,6 +8,7 @@ import { useAuth } from "../../auth/AuthContext";
 import { AttendanceWidget } from "../../components/attendance/AttendanceWidget";
 import { DutyScheduleMonthCalendar } from "../../components/DutyScheduleMonthCalendar";
 import { DutyScheduleReport } from "../../components/dashboard/DutyScheduleReport";
+import { MyMeetingsCard } from "../../components/dashboard/MyMeetingsCard";
 import { LiveClock } from "../../components/LiveClock";
 
 export default function StaffDashboard() {
@@ -36,6 +37,8 @@ export default function StaffDashboard() {
       <AttendanceWidget />
 
       <DutyScheduleReport />
+
+      <MyMeetingsCard />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card title="My Leave Balance" actions={<Link to="/leave/apply" className="text-sm text-brand-600 hover:underline">Apply for leave →</Link>}>

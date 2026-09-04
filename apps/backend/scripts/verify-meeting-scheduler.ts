@@ -209,6 +209,15 @@ async function main() {
   const rsvp = await meetingService.respondToMeeting(prisma, created.id, { id: part.id, role: "Staff" }, part.id, "Declined");
   check("response recorded", rsvp.participants.find((p) => p.employeeId === participant.id)?.responseStatus === "Declined");
 
+  console.log("dashboard: my meetings from today onward:");
+  const mine = await meetingService.listMyMeetings(prisma, participant.id, { startDate: "2026-10-05" });
+  check("participant sees invited meetings", mine.length > 0 && mine.every((m) => !m.isOrganizer));
+  check("carries myResponseStatus", mine.some((m) => m.myResponseStatus === "Declined"));
+  const orgList = await meetingService.listMyMeetings(prisma, organizer.id, { startDate: "2026-10-05" });
+  check("organizer flagged", orgList.every((m) => m.isOrganizer));
+  const filtered = await meetingService.listMyMeetings(prisma, participant.id, { startDate: "2026-12-01" });
+  check("startDate filter excludes older meetings", filtered.length === 0);
+
   console.log(`\n${pass} passed, ${fail} failed`);
 }
 

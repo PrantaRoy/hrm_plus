@@ -9,8 +9,8 @@ const PROVIDER_LABELS: Record<AiProvider, string> = {
 };
 
 const PROVIDER_MODEL_PLACEHOLDER: Record<AiProvider, string> = {
-  GROQ: "llama-3.1-8b-instant",
-  GEMINI: "gemini-1.5-flash",
+  GROQ: "openai/gpt-oss-20b",
+  GEMINI: "gemini-2.0-flash",
 };
 
 export default function AiSettings() {

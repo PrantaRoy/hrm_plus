@@ -78,7 +78,7 @@ with "points" an integer between 1 and 10. Return exactly ${totalCount} question
 TRUE_FALSE, then SHORT_TEXT.`;
 
   const provider = await getLlmProvider(prisma);
-  const maxTokens = Math.min(2000, 90 * Math.max(totalCount, 1));
+  const maxTokens = Math.min(2000, Math.max(300, 130 * totalCount));
   const raw = await provider.generateJson<unknown>({ system, prompt, maxTokens });
   const parsed = generatedQuestionsResponseSchema.safeParse(raw);
 

@@ -32,6 +32,13 @@ export class GroqProvider implements LlmProvider {
           ],
           max_tokens: request.maxTokens ?? 1500,
           temperature: 0.3,
+          // Groq's current free-tier models (e.g. openai/gpt-oss-20b) are reasoning
+          // models that spend part of max_tokens on a hidden reasoning trace before
+          // producing content — left unbounded, that reasoning can consume the
+          // entire token budget and return empty content. "low" keeps just enough
+          // reasoning to follow instructions while leaving room for the actual
+          // answer, which also serves the free-tier token-minimization goal.
+          reasoning_effort: "low",
         }),
       });
     } catch {

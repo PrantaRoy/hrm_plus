@@ -51,9 +51,9 @@ const envSchema = z.object({
   ANTHROPIC_API_KEY: z.string().optional(),
   ANTHROPIC_MODEL: z.string().default("claude-3-5-haiku-latest"),
   GROQ_API_KEY: z.string().optional(),
-  GROQ_MODEL: z.string().default("llama-3.1-8b-instant"),
+  GROQ_MODEL: z.string().default("openai/gpt-oss-20b"),
   GEMINI_API_KEY: z.string().optional(),
-  GEMINI_MODEL: z.string().default("gemini-1.5-flash"),
+  GEMINI_MODEL: z.string().default("gemini-2.0-flash"),
 });
 
 const parsed = envSchema.safeParse(process.env);

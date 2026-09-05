@@ -49,7 +49,7 @@ export async function resolveProviderConfig(prisma: PrismaClient): Promise<Resol
   if (!settings.apiKeyCiphertext) return null;
 
   const provider = settings.provider as "GROQ" | "GEMINI";
-  const defaultModel = provider === "GEMINI" ? "gemini-1.5-flash" : "llama-3.1-8b-instant";
+  const defaultModel = provider === "GEMINI" ? "gemini-2.0-flash" : "openai/gpt-oss-20b";
   return {
     provider,
     apiKey: decrypt(settings.apiKeyCiphertext),

@@ -29,4 +29,8 @@ export class ApiError extends Error {
   static conflict(message: string, code = "CONFLICT", details?: unknown) {
     return new ApiError(409, message, code, details);
   }
+
+  static gone(message: string, code = "GONE") {
+    return new ApiError(410, message, code);
+  }
 }

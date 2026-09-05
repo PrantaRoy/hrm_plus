@@ -18,3 +18,19 @@ export const contactInquiryRateLimiter = rateLimit({
     },
   },
 });
+
+// SaaS marketing-site contact form: 5 submissions per IP per hour. There is a
+// single global control plane here, so the key is IP-only (no tenant scope).
+export const saasContactRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => ipKeyGenerator(req.ip ?? ""),
+  message: {
+    error: {
+      message: "Too many messages submitted. Please try again later.",
+      code: "RATE_LIMITED",
+    },
+  },
+});

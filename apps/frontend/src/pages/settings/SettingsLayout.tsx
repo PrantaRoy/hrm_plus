@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { cn, PageHeader } from "@hrm-plus/ui";
+import { useAuth } from "../../auth/AuthContext";
 
 const TABS = [
   { to: "/settings/general", label: "General" },
@@ -15,12 +16,18 @@ const TABS = [
   { to: "/settings/attendance-locations", label: "Locations" },
 ];
 
+// Admin-only, since it exposes third-party AI provider credential configuration.
+const ADMIN_ONLY_TABS = [{ to: "/settings/ai", label: "AI" }];
+
 export default function SettingsLayout() {
+  const { user } = useAuth();
+  const tabs = user?.role === "Admin" ? [...TABS, ...ADMIN_ONLY_TABS] : TABS;
+
   return (
     <div className="space-y-6">
       <PageHeader title="Settings" description="Configure the lookup data used across your organisation." />
       <nav className="flex gap-1 border-b border-slate-200">
-        {TABS.map((tab) => (
+        {tabs.map((tab) => (
           <NavLink
             key={tab.to}
             to={tab.to}

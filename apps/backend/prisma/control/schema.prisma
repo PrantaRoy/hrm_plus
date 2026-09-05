@@ -37,14 +37,21 @@ model PlatformAdmin {
 }
 
 model Package {
-  id           Int                  @id @default(autoincrement())
-  name         String
-  price        Decimal              @default(0) @db.Decimal(10, 2)
-  validityDays Int?
-  isActive     Boolean              @default(true)
-  createdAt    DateTime             @default(now())
-  applications TenantApplication[]
-  tenants      Tenant[]
+  id            Int                 @id @default(autoincrement())
+  name          String
+  price         Decimal             @default(0) @db.Decimal(10, 2)
+  validityDays  Int?
+  isActive      Boolean             @default(true)
+  createdAt     DateTime            @default(now())
+  // Marketing/landing-page presentation (all optional — signup flow ignores these)
+  description   String?             @db.Text
+  features      Json? // string[] — feature bullet list rendered on the pricing cards
+  isPopular     Boolean             @default(false)
+  billingPeriod String? // display label, e.g. "per month", "per user / month", "one-time"
+  ctaLabel      String? // pricing-card button label, defaults to "Get started" on the client
+  sortOrder     Int                 @default(0)
+  applications  TenantApplication[]
+  tenants       Tenant[]
 }
 
 model TenantApplication {
@@ -113,4 +120,123 @@ model SupportTicketReply {
   createdAt         DateTime      @default(now())
 
   @@index([ticketId])
+}
+
+// ── SaaS marketing landing page CMS ─────────────────────────────────────
+// The public one-page marketing site (apps/saas-frontend "/") is fully editable
+// from the super-admin portal. Mirrors the per-tenant website CMS in the tenant
+// schema, but lives in the control plane and is a single global site.
+
+// Global singleton — get-or-create, like the tenant SiteSetting.
+model SaasSiteSettings {
+  id                    Int      @id @default(autoincrement())
+  // Brand + navigation
+  siteName              String   @default("HRM PLUS")
+  logoUrl               String?
+  logoKey               String?
+  faviconUrl            String?
+  faviconKey            String?
+  navLinks              Json? // { label: string; href: string }[]
+  headerCtaLabel        String   @default("Get started")
+  headerCtaHref         String   @default("#pricing")
+  loginUrl              String   @default("/admin/login")
+  // Hero
+  heroEyebrow           String?
+  heroHeadline          String   @default("Run your whole workforce from one clean dashboard.")
+  heroSubheadline       String?  @db.Text
+  heroPrimaryCtaLabel   String?  @default("Get started")
+  heroPrimaryCtaHref    String?  @default("#pricing")
+  heroSecondaryCtaLabel String?  @default("See how it works")
+  heroSecondaryCtaHref  String?  @default("#process")
+  heroImageUrl          String?
+  heroImageKey          String?
+  // Section framing: heading/subheading/visibility/order per section key
+  // { key, label, heading, subheading, enabled, order }[]
+  // keys: feature-highlights | features | process | stats | testimonials | pricing | blog | contact
+  sections              Json?
+  // CTA band
+  ctaHeading            String?
+  ctaSubheading         String?  @db.Text
+  ctaButtonLabel        String?
+  ctaButtonHref         String?
+  // Contact
+  contactHeading        String?
+  contactSubheading     String?  @db.Text
+  contactEmail          String?
+  contactPhone          String?
+  contactAddress        String?  @db.Text
+  // Footer
+  footerTagline         String?  @db.Text
+  footerColumns         Json? // { title: string; links: { label: string; href: string }[] }[]
+  socialLinks           Json? // { platform: string; icon: string; url: string }[]
+  footerLegalText       String?
+  // SEO / meta
+  metaTitle             String?
+  metaDescription       String?  @db.Text
+  ogImageUrl            String?
+  ogImageKey            String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+// Polymorphic collection for the repeatable landing content strips.
+model SaasLandingBlock {
+  id        Int      @id @default(autoincrement())
+  blockType String // "FEATURE_HIGHLIGHT" | "FEATURE" | "PROCESS_STEP" | "STAT" | "TESTIMONIAL"
+  title     String
+  subtitle  String?  @db.Text
+  body      String?  @db.Text
+  icon      String? // lucide-react icon name
+  mediaUrl  String?
+  mediaKey  String?
+  // type-specific extras:
+  //  FEATURE_HIGHLIGHT { bullets: string[]; ctaLabel?: string; ctaHref?: string }
+  //  PROCESS_STEP      { stepNumber: number }
+  //  STAT              { value: string; suffix?: string }
+  //  TESTIMONIAL       { authorName: string; authorTitle?: string; company?: string; rating?: number }
+  meta      Json?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([blockType, sortOrder])
+  @@index([isActive])
+}
+
+model SaasBlogPost {
+  id              Int       @id @default(autoincrement())
+  title           String
+  slug            String    @unique
+  excerpt         String?   @db.Text
+  contentMarkdown String    @db.Text // raw Markdown authored in the super-admin portal
+  coverImageUrl   String?
+  coverImageKey   String?
+  authorName      String?
+  status          String    @default("DRAFT") // "DRAFT" | "PUBLISHED"
+  publishedAt     DateTime?
+  metaDescription String?   @db.Text
+  createdById     Int? // PlatformAdmin.id — informational, no FK relation
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([status])
+  @@index([publishedAt])
+}
+
+model SaasContactSubmission {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  phone     String?
+  company   String?
+  subject   String?
+  message   String   @db.Text
+  status    String   @default("UNREAD") // "UNREAD" | "READ" | "ARCHIVED"
+  ipAddress String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
 }

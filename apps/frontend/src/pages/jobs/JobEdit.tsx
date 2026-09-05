@@ -39,6 +39,7 @@ export default function JobEdit() {
   const [description, setDescription] = useState("");
   const [departmentId, setDepartmentId] = useState("");
   const [closesAt, setClosesAt] = useState("");
+  const [assessmentDeadlineDays, setAssessmentDeadlineDays] = useState("");
   const [screeningQuestions, setScreeningQuestions] = useState<JobScreeningQuestionInput[]>([]);
 
   useEffect(() => {
@@ -61,6 +62,7 @@ export default function JobEdit() {
         setDescription(j.description);
         setDepartmentId(j.departmentId?.toString() ?? "");
         setClosesAt(j.closesAt?.slice(0, 10) ?? "");
+        setAssessmentDeadlineDays(j.assessmentDeadlineDays?.toString() ?? "");
         setScreeningQuestions(j.screeningQuestions.map((q) => ({ questionId: q.questionId, isMandatory: q.isMandatory, sortOrder: q.sortOrder })));
       })
       .catch((err) => setError(err.response?.data?.error?.message ?? "Failed to load job"))
@@ -98,6 +100,7 @@ export default function JobEdit() {
         description,
         departmentId: departmentId ? Number(departmentId) : undefined,
         closesAt: closesAt || undefined,
+        assessmentDeadlineDays: assessmentDeadlineDays ? Number(assessmentDeadlineDays) : undefined,
         screeningQuestions: screeningQuestionsLocked ? undefined : screeningQuestions,
       });
       setJob(updated);
@@ -216,9 +219,22 @@ export default function JobEdit() {
             </Field>
           </div>
 
-          <Field label="Closing date">
-            <Input type="date" value={closesAt} onChange={(e) => setClosesAt(e.target.value)} />
-          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Closing date">
+              <Input type="date" value={closesAt} onChange={(e) => setClosesAt(e.target.value)} />
+            </Field>
+            <Field
+              label="Screening test deadline (days)"
+              helperText="Days after applying a candidate has to complete the screening test, if one is attached. Leave blank for no deadline."
+            >
+              <Input
+                type="number"
+                min={1}
+                value={assessmentDeadlineDays}
+                onChange={(e) => setAssessmentDeadlineDays(e.target.value)}
+              />
+            </Field>
+          </div>
 
           <Field label="Description" required>
             <Textarea rows={8} required value={description} onChange={(e) => setDescription(e.target.value)} />

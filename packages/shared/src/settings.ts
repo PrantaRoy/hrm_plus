@@ -107,6 +107,24 @@ export interface UpdateGeneralSettingsInput {
   copyrightText?: string | null;
 }
 
+export const AI_PROVIDERS = ["GROQ", "GEMINI"] as const;
+export type AiProvider = (typeof AI_PROVIDERS)[number];
+
+export interface AiSettingsDto {
+  id: number;
+  provider: AiProvider;
+  model: string | null;
+  hasApiKey: boolean;
+  updatedById: number | null;
+  updatedAt: string;
+}
+
+export interface UpdateAiSettingsInput {
+  provider: AiProvider;
+  model?: string | null;
+  apiKey?: string;
+}
+
 export interface RoleDto {
   id: number;
   name: string;

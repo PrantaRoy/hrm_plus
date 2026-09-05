@@ -43,6 +43,7 @@ export interface JobDto {
   departmentId: number | null;
   departmentName: string | null;
   closesAt: string | null;
+  assessmentDeadlineDays: number | null;
   screeningQuestions: JobScreeningQuestionDto[];
   hasPublishedAssessment: boolean;
   applicationCount: number;
@@ -66,6 +67,7 @@ export interface CreateJobInput {
   description: string;
   departmentId?: number;
   closesAt?: string;
+  assessmentDeadlineDays?: number;
   screeningQuestions: JobScreeningQuestionInput[];
 }
 

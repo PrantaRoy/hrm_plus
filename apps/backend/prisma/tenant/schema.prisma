@@ -44,6 +44,7 @@ model User {
   leaveApprovalsDecided      LeaveRequestApproval[]     @relation("LeaveApprovalDecidedBy")
   attendanceSettingsUpdated  AttendanceSettings[]       @relation("AttendanceSettingsUpdatedBy")
   generalSettingsUpdated     GeneralSettings[]          @relation("GeneralSettingsUpdatedBy")
+  aiSettingsUpdated          AiSettings[]               @relation("AiSettingsUpdatedBy")
   attendanceDevicesApproved  EmployeeAttendanceDevice[] @relation("AttendanceDeviceApprovedBy")
   attendanceManualEntries    Attendance[]               @relation("AttendanceManualEntryBy")
   holidaysCreated            Holiday[]                  @relation("HolidayCreatedBy")
@@ -142,51 +143,51 @@ model Designation {
 }
 
 model Employee {
-  id                  Int                          @id @default(autoincrement())
-  employeeCode        String                       @unique
-  firstName           String
-  lastName            String
-  email               String                       @unique
-  phoneNumber         String?
-  gender              String?
-  dateOfBirth         DateTime?
-  jobTitle            String?
-  status              String                       @default("Active")
-  joiningDate         DateTime
-  terminationDate     DateTime?
-  employmentType      String                       @default("Full-Time")
-  avatarUrl           String?
-  avatarKey           String?
-  departmentId        Int?
-  department          Department?                  @relation(fields: [departmentId], references: [id])
-  designationId       Int?
-  designation         Designation?                 @relation(fields: [designationId], references: [id])
-  reportingToId       Int?
-  reportingTo         Employee?                    @relation("EmployeeHierarchy", fields: [reportingToId], references: [id])
-  directReports       Employee[]                   @relation("EmployeeHierarchy")
-  userId              Int?                         @unique
-  user                User?                        @relation(fields: [userId], references: [id])
-  documents           EmployeeDocument[]
-  dutyAssignments     DutyScheduleAssignment[]
-  leaveAllocations    EmployeeLeaveAllocation[]
-  leaveRequests       LeaveRequest[]
-  attendances         Attendance[]
-  attendanceMethods   EmployeeAttendanceMethod[]
-  attendanceIpRules   EmployeeAttendanceIpRule[]
-  attendanceLocations EmployeeAttendanceLocation[]
-  attendanceDevices   EmployeeAttendanceDevice[]
-  attendanceRules     EmployeeAttendanceRules?
-  documentRequests    DocumentRequest[]
-  assetAssignments    AssetAssignment[]
-  payCycleId          Int?
-  payCycle            PayCycle?                    @relation(fields: [payCycleId], references: [id])
-  payRates            EmployeePayRate[]
-  workReports         WorkReport[]
-  payslips            Payslip[]
-  organizedMeetings   Meeting[]                    @relation("MeetingOrganizer")
-  meetingParticipations MeetingParticipant[]       @relation("MeetingParticipant")
-  createdAt           DateTime                     @default(now())
-  updatedAt           DateTime                     @updatedAt
+  id                    Int                          @id @default(autoincrement())
+  employeeCode          String                       @unique
+  firstName             String
+  lastName              String
+  email                 String                       @unique
+  phoneNumber           String?
+  gender                String?
+  dateOfBirth           DateTime?
+  jobTitle              String?
+  status                String                       @default("Active")
+  joiningDate           DateTime
+  terminationDate       DateTime?
+  employmentType        String                       @default("Full-Time")
+  avatarUrl             String?
+  avatarKey             String?
+  departmentId          Int?
+  department            Department?                  @relation(fields: [departmentId], references: [id])
+  designationId         Int?
+  designation           Designation?                 @relation(fields: [designationId], references: [id])
+  reportingToId         Int?
+  reportingTo           Employee?                    @relation("EmployeeHierarchy", fields: [reportingToId], references: [id])
+  directReports         Employee[]                   @relation("EmployeeHierarchy")
+  userId                Int?                         @unique
+  user                  User?                        @relation(fields: [userId], references: [id])
+  documents             EmployeeDocument[]
+  dutyAssignments       DutyScheduleAssignment[]
+  leaveAllocations      EmployeeLeaveAllocation[]
+  leaveRequests         LeaveRequest[]
+  attendances           Attendance[]
+  attendanceMethods     EmployeeAttendanceMethod[]
+  attendanceIpRules     EmployeeAttendanceIpRule[]
+  attendanceLocations   EmployeeAttendanceLocation[]
+  attendanceDevices     EmployeeAttendanceDevice[]
+  attendanceRules       EmployeeAttendanceRules?
+  documentRequests      DocumentRequest[]
+  assetAssignments      AssetAssignment[]
+  payCycleId            Int?
+  payCycle              PayCycle?                    @relation(fields: [payCycleId], references: [id])
+  payRates              EmployeePayRate[]
+  workReports           WorkReport[]
+  payslips              Payslip[]
+  organizedMeetings     Meeting[]                    @relation("MeetingOrganizer")
+  meetingParticipations MeetingParticipant[]         @relation("MeetingParticipant")
+  createdAt             DateTime                     @default(now())
+  updatedAt             DateTime                     @updatedAt
 }
 
 model EmployeeDocument {
@@ -421,6 +422,20 @@ model GeneralSettings {
   updatedBy     User?    @relation("GeneralSettingsUpdatedBy", fields: [updatedById], references: [id])
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+// Singleton (one row): tenant's chosen LLM provider + credentials for assessment
+// question generation / short-text grading. apiKeyCiphertext is AES-256-GCM encrypted
+// at rest (see src/utils/encryption.ts) — never returned decrypted outside modules/llm.
+model AiSettings {
+  id               Int      @id @default(autoincrement())
+  provider         String   @default("GROQ") // "GROQ" | "GEMINI"
+  model            String? // null = provider default model
+  apiKeyCiphertext String?  @db.Text // format "v1:<ivB64>:<tagB64>:<ctB64>"
+  updatedById      Int?
+  updatedBy        User?    @relation("AiSettingsUpdatedBy", fields: [updatedById], references: [id])
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 // Meeting & Appointment Scheduler — an organizer proposes a meeting with internal
@@ -833,32 +848,33 @@ model DocumentRequestApproval {
 // ── Job Recruitment & ATS ────────────────────────────────────────────────
 
 model Job {
-  id                 Int                    @id @default(autoincrement())
-  title              String
-  slug               String                 @unique // slugify(title) + short nanoid suffix on collision
-  vacancyCount       Int                    @default(1)
-  location           String? // free-text city/region, or "Remote"
-  skills             Json // string[]
-  minExperienceYears Int?
-  maxExperienceYears Int?
-  jobType            String                 @default("FULL_TIME") // "FULL_TIME" | "PART_TIME" | "CONTRACT" | "INTERNSHIP" | "CASUAL"
-  salaryType         String                 @default("ANNUAL") // "HOURLY" | "ANNUAL"
-  salaryMin          Float?
-  salaryMax          Float?
-  description        String                 @db.Text
-  status             String                 @default("Draft") // "Draft" | "Open" | "Closed" | "Archived"
-  departmentId       Int?
-  department         Department?            @relation(fields: [departmentId], references: [id])
-  closesAt           DateTime?
-  postedById         Int
-  postedBy           User                   @relation("JobPostedBy", fields: [postedById], references: [id])
-  updatedById        Int?
-  updatedBy          User?                  @relation("JobUpdatedBy", fields: [updatedById], references: [id])
-  screeningQuestions JobScreeningQuestion[]
-  applications       Application[]
-  assessment         Assessment?
-  createdAt          DateTime               @default(now())
-  updatedAt          DateTime               @updatedAt
+  id                     Int                    @id @default(autoincrement())
+  title                  String
+  slug                   String                 @unique // slugify(title) + short nanoid suffix on collision
+  vacancyCount           Int                    @default(1)
+  location               String? // free-text city/region, or "Remote"
+  skills                 Json // string[]
+  minExperienceYears     Int?
+  maxExperienceYears     Int?
+  jobType                String                 @default("FULL_TIME") // "FULL_TIME" | "PART_TIME" | "CONTRACT" | "INTERNSHIP" | "CASUAL"
+  salaryType             String                 @default("ANNUAL") // "HOURLY" | "ANNUAL"
+  salaryMin              Float?
+  salaryMax              Float?
+  description            String                 @db.Text
+  status                 String                 @default("Draft") // "Draft" | "Open" | "Closed" | "Archived"
+  departmentId           Int?
+  department             Department?            @relation(fields: [departmentId], references: [id])
+  closesAt               DateTime?
+  assessmentDeadlineDays Int? // days from Application.createdAt the candidate has to complete the screening test; null = no deadline
+  postedById             Int
+  postedBy               User                   @relation("JobPostedBy", fields: [postedById], references: [id])
+  updatedById            Int?
+  updatedBy              User?                  @relation("JobUpdatedBy", fields: [updatedById], references: [id])
+  screeningQuestions     JobScreeningQuestion[]
+  applications           Application[]
+  assessment             Assessment?
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
 
   @@index([status])
   @@index([departmentId])
@@ -984,6 +1000,7 @@ model Assessment {
   title                String                 @default("Assessment")
   instructions         String?                @db.Text
   passThresholdPercent Int                    @default(60)
+  timeLimitMinutes     Int? // total exam duration; null = untimed
   generationSource     String                 @default("MANUAL") // "MANUAL" | "AI_GENERATED" | "AI_GENERATED_EDITED"
   status               String                 @default("Draft") // "Draft" | "Published"
   questions            AssessmentQuestion[]
@@ -1015,23 +1032,26 @@ model AssessmentQuestion {
 }
 
 model AssessmentInvitation {
-  id            Int                @id @default(autoincrement())
-  applicationId Int                @unique // one attempt per application
-  application   Application        @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  assessmentId  Int
-  assessment    Assessment         @relation(fields: [assessmentId], references: [id])
-  status        String             @default("INVITED") // "INVITED" | "IN_PROGRESS" | "SUBMITTED" | "GRADING" | "GRADED"
-  totalPoints   Int?
-  scoredPoints  Float?
-  scorePercent  Float?
-  outcome       String? // "PASSED" | "PASSED_PENDING_REVIEW" | "FAILED" | null
-  invitedAt     DateTime           @default(now())
-  startedAt     DateTime?
-  submittedAt   DateTime?
-  gradedAt      DateTime?
-  answers       AssessmentAnswer[]
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
+  id                      Int                @id @default(autoincrement())
+  applicationId           Int                @unique // one attempt per application
+  application             Application        @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  assessmentId            Int
+  assessment              Assessment         @relation(fields: [assessmentId], references: [id])
+  status                  String             @default("INVITED") // "INVITED" | "IN_PROGRESS" | "SUBMITTED" | "GRADING" | "GRADED" | "EXPIRED"
+  totalPoints             Int?
+  scoredPoints            Float?
+  scorePercent            Float?
+  outcome                 String? // "PASSED" | "PASSED_PENDING_REVIEW" | "FAILED" | null
+  participationDeadlineAt DateTime? // snapshot at invite time: application.createdAt + job.assessmentDeadlineDays
+  examExpiresAt           DateTime? // snapshot on INVITED -> IN_PROGRESS: startedAt + assessment.timeLimitMinutes
+  currentQuestionIndex    Int                @default(0) // server-owned pointer for one-question-at-a-time delivery, ordered by AssessmentQuestion.sortOrder
+  invitedAt               DateTime           @default(now())
+  startedAt               DateTime?
+  submittedAt             DateTime?
+  gradedAt                DateTime?
+  answers                 AssessmentAnswer[]
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime           @updatedAt
 
   @@index([assessmentId])
 }

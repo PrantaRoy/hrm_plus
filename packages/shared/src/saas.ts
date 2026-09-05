@@ -5,6 +5,12 @@ export interface PackageDto {
   validityDays: number | null;
   isActive: boolean;
   createdAt: string;
+  description: string | null;
+  features: string[];
+  isPopular: boolean;
+  billingPeriod: string | null;
+  ctaLabel: string | null;
+  sortOrder: number;
 }
 
 export interface CreatePackageInput {
@@ -12,6 +18,12 @@ export interface CreatePackageInput {
   price: number;
   validityDays: number | null;
   isActive?: boolean;
+  description?: string | null;
+  features?: string[];
+  isPopular?: boolean;
+  billingPeriod?: string | null;
+  ctaLabel?: string | null;
+  sortOrder?: number;
 }
 
 export type UpdatePackageInput = Partial<CreatePackageInput>;

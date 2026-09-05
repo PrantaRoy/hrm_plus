@@ -5,9 +5,10 @@ import {
   generateAssessmentWithAiHandler,
   getAssessmentHandler,
   getAssignedAssessmentHandler,
+  getCurrentQuestionHandler,
   publishAssessmentHandler,
   resendInviteHandler,
-  submitAssessmentAnswersHandler,
+  submitCurrentAnswerHandler,
   upsertAssessmentHandler,
 } from "./assessment.controller";
 
@@ -23,4 +24,5 @@ adminAssessmentRouter.post("/applications/:applicationId/resend-invite", resendI
 export const publicAssessmentRouter = Router();
 publicAssessmentRouter.use(requireCandidateToken);
 publicAssessmentRouter.get("/", getAssignedAssessmentHandler);
-publicAssessmentRouter.post("/submit", submitAssessmentAnswersHandler);
+publicAssessmentRouter.get("/current-question", getCurrentQuestionHandler);
+publicAssessmentRouter.post("/answer", submitCurrentAnswerHandler);

@@ -20,17 +20,21 @@ export default function AssessmentBuilder() {
   const [title, setTitle] = useState("Assessment");
   const [instructions, setInstructions] = useState("");
   const [passThresholdPercent, setPassThresholdPercent] = useState(60);
+  const [timeLimitMinutes, setTimeLimitMinutes] = useState("");
   const [questions, setQuestions] = useState<UpsertAssessmentQuestionInput[]>([]);
 
   const [generating, setGenerating] = useState(false);
   const [mcqCount, setMcqCount] = useState(4);
+  const [trueFalseCount, setTrueFalseCount] = useState(2);
   const [shortTextCount, setShortTextCount] = useState(2);
+  const [customPrompt, setCustomPrompt] = useState("");
 
   function applyAssessment(a: AssessmentDto) {
     setAssessment(a);
     setTitle(a.title);
     setInstructions(a.instructions ?? "");
     setPassThresholdPercent(a.passThresholdPercent);
+    setTimeLimitMinutes(a.timeLimitMinutes?.toString() ?? "");
     setQuestions(
       a.questions.map((q) => ({
         type: q.type,
@@ -62,7 +66,13 @@ export default function AssessmentBuilder() {
     setSubmitting(true);
     setError(null);
     try {
-      const saved = await upsertAssessment(jobId, { title, instructions: instructions || undefined, passThresholdPercent, questions });
+      const saved = await upsertAssessment(jobId, {
+        title,
+        instructions: instructions || undefined,
+        passThresholdPercent,
+        timeLimitMinutes: timeLimitMinutes ? Number(timeLimitMinutes) : null,
+        questions,
+      });
       applyAssessment(saved);
     } catch (err: any) {
       setError(err.response?.data?.error?.message ?? "Failed to save assessment");
@@ -75,7 +85,13 @@ export default function AssessmentBuilder() {
     setGenerating(true);
     setError(null);
     try {
-      const generated = await generateAssessmentWithAi(jobId, { mcqCount, shortTextCount, passThresholdPercent });
+      const generated = await generateAssessmentWithAi(jobId, {
+        mcqCount,
+        trueFalseCount,
+        shortTextCount,
+        passThresholdPercent,
+        customPrompt: customPrompt.trim() || undefined,
+      });
       applyAssessment(generated);
     } catch (err: any) {
       setError(err.response?.data?.error?.message ?? "Failed to generate questions with AI");
@@ -133,19 +149,34 @@ export default function AssessmentBuilder() {
       {error && <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</div>}
 
       <Card title="Generate with AI" description="Draft job-specific questions with AI, then review and edit before publishing.">
-        <div className="flex flex-wrap items-end gap-3">
-          <Field label="MCQ count">
-            <Input type="number" min={0} max={20} value={mcqCount} onChange={(e) => setMcqCount(Number(e.target.value))} className="w-24" />
-          </Field>
-          <Field label="Short answer count">
-            <Input
-              type="number"
-              min={0}
-              max={20}
-              value={shortTextCount}
-              onChange={(e) => setShortTextCount(Number(e.target.value))}
-              className="w-24"
-            />
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-end gap-3">
+            <Field label="MCQ count">
+              <Input type="number" min={0} max={20} value={mcqCount} onChange={(e) => setMcqCount(Number(e.target.value))} className="w-24" />
+            </Field>
+            <Field label="True/False count">
+              <Input
+                type="number"
+                min={0}
+                max={20}
+                value={trueFalseCount}
+                onChange={(e) => setTrueFalseCount(Number(e.target.value))}
+                className="w-24"
+              />
+            </Field>
+            <Field label="Short answer count">
+              <Input
+                type="number"
+                min={0}
+                max={20}
+                value={shortTextCount}
+                onChange={(e) => setShortTextCount(Number(e.target.value))}
+                className="w-24"
+              />
+            </Field>
+          </div>
+          <Field label="Custom prompt (optional)" helperText="Steer the AI, e.g. 'focus on React hooks and state management'.">
+            <Textarea rows={2} value={customPrompt} onChange={(e) => setCustomPrompt(e.target.value)} />
           </Field>
           <Button type="button" variant="secondary" isLoading={generating} disabled={locked} onClick={handleGenerate}>
             Generate with AI
@@ -156,7 +187,7 @@ export default function AssessmentBuilder() {
       <Card>
         <form onSubmit={handleSave} className="space-y-4">
           <fieldset disabled={locked} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <Field label="Title" required>
                 <Input required value={title} onChange={(e) => setTitle(e.target.value)} />
               </Field>
@@ -168,6 +199,15 @@ export default function AssessmentBuilder() {
                   required
                   value={passThresholdPercent}
                   onChange={(e) => setPassThresholdPercent(Number(e.target.value))}
+                />
+              </Field>
+              <Field label="Time limit (minutes)" helperText="Leave blank for untimed">
+                <Input
+                  type="number"
+                  min={1}
+                  max={600}
+                  value={timeLimitMinutes}
+                  onChange={(e) => setTimeLimitMinutes(e.target.value)}
                 />
               </Field>
             </div>

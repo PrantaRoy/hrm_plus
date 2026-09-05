@@ -13,6 +13,7 @@ const envSchema = z.object({
   JWT_REFRESH_TTL: z.string().default("7d"),
   JWT_SAAS_ACCESS_SECRET: z.string().min(1),
   JWT_SAAS_ACCESS_TTL: z.string().default("30m"),
+  SETTINGS_ENCRYPTION_KEY: z.string().min(32),
   PORT: z.string().default("4000"),
   NODE_ENV: z.string().default("development"),
   CORS_ORIGIN: z.string().default("http://localhost:5173,http://localhost:5174"),
@@ -40,12 +41,19 @@ const envSchema = z.object({
   REDIS_URL: z.string().default("redis://localhost:6379"),
   ASSESSMENT_GRADING_CONCURRENCY: z.string().default("5"),
 
-  // LLM provider — assessment question generation + short-text grading
-  LLM_PROVIDER: z.enum(["openai", "anthropic"]).default("openai"),
+  // LLM provider — assessment question generation + short-text grading.
+  // Tenants normally configure their own provider/key via the AiSettings module
+  // (apps/backend/src/modules/ai-settings); these env vars are only the fallback
+  // used when a tenant hasn't configured anything yet.
+  LLM_PROVIDER: z.enum(["openai", "anthropic", "groq", "gemini"]).default("groq"),
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_MODEL: z.string().default("gpt-4o-mini"),
   ANTHROPIC_API_KEY: z.string().optional(),
   ANTHROPIC_MODEL: z.string().default("claude-3-5-haiku-latest"),
+  GROQ_API_KEY: z.string().optional(),
+  GROQ_MODEL: z.string().default("llama-3.1-8b-instant"),
+  GEMINI_API_KEY: z.string().optional(),
+  GEMINI_MODEL: z.string().default("gemini-1.5-flash"),
 });
 
 const parsed = envSchema.safeParse(process.env);

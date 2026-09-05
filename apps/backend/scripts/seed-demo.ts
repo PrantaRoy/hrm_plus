@@ -45,7 +45,12 @@ import { TenantContext } from "../src/modules/document-requests/documentRequest.
 import { createAsset, assignAsset, returnAsset, retireAsset } from "../src/modules/assets/asset.service";
 import { createJob, publishJob, closeJob } from "../src/modules/jobs/job.service";
 import { getApplicationById } from "../src/modules/applications/application.service";
-import { upsertAssessment, publishAssessment, submitAssessmentAnswers } from "../src/modules/assessments/assessment.service";
+import {
+  upsertAssessment,
+  publishAssessment,
+  getAssignedAssessment,
+  submitCurrentAnswer,
+} from "../src/modules/assessments/assessment.service";
 import { moveApplicationStage } from "../src/modules/pipeline/pipeline.service";
 import { createPayCycle, assignEmployeesToPayCycle } from "../src/modules/payroll/payCycle.service";
 import { createPayRate } from "../src/modules/payroll/payRate.service";
@@ -1031,6 +1036,21 @@ export async function seedFullDemoData(
   const allCorrect = (questions: { id: number; correctOptionIndex: number | null }[]) =>
     questions.map((q) => ({ questionId: q.id, selectedOptionIndex: q.correctOptionIndex ?? 0 }));
 
+  // Steps through the one-question-at-a-time exam flow: starts the attempt (flips
+  // INVITED -> IN_PROGRESS), then answers each question in order — answers must be
+  // passed in the assessment's question order (matching assessment.questions, i.e.
+  // sortOrder), since submitCurrentAnswer rejects any answer that isn't for the
+  // question currently pointed at by the invitation.
+  async function submitAllAnswers(
+    applicationId: number,
+    answers: Array<{ questionId: number; selectedOptionIndex?: number }>
+  ) {
+    await getAssignedAssessment(tc, applicationId);
+    for (const answer of answers) {
+      await submitCurrentAnswer(tc, applicationId, answer, tenant.slug);
+    }
+  }
+
   // Moves an application into AI_ASSESSMENT and creates its invitation directly,
   // rather than via moveApplicationStage/inviteCandidateToAssessment. Those send a
   // real invite email, which (with no SMTP_HOST configured, per .env.example) falls
@@ -1055,7 +1075,7 @@ export async function seedFullDemoData(
   // Ravi: aces the assessment, auto-advances to VIRTUAL_INTERVIEW, then walked through
   // to HIRED.
   await moveToAssessmentStage(ravi.id, engAssessment.id);
-  await submitAssessmentAnswers(tc, ravi.id, { answers: allCorrect(engAssessment.questions) }, tenant.slug);
+  await submitAllAnswers(ravi.id, allCorrect(engAssessment.questions));
   let raviApp = await getApplicationById(tc, ravi.id);
   if (raviApp.stage === "AI_ASSESSMENT") raviApp = await moveApplicationStage(tc, ravi.id, "VIRTUAL_INTERVIEW", admin.id);
   await moveApplicationStage(tc, ravi.id, "IN_PERSON_INTERVIEW", admin.id);
@@ -1064,15 +1084,16 @@ export async function seedFullDemoData(
 
   // Mei: also aces it, left sitting at VIRTUAL_INTERVIEW — a mid-pipeline candidate.
   await moveToAssessmentStage(mei.id, engAssessment.id);
-  await submitAssessmentAnswers(tc, mei.id, { answers: allCorrect(engAssessment.questions) }, tenant.slug);
+  await submitAllAnswers(mei.id, allCorrect(engAssessment.questions));
 
   // Ben: answers everything wrong → FAILED → manually rejected.
   await moveToAssessmentStage(ben.id, engAssessment.id);
-  await submitAssessmentAnswers(
-    tc,
+  await submitAllAnswers(
     ben.id,
-    { answers: engAssessment.questions.map((q) => ({ questionId: q.id, selectedOptionIndex: wrongIndex(q.correctOptionIndex ?? 0, q.options?.length ?? 2) })) },
-    tenant.slug
+    engAssessment.questions.map((q) => ({
+      questionId: q.id,
+      selectedOptionIndex: wrongIndex(q.correctOptionIndex ?? 0, q.options?.length ?? 2),
+    }))
   );
   const benApp = await getApplicationById(tc, ben.id);
   if (benApp.stage !== "REJECTED") {
@@ -1081,7 +1102,7 @@ export async function seedFullDemoData(
 
   // Tom: aces the sales quiz, auto-advances, then walked to OFFER.
   await moveToAssessmentStage(tom.id, salesAssessment.id);
-  await submitAssessmentAnswers(tc, tom.id, { answers: allCorrect(salesAssessment.questions) }, tenant.slug);
+  await submitAllAnswers(tom.id, allCorrect(salesAssessment.questions));
   let tomApp = await getApplicationById(tc, tom.id);
   if (tomApp.stage === "AI_ASSESSMENT") tomApp = await moveApplicationStage(tc, tom.id, "VIRTUAL_INTERVIEW", admin.id);
   await moveApplicationStage(tc, tom.id, "OFFER", admin.id);

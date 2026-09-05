@@ -46,7 +46,11 @@ export type {
   TimeFormat,
   GeneralSettingsDto,
   UpdateGeneralSettingsInput,
+  AiProvider,
+  AiSettingsDto,
+  UpdateAiSettingsInput,
 } from "./settings";
+export { AI_PROVIDERS } from "./settings";
 
 export type {
   LoginRequest,
@@ -302,9 +306,11 @@ export type {
   UpsertAssessmentQuestionInput,
   GenerateAssessmentWithAiInput,
   AssessmentInvitationDto,
-  PublicAssessmentDto,
   PublicAssessmentQuestionDto,
-  SubmitAssessmentAnswersInput,
+  PublicAssessmentMetaDto,
+  PublicCurrentQuestionDto,
+  SubmitCurrentAnswerInput,
+  SubmitCurrentAnswerResponse,
 } from "./assessment";
 
 export type { CandidatePortalRedeemResponse, WithdrawApplicationInput } from "./candidatePortal";
@@ -385,6 +391,48 @@ export type {
 } from "./legalPage";
 
 export type { PublicSiteContentDto } from "./publicSiteContent";
+
+export {
+  SAAS_LANDING_BLOCK_TYPES,
+  SAAS_LANDING_SECTION_KEYS,
+} from "./saasLanding";
+export type {
+  SaasLandingBlockType,
+  SaasLandingSectionKey,
+  SaasNavLink,
+  SaasFooterColumn,
+  SaasSocialLink,
+  SaasLandingSectionConfig,
+  SaasSiteSettingsDto,
+  PublicSaasSiteSettingsDto,
+  UpdateSaasSiteSettingsInput,
+  SaasLandingBlockDto,
+  PublicSaasLandingBlockDto,
+  CreateSaasLandingBlockInput,
+  UpdateSaasLandingBlockInput,
+  ReorderSaasLandingBlocksInput,
+  SaasLandingContentDto,
+} from "./saasLanding";
+
+export { SAAS_BLOG_POST_STATUSES } from "./saasBlog";
+export type {
+  SaasBlogPostStatus,
+  SaasBlogPostDto,
+  PublicSaasBlogPostListItemDto,
+  PublicSaasBlogPostDto,
+  CreateSaasBlogPostInput,
+  UpdateSaasBlogPostInput,
+  ListSaasBlogPostsQuery,
+} from "./saasBlog";
+
+export { SAAS_CONTACT_STATUSES } from "./saasContact";
+export type {
+  SaasContactStatus,
+  SaasContactSubmissionDto,
+  SubmitSaasContactInput,
+  UpdateSaasContactStatusInput,
+  ListSaasContactQuery,
+} from "./saasContact";
 
 export { ASSET_CATEGORIES, ASSET_STATUSES, VEHICLE_ASSET_CATEGORIES, FBT_DEFAULT_CATEGORIES } from "./asset";
 export type {

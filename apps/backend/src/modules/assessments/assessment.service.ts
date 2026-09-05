@@ -5,8 +5,10 @@ import {
   AssessmentOutcome,
   CreateOrUpdateAssessmentInput,
   GenerateAssessmentWithAiInput,
-  PublicAssessmentDto,
-  SubmitAssessmentAnswersInput,
+  PublicAssessmentMetaDto,
+  PublicCurrentQuestionDto,
+  SubmitCurrentAnswerInput,
+  SubmitCurrentAnswerResponse,
 } from "@hrm-plus/shared";
 import { ApiError } from "../../utils/ApiError";
 import { logger } from "../../logger";
@@ -21,7 +23,8 @@ import {
   invitationInclude,
   toAssessmentDto,
   toAssessmentInvitationDto,
-  toPublicAssessmentDto,
+  toPublicAssessmentMetaDto,
+  toPublicCurrentQuestionDto,
 } from "./assessment.mapper";
 
 const DEFAULT_PASS_THRESHOLD = 60;
@@ -103,6 +106,7 @@ export async function upsertAssessment(
             title: input.title,
             instructions: input.instructions,
             passThresholdPercent: input.passThresholdPercent,
+            timeLimitMinutes: input.timeLimitMinutes,
             generationSource: existing.generationSource === "AI_GENERATED" ? "AI_GENERATED_EDITED" : existing.generationSource,
             updatedById: userId,
           },
@@ -113,6 +117,7 @@ export async function upsertAssessment(
             title: input.title ?? "Assessment",
             instructions: input.instructions,
             passThresholdPercent: input.passThresholdPercent ?? DEFAULT_PASS_THRESHOLD,
+            timeLimitMinutes: input.timeLimitMinutes,
             createdById: userId,
           },
         });
@@ -151,19 +156,24 @@ export async function generateAssessmentWithAi(
   userId: number
 ): Promise<AssessmentDto> {
   const job = await assertJobExists(prisma, jobId);
+  if (input.mcqCount + input.trueFalseCount + input.shortTextCount === 0) {
+    throw ApiError.badRequest("Request at least one question to generate");
+  }
   const existing = await prisma.assessment.findUnique({ where: { jobId } });
   if (existing) {
     await assertQuestionsEditable(prisma, existing.id);
   }
 
-  const generated = await generateAssessmentQuestions({
+  const generated = await generateAssessmentQuestions(prisma, {
     jobTitle: job.title,
     skills: (job.skills as string[]) ?? [],
     minExperienceYears: job.minExperienceYears,
     maxExperienceYears: job.maxExperienceYears,
     description: job.description,
     mcqCount: input.mcqCount,
+    trueFalseCount: input.trueFalseCount,
     shortTextCount: input.shortTextCount,
+    customPrompt: input.customPrompt,
   });
 
   const assessment = await prisma.$transaction(async (tx) => {
@@ -191,8 +201,8 @@ export async function generateAssessmentWithAi(
         assessmentId: record.id,
         type: q.type,
         prompt: q.prompt,
-        options: q.type === "MCQ" ? q.options : undefined,
-        correctOptionIndex: q.type === "MCQ" ? q.correctOptionIndex : undefined,
+        options: q.type === "MCQ" ? q.options : q.type === "TRUE_FALSE" ? TRUE_FALSE_OPTIONS : undefined,
+        correctOptionIndex: q.type === "MCQ" || q.type === "TRUE_FALSE" ? q.correctOptionIndex : undefined,
         points: q.points,
         sortOrder: index,
       })),
@@ -229,12 +239,19 @@ export async function inviteCandidateToAssessment(
 
   let invitation = await prisma.assessmentInvitation.findUnique({ where: { applicationId }, include: invitationInclude });
   if (!invitation) {
+    // Snapshotted at invite time (not recomputed later) so a subsequent edit to
+    // Job.assessmentDeadlineDays never retroactively moves a deadline already
+    // communicated to the candidate.
+    const participationDeadlineAt = application.job.assessmentDeadlineDays
+      ? new Date(application.createdAt.getTime() + application.job.assessmentDeadlineDays * 24 * 60 * 60 * 1000)
+      : null;
+
     invitation = await prisma.assessmentInvitation.create({
-      data: { applicationId, assessmentId: assessment.id },
+      data: { applicationId, assessmentId: assessment.id, participationDeadlineAt },
       include: invitationInclude,
     });
   } else if (invitation.status !== "INVITED" && invitation.status !== "IN_PROGRESS") {
-    // Already submitted/graded — nothing to (re)send, just return current state.
+    // Already submitted/graded/expired — nothing to (re)send, just return current state.
     return toAssessmentInvitationDto(invitation);
   }
 
@@ -245,131 +262,212 @@ export async function inviteCandidateToAssessment(
   return toAssessmentInvitationDto(invitation);
 }
 
-export async function getAssignedAssessment(prisma: PrismaClient, applicationId: number): Promise<PublicAssessmentDto> {
-  const invitation = await prisma.assessmentInvitation.findUnique({ where: { applicationId } });
-  if (!invitation) {
-    throw ApiError.notFound("No assessment is assigned to this application");
-  }
+type LiveInvitation = NonNullable<Awaited<ReturnType<typeof loadInvitationRow>>>;
 
-  if (invitation.status === "INVITED") {
-    await prisma.assessmentInvitation.update({
-      where: { id: invitation.id },
-      data: { status: "IN_PROGRESS", startedAt: new Date() },
-    });
-  }
-
-  const assessment = await prisma.assessment.findUniqueOrThrow({ where: { id: invitation.assessmentId }, include: assessmentInclude });
-  const status = invitation.status === "INVITED" ? "IN_PROGRESS" : (invitation.status as PublicAssessmentDto["status"]);
-  return toPublicAssessmentDto(assessment, status);
+function loadInvitationRow(prisma: PrismaClient, applicationId: number) {
+  return prisma.assessmentInvitation.findUnique({ where: { applicationId } });
 }
 
-export async function submitAssessmentAnswers(
-  prisma: PrismaClient,
-  applicationId: number,
-  input: SubmitAssessmentAnswersInput,
-  tenantSlug: string
-): Promise<AssessmentInvitationDto> {
-  const invitation = await prisma.assessmentInvitation.findUnique({ where: { applicationId } });
+/**
+ * Single choke point for deadline/timeout enforcement — every candidate-facing
+ * assessment action loads through here first. Fails closed: a lapsed deadline or
+ * timer flips the invitation to its terminal state and throws before the caller
+ * can read/mutate anything further.
+ */
+async function loadLiveInvitationOrExpire(prisma: PrismaClient, applicationId: number): Promise<LiveInvitation> {
+  const invitation = await loadInvitationRow(prisma, applicationId);
   if (!invitation) {
     throw ApiError.notFound("No assessment is assigned to this application");
   }
-  if (invitation.status !== "INVITED" && invitation.status !== "IN_PROGRESS") {
+
+  const now = new Date();
+
+  if (invitation.status === "EXPIRED") {
+    throw ApiError.gone("This assessment's participation deadline has passed");
+  }
+  if (invitation.status === "SUBMITTED" || invitation.status === "GRADING" || invitation.status === "GRADED") {
     throw ApiError.conflict("This assessment has already been submitted");
   }
 
-  const questions = await prisma.assessmentQuestion.findMany({ where: { assessmentId: invitation.assessmentId } });
-  const questionsById = new Map(questions.map((q) => [q.id, q]));
-
-  const queuedAnswerQuestionIds: number[] = [];
-
-  await prisma.$transaction(async (tx) => {
-    for (const answer of input.answers) {
-      const question = questionsById.get(answer.questionId);
-      if (!question) {
-        throw ApiError.badRequest("One or more answers reference an unknown question");
-      }
-
-      if (question.type === "MCQ" || question.type === "TRUE_FALSE") {
-        const isCorrect = answer.selectedOptionIndex === question.correctOptionIndex;
-        await tx.assessmentAnswer.create({
-          data: {
-            invitationId: invitation.id,
-            questionId: question.id,
-            selectedOptionIndex: answer.selectedOptionIndex,
-            isCorrect,
-            pointsAwarded: isCorrect ? question.points : 0,
-            gradingStatus: "INSTANT",
-            gradedAt: new Date(),
-          },
-        });
-      } else if (question.type === "MULTIPLE_SELECT") {
-        // Full credit only on an exact set match — no partial credit for a subset of correct options.
-        const correctSet = new Set((question.correctOptionIndexes as number[] | null) ?? []);
-        const selectedIndexes = answer.selectedOptionIndexes ?? [];
-        const selectedSet = new Set(selectedIndexes);
-        const isCorrect = correctSet.size === selectedSet.size && [...correctSet].every((i) => selectedSet.has(i));
-        await tx.assessmentAnswer.create({
-          data: {
-            invitationId: invitation.id,
-            questionId: question.id,
-            selectedOptionIndexes: selectedIndexes,
-            isCorrect,
-            pointsAwarded: isCorrect ? question.points : 0,
-            gradingStatus: "INSTANT",
-            gradedAt: new Date(),
-          },
-        });
-      } else {
-        await tx.assessmentAnswer.create({
-          data: {
-            invitationId: invitation.id,
-            questionId: question.id,
-            textAnswer: answer.textAnswer,
-            gradingStatus: "QUEUED",
-          },
-        });
-        queuedAnswerQuestionIds.push(question.id);
-      }
-    }
-
-    await tx.assessmentInvitation.update({
-      where: { id: invitation.id },
-      data: { status: "SUBMITTED", submittedAt: new Date() },
-    });
-  });
-
-  if (queuedAnswerQuestionIds.length > 0) {
-    await prisma.assessmentInvitation.update({ where: { id: invitation.id }, data: { status: "GRADING" } });
-    const queuedAnswers = await prisma.assessmentAnswer.findMany({
-      where: { invitationId: invitation.id, gradingStatus: "QUEUED" },
-    });
-    for (const answer of queuedAnswers) {
-      await enqueueAssessmentGradingJob({ tenantSlug, answerId: answer.id });
-    }
-  } else {
-    await finalizeInvitationIfComplete(prisma, invitation.id);
+  if (invitation.status === "INVITED" && invitation.participationDeadlineAt && invitation.participationDeadlineAt < now) {
+    await prisma.assessmentInvitation.update({ where: { id: invitation.id }, data: { status: "EXPIRED" } });
+    throw ApiError.gone("This assessment's participation deadline has passed");
   }
 
-  const updated = await prisma.assessmentInvitation.findUniqueOrThrow({ where: { id: invitation.id }, include: invitationInclude });
-  return toAssessmentInvitationDto(updated);
+  if (invitation.status === "IN_PROGRESS" && invitation.examExpiresAt && invitation.examExpiresAt < now) {
+    await expireInvitation(prisma, invitation.id);
+    throw ApiError.gone("Time's up — this assessment has been closed and submitted automatically");
+  }
+
+  return invitation;
+}
+
+async function finalizeOrMarkGrading(prisma: PrismaClient, invitationId: number): Promise<void> {
+  const pendingCount = await prisma.assessmentAnswer.count({
+    where: { invitationId, gradingStatus: { in: ["PENDING", "QUEUED"] } },
+  });
+  if (pendingCount > 0) {
+    await prisma.assessmentInvitation.update({ where: { id: invitationId }, data: { status: "GRADING" } });
+  } else {
+    await finalizeInvitationIfComplete(prisma, invitationId);
+  }
+}
+
+/**
+ * Called both synchronously (candidate hits the API after their timer ran out) and
+ * from the BullMQ safety-net sweep (candidate simply closed the tab). Whatever was
+ * answered stands; unanswered questions score 0 via finalizeInvitationIfComplete.
+ */
+export async function expireInvitation(prisma: PrismaClient, invitationId: number): Promise<void> {
+  const invitation = await prisma.assessmentInvitation.findUnique({ where: { id: invitationId } });
+  if (!invitation || invitation.status !== "IN_PROGRESS") return;
+
+  await prisma.assessmentInvitation.update({
+    where: { id: invitationId },
+    data: { status: "SUBMITTED", submittedAt: invitation.submittedAt ?? new Date() },
+  });
+  await finalizeOrMarkGrading(prisma, invitationId);
+}
+
+export async function getAssignedAssessment(prisma: PrismaClient, applicationId: number): Promise<PublicAssessmentMetaDto> {
+  let invitation = await loadLiveInvitationOrExpire(prisma, applicationId);
+  const assessment = await prisma.assessment.findUniqueOrThrow({ where: { id: invitation.assessmentId }, include: assessmentInclude });
+
+  if (invitation.status === "INVITED") {
+    const startedAt = new Date();
+    const examExpiresAt = assessment.timeLimitMinutes ? new Date(startedAt.getTime() + assessment.timeLimitMinutes * 60 * 1000) : null;
+    invitation = await prisma.assessmentInvitation.update({
+      where: { id: invitation.id },
+      data: { status: "IN_PROGRESS", startedAt, examExpiresAt },
+    });
+  }
+
+  return toPublicAssessmentMetaDto(assessment, invitation);
+}
+
+export async function getCurrentQuestion(prisma: PrismaClient, applicationId: number): Promise<PublicCurrentQuestionDto> {
+  const invitation = await loadLiveInvitationOrExpire(prisma, applicationId);
+  if (invitation.status !== "IN_PROGRESS") {
+    throw ApiError.conflict("This assessment has not been started yet");
+  }
+
+  const assessment = await prisma.assessment.findUniqueOrThrow({ where: { id: invitation.assessmentId }, include: assessmentInclude });
+  const current = toPublicCurrentQuestionDto(assessment, invitation);
+  if (!current) {
+    throw ApiError.conflict("This assessment has already been completed");
+  }
+  return current;
+}
+
+export async function submitCurrentAnswer(
+  prisma: PrismaClient,
+  applicationId: number,
+  input: SubmitCurrentAnswerInput,
+  tenantSlug: string
+): Promise<SubmitCurrentAnswerResponse> {
+  const invitation = await loadLiveInvitationOrExpire(prisma, applicationId);
+  if (invitation.status !== "IN_PROGRESS") {
+    throw ApiError.conflict("This assessment has not been started yet");
+  }
+
+  const assessment = await prisma.assessment.findUniqueOrThrow({ where: { id: invitation.assessmentId }, include: assessmentInclude });
+  const question = assessment.questions[invitation.currentQuestionIndex];
+  if (!question) {
+    throw ApiError.conflict("This assessment has already been completed");
+  }
+  // Server-authoritative: reject any attempt to answer out of order (skip/replay/jump).
+  if (input.questionId !== question.id) {
+    throw ApiError.badRequest("This answer does not match the current question", "QUESTION_MISMATCH");
+  }
+
+  let queued = false;
+  if (question.type === "MCQ" || question.type === "TRUE_FALSE") {
+    const isCorrect = input.selectedOptionIndex === question.correctOptionIndex;
+    await prisma.assessmentAnswer.create({
+      data: {
+        invitationId: invitation.id,
+        questionId: question.id,
+        selectedOptionIndex: input.selectedOptionIndex,
+        isCorrect,
+        pointsAwarded: isCorrect ? question.points : 0,
+        gradingStatus: "INSTANT",
+        gradedAt: new Date(),
+      },
+    });
+  } else if (question.type === "MULTIPLE_SELECT") {
+    const correctSet = new Set((question.correctOptionIndexes as number[] | null) ?? []);
+    const selectedIndexes = input.selectedOptionIndexes ?? [];
+    const selectedSet = new Set(selectedIndexes);
+    const isCorrect = correctSet.size === selectedSet.size && [...correctSet].every((i) => selectedSet.has(i));
+    await prisma.assessmentAnswer.create({
+      data: {
+        invitationId: invitation.id,
+        questionId: question.id,
+        selectedOptionIndexes: selectedIndexes,
+        isCorrect,
+        pointsAwarded: isCorrect ? question.points : 0,
+        gradingStatus: "INSTANT",
+        gradedAt: new Date(),
+      },
+    });
+  } else {
+    await prisma.assessmentAnswer.create({
+      data: {
+        invitationId: invitation.id,
+        questionId: question.id,
+        textAnswer: input.textAnswer,
+        gradingStatus: "QUEUED",
+      },
+    });
+    queued = true;
+  }
+
+  const nextIndex = invitation.currentQuestionIndex + 1;
+  const isComplete = nextIndex >= assessment.questions.length;
+
+  const updated = await prisma.assessmentInvitation.update({
+    where: { id: invitation.id },
+    data: {
+      currentQuestionIndex: nextIndex,
+      ...(isComplete ? { status: "SUBMITTED" as const, submittedAt: new Date() } : {}),
+    },
+  });
+
+  if (queued) {
+    const answer = await prisma.assessmentAnswer.findUniqueOrThrow({
+      where: { invitationId_questionId: { invitationId: invitation.id, questionId: question.id } },
+    });
+    await enqueueAssessmentGradingJob({ tenantSlug, answerId: answer.id });
+  }
+
+  if (isComplete) {
+    await finalizeOrMarkGrading(prisma, invitation.id);
+    return { isComplete: true, nextQuestion: null };
+  }
+
+  const nextQuestion = toPublicCurrentQuestionDto(assessment, updated);
+  return { isComplete: false, nextQuestion };
 }
 
 export async function finalizeInvitationIfComplete(prisma: PrismaClient, invitationId: number): Promise<void> {
   const invitation = await prisma.assessmentInvitation.findUnique({
     where: { id: invitationId },
-    include: { answers: { include: { question: true } }, assessment: true },
+    include: { answers: { include: { question: true } }, assessment: { include: assessmentInclude } },
   });
   if (!invitation) return;
 
   const pending = invitation.answers.some((a) => a.gradingStatus === "PENDING" || a.gradingStatus === "QUEUED");
   if (pending) return; // FAILED (retries exhausted) does NOT block finalization
 
-  const totalPoints = invitation.answers.reduce((sum, a) => sum + a.question.points, 0);
-  const scoredPoints = invitation.answers.reduce((sum, a) => sum + (a.pointsAwarded ?? 0), 0);
+  // Scored over ALL of the assessment's questions, not just the ones answered —
+  // a question never reached (timeout, or any other partial submission) counts as 0,
+  // rather than being excluded from the denominator.
+  const allQuestions = invitation.assessment.questions;
+  const pointsByQuestionId = new Map(invitation.answers.map((a) => [a.questionId, a.pointsAwarded ?? 0]));
+  const totalPoints = allQuestions.reduce((sum, q) => sum + q.points, 0);
+  const scoredPoints = allQuestions.reduce((sum, q) => sum + (pointsByQuestionId.get(q.id) ?? 0), 0);
   const scorePercent = totalPoints > 0 ? (scoredPoints / totalPoints) * 100 : 0;
-  const shortTextPoints = invitation.answers
-    .filter((a) => a.question.type === "SHORT_TEXT")
-    .reduce((sum, a) => sum + a.question.points, 0);
+  const shortTextPoints = allQuestions.filter((q) => q.type === "SHORT_TEXT").reduce((sum, q) => sum + q.points, 0);
   const shortTextShare = totalPoints > 0 ? shortTextPoints / totalPoints : 0;
 
   const threshold = invitation.assessment.passThresholdPercent;

@@ -1,59 +1,107 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { PackageDto } from "@hrm-plus/shared";
-import { Card, Logo } from "@hrm-plus/ui";
-import { listPublicPackages } from "../../api/packages";
+import { ReactNode, useEffect, useState } from "react";
+import {
+  SAAS_LANDING_SECTION_KEYS,
+  SaasLandingContentDto,
+  SaasLandingSectionConfig,
+} from "@hrm-plus/shared";
+import { Spinner } from "@hrm-plus/ui";
+import { getLandingContent } from "../../api/landing";
+import { setDocumentMeta } from "../../utils/documentMeta";
+import { PublicShell } from "../../components/landing/PublicShell";
+import { LandingHero } from "../../components/landing/LandingHero";
+import { FeatureHighlights } from "../../components/landing/FeatureHighlights";
+import { FeatureGrid } from "../../components/landing/FeatureGrid";
+import { ProcessSteps } from "../../components/landing/ProcessSteps";
+import { StatsBand } from "../../components/landing/StatsBand";
+import { Testimonials } from "../../components/landing/Testimonials";
+import { Pricing } from "../../components/landing/Pricing";
+import { BlogPreview } from "../../components/landing/BlogPreview";
+import { ContactSection } from "../../components/landing/ContactSection";
+import { CtaBand } from "../../components/landing/CtaBand";
 
-function formatPrice(pkg: PackageDto): string {
-  if (pkg.price === 0) return "Free";
-  return `$${pkg.price.toFixed(2)}`;
-}
+const SECTION_LABELS: Record<string, string> = {
+  "feature-highlights": "Feature highlights",
+  features: "Features",
+  process: "How it works",
+  stats: "Stats",
+  testimonials: "Testimonials",
+  pricing: "Pricing",
+  blog: "Blog",
+  contact: "Contact",
+};
 
-function formatValidity(pkg: PackageDto): string {
-  return pkg.validityDays ? `${pkg.validityDays} days` : "Unlimited";
+function resolveSections(configured: SaasLandingSectionConfig[]): SaasLandingSectionConfig[] {
+  if (configured.length > 0) {
+    return [...configured].filter((s) => s.enabled).sort((a, b) => a.order - b.order);
+  }
+  return SAAS_LANDING_SECTION_KEYS.map((key, index) => ({
+    key,
+    label: SECTION_LABELS[key] ?? key,
+    heading: null,
+    subheading: null,
+    enabled: true,
+    order: index,
+  }));
 }
 
 export default function Landing() {
-  const [packages, setPackages] = useState<PackageDto[]>([]);
+  const [content, setContent] = useState<SaasLandingContentDto | null>(null);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    listPublicPackages().then(setPackages).catch(() => setPackages([]));
+    getLandingContent()
+      .then(setContent)
+      .catch(() => setFailed(true));
   }, []);
 
+  useEffect(() => {
+    if (!content) return;
+    setDocumentMeta({
+      title: content.settings.metaTitle ?? `${content.settings.siteName} — ${content.settings.heroHeadline}`,
+      description: content.settings.metaDescription,
+    });
+  }, [content]);
+
+  if (failed) {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-6 text-center text-slate-500">
+        This page is not available right now. Please try again later.
+      </div>
+    );
+  }
+
+  if (!content) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Spinner />
+      </div>
+    );
+  }
+
+  const { settings } = content;
+  const sections = resolveSections(settings.sections);
+
+  const renderers: Record<string, (section: SaasLandingSectionConfig) => ReactNode> = {
+    "feature-highlights": (section) => (
+      <FeatureHighlights section={section} blocks={content.featureHighlights} />
+    ),
+    features: (section) => <FeatureGrid section={section} blocks={content.features} />,
+    process: (section) => <ProcessSteps section={section} blocks={content.processSteps} />,
+    stats: (section) => <StatsBand section={section} blocks={content.stats} />,
+    testimonials: (section) => <Testimonials section={section} blocks={content.testimonials} />,
+    pricing: (section) => <Pricing section={section} packages={content.packages} />,
+    blog: (section) => <BlogPreview section={section} />,
+    contact: (section) => <ContactSection section={section} settings={settings} />,
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
-        <Logo size="sm" />
-        <Link to="/admin/login" className="text-sm text-slate-500 hover:text-slate-900">
-          Super-admin login
-        </Link>
-      </header>
-
-      <main className="max-w-5xl mx-auto px-6 py-16 text-center">
-        <h1 className="text-4xl font-bold text-slate-900">Workforce management, without the overhead</h1>
-        <p className="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">
-          Set up your organisation's HR workspace in minutes. Pick a plan below to get started.
-        </p>
-
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {packages.map((pkg) => (
-            <Card key={pkg.id} className="text-left flex flex-col">
-              <h2 className="text-xl font-semibold text-slate-900">{pkg.name}</h2>
-              <p className="mt-2 text-3xl font-bold text-slate-900">{formatPrice(pkg)}</p>
-              <p className="text-sm text-slate-500">Validity: {formatValidity(pkg)}</p>
-              <Link
-                to={`/signup?packageId=${pkg.id}`}
-                className="mt-6 bg-brand-600 text-white rounded-md py-2 text-center font-medium hover:bg-brand-700"
-              >
-                Get Started
-              </Link>
-            </Card>
-          ))}
-          {packages.length === 0 && (
-            <p className="col-span-full text-slate-400">No packages available yet.</p>
-          )}
-        </div>
-      </main>
-    </div>
+    <PublicShell settings={settings}>
+      <LandingHero settings={settings} />
+      {sections.map((section) => {
+        const render = renderers[section.key];
+        return render ? <div key={section.key}>{render(section)}</div> : null;
+      })}
+      <CtaBand settings={settings} />
+    </PublicShell>
   );
 }

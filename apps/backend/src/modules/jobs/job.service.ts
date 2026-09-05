@@ -63,6 +63,7 @@ export async function createJob(prisma: PrismaClient, input: CreateJobInput, pos
         description: input.description,
         departmentId: input.departmentId,
         closesAt: input.closesAt ? new Date(input.closesAt) : undefined,
+        assessmentDeadlineDays: input.assessmentDeadlineDays,
         postedById,
       },
     });
@@ -118,6 +119,7 @@ export async function updateJob(prisma: PrismaClient, id: number, input: UpdateJ
         description: input.description,
         departmentId: input.departmentId,
         closesAt: input.closesAt ? new Date(input.closesAt) : undefined,
+        assessmentDeadlineDays: input.assessmentDeadlineDays,
         status: input.status,
         updatedById,
       },

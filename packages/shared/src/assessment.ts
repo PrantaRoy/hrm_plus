@@ -7,7 +7,14 @@ export type AssessmentStatus = (typeof ASSESSMENT_STATUSES)[number];
 export const ASSESSMENT_GENERATION_SOURCES = ["MANUAL", "AI_GENERATED", "AI_GENERATED_EDITED"] as const;
 export type AssessmentGenerationSource = (typeof ASSESSMENT_GENERATION_SOURCES)[number];
 
-export const ASSESSMENT_INVITATION_STATUSES = ["INVITED", "IN_PROGRESS", "SUBMITTED", "GRADING", "GRADED"] as const;
+export const ASSESSMENT_INVITATION_STATUSES = [
+  "INVITED",
+  "IN_PROGRESS",
+  "SUBMITTED",
+  "GRADING",
+  "GRADED",
+  "EXPIRED",
+] as const;
 export type AssessmentInvitationStatus = (typeof ASSESSMENT_INVITATION_STATUSES)[number];
 
 export const ASSESSMENT_OUTCOMES = ["PASSED", "PASSED_PENDING_REVIEW", "FAILED"] as const;
@@ -33,6 +40,7 @@ export interface AssessmentDto {
   title: string;
   instructions: string | null;
   passThresholdPercent: number;
+  timeLimitMinutes: number | null;
   generationSource: AssessmentGenerationSource;
   status: AssessmentStatus;
   questions: AssessmentQuestionDto[];
@@ -54,13 +62,16 @@ export interface CreateOrUpdateAssessmentInput {
   title?: string;
   instructions?: string;
   passThresholdPercent?: number;
+  timeLimitMinutes?: number | null;
   questions: UpsertAssessmentQuestionInput[];
 }
 
 export interface GenerateAssessmentWithAiInput {
   mcqCount: number;
+  trueFalseCount: number;
   shortTextCount: number;
   passThresholdPercent?: number;
+  customPrompt?: string;
 }
 
 export interface AssessmentAnswerResultDto {
@@ -86,6 +97,9 @@ export interface AssessmentInvitationDto {
   scoredPoints: number | null;
   scorePercent: number | null;
   outcome: AssessmentOutcome | null;
+  participationDeadlineAt: string | null;
+  examExpiresAt: string | null;
+  currentQuestionIndex: number;
   invitedAt: string;
   startedAt: string | null;
   submittedAt: string | null;
@@ -102,18 +116,36 @@ export interface PublicAssessmentQuestionDto {
   points: number;
 }
 
-export interface PublicAssessmentDto {
+// Candidate-facing exam meta — no question bodies, delivered one at a time via
+// PublicCurrentQuestionDto instead. serverNow lets the client compute a countdown
+// against the server clock rather than trusting its own (enforcement is server-side regardless).
+export interface PublicAssessmentMetaDto {
   title: string;
   instructions: string | null;
   status: AssessmentInvitationStatus;
-  questions: PublicAssessmentQuestionDto[];
+  timeLimitMinutes: number | null;
+  examExpiresAt: string | null;
+  participationDeadlineAt: string | null;
+  totalQuestions: number;
+  currentQuestionIndex: number;
+  serverNow: string;
 }
 
-export interface SubmitAssessmentAnswersInput {
-  answers: Array<{
-    questionId: number;
-    selectedOptionIndex?: number;
-    selectedOptionIndexes?: number[];
-    textAnswer?: string;
-  }>;
+export interface PublicCurrentQuestionDto {
+  question: PublicAssessmentQuestionDto;
+  questionNumber: number;
+  totalQuestions: number;
+  examExpiresAt: string | null;
+}
+
+export interface SubmitCurrentAnswerInput {
+  questionId: number;
+  selectedOptionIndex?: number;
+  selectedOptionIndexes?: number[];
+  textAnswer?: string;
+}
+
+export interface SubmitCurrentAnswerResponse {
+  isComplete: boolean;
+  nextQuestion: PublicCurrentQuestionDto | null;
 }

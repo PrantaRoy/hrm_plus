@@ -28,6 +28,7 @@ import RosterCalendar from "./pages/rosters/RosterCalendar";
 import HolidayList from "./pages/holidays/HolidayList";
 import SettingsLayout from "./pages/settings/SettingsLayout";
 import GeneralSettings from "./pages/settings/GeneralSettings";
+import AiSettings from "./pages/settings/AiSettings";
 import ShiftSettings from "./pages/settings/ShiftSettings";
 import WeekDaySettings from "./pages/settings/WeekDaySettings";
 import LeaveTypeSettings from "./pages/settings/LeaveTypeSettings";
@@ -252,6 +253,9 @@ export default function App() {
               <Route path="attendance-locations" element={<AttendanceLocationList />} />
               <Route path="attendance-locations/new" element={<AttendanceLocationCreate />} />
               <Route path="attendance-locations/:id/edit" element={<AttendanceLocationEdit />} />
+              <Route element={<RequireAuth roles={["Admin"]} />}>
+                <Route path="ai" element={<AiSettings />} />
+              </Route>
             </Route>
           </Route>
 

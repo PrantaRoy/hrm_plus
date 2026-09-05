@@ -19,6 +19,7 @@
     "provision-tenant": "tsx scripts/provision-tenant.ts",
     "backfill-payroll-roles": "tsx scripts/backfill-payroll-roles.ts",
     "seed-landing-page": "tsx scripts/seed-landing-page.ts",
+    "seed-saas-landing": "tsx scripts/seed-saas-landing.ts",
     "create-saas-admin": "tsx scripts/create-saas-admin.ts",
     "db:seed": "tsx scripts/seed-demo.ts"
   },

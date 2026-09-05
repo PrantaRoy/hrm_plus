@@ -1,5 +1,16 @@
 import { Outlet } from "react-router-dom";
-import { Building2, FileText, LayoutDashboard, LifeBuoy, Package, Tag } from "lucide-react";
+import {
+  Building2,
+  FileText,
+  Inbox,
+  LayoutDashboard,
+  LayoutTemplate,
+  LifeBuoy,
+  Newspaper,
+  Package,
+  Rows3,
+  Tag,
+} from "lucide-react";
 import { Logo, Sidebar, SidebarGroup, Topbar } from "@hrm-plus/ui";
 import { useSaasAuth } from "../../auth/SaasAuthContext";
 
@@ -7,9 +18,23 @@ const NAV_GROUPS: SidebarGroup[] = [
   {
     items: [
       { key: "overview", label: "Overview", to: "/admin/overview", icon: LayoutDashboard },
-      { key: "packages", label: "Packages", to: "/admin/packages", icon: Package },
       { key: "applications", label: "Applications", to: "/admin/applications", icon: FileText },
       { key: "tenants", label: "Companies", to: "/admin/tenants", icon: Building2 },
+      { key: "packages", label: "Packages", to: "/admin/packages", icon: Package },
+    ],
+  },
+  {
+    label: "Website",
+    items: [
+      { key: "landing", label: "Landing Content", to: "/admin/landing", icon: LayoutTemplate, end: true },
+      { key: "landing-blocks", label: "Sections", to: "/admin/landing/blocks", icon: Rows3 },
+      { key: "blog", label: "Blog", to: "/admin/blog", icon: Newspaper },
+      { key: "contact", label: "Contact Inbox", to: "/admin/contact", icon: Inbox },
+    ],
+  },
+  {
+    label: "Support",
+    items: [
       { key: "support-tickets", label: "Support Tickets", to: "/admin/support-tickets", icon: LifeBuoy },
       { key: "ticket-categories", label: "Ticket Categories", to: "/admin/ticket-categories", icon: Tag },
     ],

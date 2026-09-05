@@ -1,25 +1,22 @@
 import { ApiError } from "../../utils/ApiError";
-import { env } from "../../config/env";
 import { LlmJsonRequest, LlmProvider } from "./llmProvider";
 
 const OPENAI_CHAT_COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions";
 
 export class OpenAiProvider implements LlmProvider {
-  async generateJson<T>(request: LlmJsonRequest): Promise<T> {
-    if (!env.OPENAI_API_KEY) {
-      throw new ApiError(502, "OPENAI_API_KEY is not configured", "LLM_NOT_CONFIGURED");
-    }
+  constructor(private readonly config: { apiKey: string; model: string }) {}
 
+  async generateJson<T>(request: LlmJsonRequest): Promise<T> {
     let response: Response;
     try {
       response = await fetch(OPENAI_CHAT_COMPLETIONS_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${env.OPENAI_API_KEY}`,
+          Authorization: `Bearer ${this.config.apiKey}`,
         },
         body: JSON.stringify({
-          model: env.OPENAI_MODEL,
+          model: this.config.model,
           messages: [
             { role: "system", content: request.system },
             { role: "user", content: request.prompt },

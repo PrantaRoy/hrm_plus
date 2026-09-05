@@ -15,7 +15,7 @@ export async function gradeAssessmentAnswer(prisma: PrismaClient, answerId: numb
   }
 
   try {
-    const result = await gradeShortTextAnswer({
+    const result = await gradeShortTextAnswer(prisma, {
       questionPrompt: answer.question.prompt,
       answerText: answer.textAnswer,
       maxPoints: answer.question.points,

@@ -21,6 +21,7 @@ export const createJobSchema = z.object({
   description: z.string().trim().min(1),
   departmentId: z.number().int().optional(),
   closesAt: z.string().min(1).optional(),
+  assessmentDeadlineDays: z.number().int().min(1).max(365).optional(),
   screeningQuestions: z.array(jobScreeningQuestionInputSchema).default([]),
 });
 

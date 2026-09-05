@@ -44,6 +44,7 @@ export function toJobDto(job: JobWithRelations): JobDto {
     departmentId: job.departmentId,
     departmentName: job.department?.name ?? null,
     closesAt: job.closesAt ? job.closesAt.toISOString() : null,
+    assessmentDeadlineDays: job.assessmentDeadlineDays,
     screeningQuestions: job.screeningQuestions.map((link) => ({
       id: link.id,
       questionId: link.questionId,

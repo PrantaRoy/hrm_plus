@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PrismaClient } from "../../../generated/tenant";
 import { getLlmProvider } from "./llmProvider.factory";
 
 const gradingResponseSchema = z.object({
@@ -17,7 +18,7 @@ export interface GradeShortTextResult {
   feedback: string;
 }
 
-export async function gradeShortTextAnswer(params: GradeShortTextParams): Promise<GradeShortTextResult> {
+export async function gradeShortTextAnswer(prisma: PrismaClient, params: GradeShortTextParams): Promise<GradeShortTextResult> {
   const system =
     "You are grading a job applicant's short-answer response to a screening question. " +
     `Respond with ONLY JSON {"score": number, "feedback": string}. "score" must be an integer between 0 and ${params.maxPoints} ` +
@@ -25,7 +26,8 @@ export async function gradeShortTextAnswer(params: GradeShortTextParams): Promis
 
   const prompt = `Question: ${params.questionPrompt}\nCandidate's answer: ${params.answerText?.trim() || "(no answer given)"}`;
 
-  const raw = await getLlmProvider().generateJson<unknown>({ system, prompt, maxTokens: 500 });
+  const provider = await getLlmProvider(prisma);
+  const raw = await provider.generateJson<unknown>({ system, prompt, maxTokens: 300 });
   const parsed = gradingResponseSchema.safeParse(raw);
 
   const rawScore = parsed.success ? parsed.data.score : 0;

@@ -1,5 +1,5 @@
 import { RequestHandler } from "express";
-import { createOrUpdateAssessmentSchema, generateAssessmentWithAiSchema, submitAssessmentAnswersSchema } from "./assessment.schemas";
+import { createOrUpdateAssessmentSchema, generateAssessmentWithAiSchema, submitCurrentAnswerSchema } from "./assessment.schemas";
 import * as assessmentService from "./assessment.service";
 import { ApiError } from "../../utils/ApiError";
 
@@ -63,16 +63,19 @@ export const getAssignedAssessmentHandler: RequestHandler = async (req, res, nex
   }
 };
 
-export const submitAssessmentAnswersHandler: RequestHandler = async (req, res, next) => {
+export const getCurrentQuestionHandler: RequestHandler = async (req, res, next) => {
   try {
-    const input = submitAssessmentAnswersSchema.parse(req.body);
+    res.json(await assessmentService.getCurrentQuestion(req.prisma!, req.candidateApplication!.applicationId));
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const submitCurrentAnswerHandler: RequestHandler = async (req, res, next) => {
+  try {
+    const input = submitCurrentAnswerSchema.parse(req.body);
     res.json(
-      await assessmentService.submitAssessmentAnswers(
-        req.prisma!,
-        req.candidateApplication!.applicationId,
-        input,
-        req.tenant!.slug
-      )
+      await assessmentService.submitCurrentAnswer(req.prisma!, req.candidateApplication!.applicationId, input, req.tenant!.slug)
     );
   } catch (err) {
     next(err);

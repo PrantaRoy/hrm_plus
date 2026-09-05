@@ -73,14 +73,36 @@ export default function CandidatePortal() {
                 </Badge>
               </div>
 
-              {data.application.hasAssessmentInvitation && !data.application.withdrawnAt && (
-                <Link
-                  to={`/candidate/${tenantSlug}/assessment?token=${token}`}
-                  className="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
-                >
-                  {data.application.assessmentStatus === "GRADED" ? "View Assessment" : "Complete Assessment"}
-                </Link>
+              {data.application.assessmentStatus === "GRADED" && data.application.assessmentScorePercent != null && (
+                <div>
+                  <p className="text-xs text-slate-400">Assessment score</p>
+                  <p className="text-sm font-medium text-slate-900">
+                    {Math.round(data.application.assessmentScorePercent)}%{" "}
+                    <span className="text-xs font-normal text-slate-500">
+                      (
+                      {data.application.assessmentOutcome === "PASSED" || data.application.assessmentOutcome === "PASSED_PENDING_REVIEW"
+                        ? "Passed"
+                        : "Not passed"}
+                      )
+                    </span>
+                  </p>
+                </div>
               )}
+
+              {data.application.assessmentStatus === "EXPIRED" && (
+                <p className="text-sm text-red-600">The screening test deadline for this application has passed.</p>
+              )}
+
+              {data.application.hasAssessmentInvitation &&
+                !data.application.withdrawnAt &&
+                data.application.assessmentStatus !== "EXPIRED" && (
+                  <Link
+                    to={`/candidate/${tenantSlug}/assessment?token=${token}`}
+                    className="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+                  >
+                    {data.application.assessmentStatus === "GRADED" ? "View Assessment" : "Complete Assessment"}
+                  </Link>
+                )}
 
               {!data.application.withdrawnAt && data.application.stage !== "HIRED" && (
                 <Button variant="danger" isLoading={withdrawing} onClick={handleWithdraw}>

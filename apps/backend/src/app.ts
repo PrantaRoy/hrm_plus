@@ -25,6 +25,7 @@ import { ipRuleRouter } from "./modules/attendance-ip-rules/ipRule.routes";
 import { locationRouter } from "./modules/attendance-locations/location.routes";
 import { dashboardRouter } from "./modules/dashboard/dashboard.routes";
 import { generalSettingsRouter } from "./modules/general-settings/generalSettings.routes";
+import { aiSettingsRouter } from "./modules/ai-settings/aiSettings.routes";
 import { documentCategoryRouter } from "./modules/document-templates/documentCategory.routes";
 import { documentTemplateRouter } from "./modules/document-templates/documentTemplate.routes";
 import { documentRequestRouter } from "./modules/document-requests/documentRequest.routes";
@@ -63,6 +64,9 @@ import { meetingRouter } from "./modules/meetings/meeting.routes";
 import { schedulerSettingsRouter } from "./modules/scheduler-settings/schedulerSettings.routes";
 import { saasSupportTicketRouter } from "./modules/saas/support-tickets/saasSupportTicket.routes";
 import { saasTicketCategoryRouter } from "./modules/saas/ticket-categories/saasTicketCategory.routes";
+import { adminLandingRouter, publicLandingRouter } from "./modules/saas/landing/saasLanding.routes";
+import { adminSaasBlogRouter, publicSaasBlogRouter } from "./modules/saas/blog/saasBlogPost.routes";
+import { adminSaasContactRouter, publicSaasContactRouter } from "./modules/saas/contact/saasContact.routes";
 import { payCycleRouter } from "./modules/payroll/payCycle.routes";
 import { payRateRouter } from "./modules/payroll/payRate.routes";
 import { payrollSettingsRouter } from "./modules/payroll/payrollSettings.routes";
@@ -115,6 +119,7 @@ export function createApp(): Express {
   app.use("/api/attendance-locations", tenantResolver, locationRouter);
   app.use("/api/dashboard", tenantResolver, dashboardRouter);
   app.use("/api/general-settings", tenantResolver, generalSettingsRouter);
+  app.use("/api/ai-settings", tenantResolver, aiSettingsRouter);
   app.use("/api/document-categories", tenantResolver, documentCategoryRouter);
   app.use("/api/document-templates", tenantResolver, documentTemplateRouter);
   app.use("/api/document-requests", tenantResolver, documentRequestRouter);
@@ -166,6 +171,12 @@ export function createApp(): Express {
   app.use("/saas/admin/stats", statsRouter);
   app.use("/saas/admin/support-tickets", saasSupportTicketRouter);
   app.use("/saas/admin/ticket-categories", saasTicketCategoryRouter);
+  app.use("/saas/public/landing-content", publicLandingRouter);
+  app.use("/saas/admin/landing", adminLandingRouter);
+  app.use("/saas/public/blog", publicSaasBlogRouter);
+  app.use("/saas/admin/blog", adminSaasBlogRouter);
+  app.use("/saas/public/contact", publicSaasContactRouter);
+  app.use("/saas/admin/contact", adminSaasContactRouter);
 
   app.use(errorHandler);
 

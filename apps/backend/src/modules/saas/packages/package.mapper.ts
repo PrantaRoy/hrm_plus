@@ -9,5 +9,11 @@ export function toPackageDto(pkg: Package): PackageDto {
     validityDays: pkg.validityDays,
     isActive: pkg.isActive,
     createdAt: pkg.createdAt.toISOString(),
+    description: pkg.description,
+    features: Array.isArray(pkg.features) ? (pkg.features as string[]) : [],
+    isPopular: pkg.isPopular,
+    billingPeriod: pkg.billingPeriod,
+    ctaLabel: pkg.ctaLabel,
+    sortOrder: pkg.sortOrder,
   };
 }

@@ -55,6 +55,8 @@ async function toCandidatePortalApplicationDto(
     assessmentStatus: application.assessmentInvitation
       ? (application.assessmentInvitation.status as CandidatePortalApplicationDto["assessmentStatus"])
       : null,
+    assessmentScorePercent: application.assessmentInvitation?.scorePercent ?? null,
+    assessmentOutcome: (application.assessmentInvitation?.outcome as CandidatePortalApplicationDto["assessmentOutcome"]) ?? null,
   };
 }
 

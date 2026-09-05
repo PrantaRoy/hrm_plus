@@ -78,4 +78,6 @@ export interface CandidatePortalApplicationDto {
   withdrawnAt: string | null;
   hasAssessmentInvitation: boolean;
   assessmentStatus: AssessmentInvitationStatus | null;
+  assessmentScorePercent: number | null;
+  assessmentOutcome: AssessmentOutcome | null;
 }

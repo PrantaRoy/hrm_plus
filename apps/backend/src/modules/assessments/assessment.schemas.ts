@@ -48,22 +48,21 @@ export const createOrUpdateAssessmentSchema = z.object({
   title: z.string().trim().min(1).optional(),
   instructions: z.string().trim().optional(),
   passThresholdPercent: z.number().int().min(0).max(100).optional(),
+  timeLimitMinutes: z.number().int().min(1).max(600).nullable().optional(),
   questions: z.array(upsertAssessmentQuestionSchema).min(1),
 });
 
 export const generateAssessmentWithAiSchema = z.object({
   mcqCount: z.number().int().min(0).max(20),
+  trueFalseCount: z.number().int().min(0).max(20),
   shortTextCount: z.number().int().min(0).max(20),
   passThresholdPercent: z.number().int().min(0).max(100).optional(),
+  customPrompt: z.string().trim().max(500).optional(),
 });
 
-const submitAssessmentAnswerSchema = z.object({
+export const submitCurrentAnswerSchema = z.object({
   questionId: z.number().int(),
   selectedOptionIndex: z.number().int().min(0).optional(),
   selectedOptionIndexes: z.array(z.number().int().min(0)).optional(),
   textAnswer: z.string().trim().optional(),
-});
-
-export const submitAssessmentAnswersSchema = z.object({
-  answers: z.array(submitAssessmentAnswerSchema).min(1),
 });

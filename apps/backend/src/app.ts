@@ -61,6 +61,11 @@ import { assetRouter } from "./modules/assets/asset.routes";
 import { supportTicketRouter } from "./modules/support-tickets/supportTicket.routes";
 import { ticketCategoryRouter } from "./modules/ticket-categories/ticketCategory.routes";
 import { meetingRouter } from "./modules/meetings/meeting.routes";
+import { clientRouter } from "./modules/clients/client.routes";
+import { projectRouter } from "./modules/projects/project.routes";
+import { taskRouter } from "./modules/tasks/task.routes";
+import { commentRouter } from "./modules/comments/comment.routes";
+import { attachmentRouter } from "./modules/attachments/attachment.routes";
 import { schedulerSettingsRouter } from "./modules/scheduler-settings/schedulerSettings.routes";
 import { saasSupportTicketRouter } from "./modules/saas/support-tickets/saasSupportTicket.routes";
 import { saasTicketCategoryRouter } from "./modules/saas/ticket-categories/saasTicketCategory.routes";
@@ -137,6 +142,13 @@ export function createApp(): Express {
   app.use("/api/support-tickets", tenantResolver, supportTicketRouter);
   app.use("/api/ticket-categories", tenantResolver, ticketCategoryRouter);
   app.use("/api/meetings", tenantResolver, meetingRouter);
+
+  // Project & task management
+  app.use("/api/clients", tenantResolver, clientRouter);
+  app.use("/api/projects", tenantResolver, projectRouter);
+  app.use("/api/tasks", tenantResolver, taskRouter);
+  app.use("/api/comments", tenantResolver, commentRouter);
+  app.use("/api/attachments", tenantResolver, attachmentRouter);
   app.use("/api/scheduler-settings", tenantResolver, schedulerSettingsRouter);
 
   // Payroll module — separation of duties: HR approves hours, Payroll processes

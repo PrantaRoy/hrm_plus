@@ -5,6 +5,7 @@ import {
   BarChart3,
   Boxes,
   Briefcase,
+  Building2,
   CalendarDays,
   CalendarPlus,
   CalendarClock,
@@ -15,6 +16,7 @@ import {
   FilePlus,
   FileClock,
   FileText,
+  FolderKanban,
   Globe,
   Image,
   Images,
@@ -24,6 +26,7 @@ import {
   LayoutTemplate,
   LifeBuoy,
   ListChecks,
+  ListTodo,
   Mail,
   Newspaper,
   Package,
@@ -58,6 +61,7 @@ function applyBranding(settings: GeneralSettingsDto) {
 const MY_WORK_ITEMS = [
   { key: "my-schedule", label: "My Schedule", to: "/my-schedule", icon: Clock },
   { key: "my-meetings", label: "My Meetings", to: "/meetings", icon: CalendarClock },
+  { key: "my-tasks", label: "My Tasks", to: "/tasks/my", icon: ListTodo },
   { key: "leave-apply", label: "Apply Leave", to: "/leave/apply", icon: CalendarPlus },
   { key: "leave-my-requests", label: "My Leave Requests", to: "/leave/my-requests", icon: ListChecks },
   { key: "documents-request", label: "Request Document", to: "/documents/request", icon: FilePlus },
@@ -65,10 +69,26 @@ const MY_WORK_ITEMS = [
   { key: "my-payslips", label: "My Payslips", to: "/payroll/my-payslips", icon: Receipt },
 ];
 
+// Everyone sees the projects they belong to; managers also get the cross-project task list and clients.
+const PROJECTS_MEMBER_GROUP: SidebarGroup = {
+  label: "Projects",
+  items: [{ key: "projects", label: "Projects", to: "/projects", icon: FolderKanban }],
+};
+
+const PROJECTS_MANAGER_GROUP: SidebarGroup = {
+  label: "Projects",
+  items: [
+    { key: "projects", label: "Projects", to: "/projects", icon: FolderKanban },
+    { key: "tasks-all", label: "Tasks", to: "/tasks", icon: ListTodo, end: true },
+    { key: "clients", label: "Clients", to: "/clients", icon: Building2 },
+  ],
+};
+
 function buildStaffViewGroups(): SidebarGroup[] {
   return [
     { items: [{ key: "dashboard", label: "Dashboard", to: "/", icon: LayoutDashboard, end: true }] },
     { label: "My Work", items: MY_WORK_ITEMS },
+    PROJECTS_MEMBER_GROUP,
     {
       label: "My Records",
       items: [{ key: "my-records", label: "Records", to: "/my-records", icon: BarChart3 }],
@@ -111,6 +131,7 @@ function buildAdminViewGroups(isAdmin: boolean): SidebarGroup[] {
         { key: "holidays", label: "Holidays", to: "/holidays", icon: PartyPopper },
       ],
     },
+    PROJECTS_MANAGER_GROUP,
     {
       label: "Reports",
       items: [{ key: "records", label: "Records", to: "/records", icon: BarChart3 }],
@@ -167,6 +188,7 @@ function buildDefaultViewGroups(role: string | undefined): SidebarGroup[] {
   return [
     { items: [{ key: "dashboard", label: "Dashboard", to: "/", icon: LayoutDashboard, end: true }] },
     { label: "My Work", items: MY_WORK_ITEMS },
+    isApprover ? PROJECTS_MANAGER_GROUP : PROJECTS_MEMBER_GROUP,
     ...(isApprover
       ? [
           {

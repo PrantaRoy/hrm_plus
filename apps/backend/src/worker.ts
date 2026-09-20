@@ -5,6 +5,7 @@ import { ASSET_EXPIRY_REMINDER_QUEUE, scheduleAssetExpiryReminderJob } from "./q
 import { ASSESSMENT_EXPIRY_QUEUE, scheduleAssessmentExpiryCheckJob } from "./queue/assessmentExpiry.queue";
 import { PAYSLIP_PDF_QUEUE, PayslipPdfJobData } from "./queue/payslipPdf.queue";
 import { IRD_PAYDAY_FILING_QUEUE, IrdPaydayFilingJobData } from "./queue/irdPaydayFiling.queue";
+import { RECURRING_TASKS_QUEUE, scheduleRecurringTasksJob } from "./queue/recurringTasks.queue";
 import { controlClient } from "./db/controlClient";
 import { getTenantClient } from "./db/tenantClientPool";
 import { gradeAssessmentAnswer } from "./modules/assessments/assessmentGrading.processor";
@@ -12,6 +13,7 @@ import { runAssetExpiryReminderCheck } from "./modules/assets/assetExpiryReminde
 import { runAssessmentExpiryCheck } from "./modules/assessments/assessmentExpiry.processor";
 import { processPayslipPdfJob } from "./modules/payroll/payslipPdf.processor";
 import { processIrdPaydayFilingJob } from "./modules/payroll/irdPaydayFiling.processor";
+import { runRecurringTaskGeneration } from "./modules/tasks/recurringTask.processor";
 import { env } from "./config/env";
 import { logger } from "./logger";
 
@@ -124,3 +126,25 @@ irdPaydayFilingWorker.on("failed", (job, err) => {
 });
 
 logger.info("IRD payday filing worker started");
+
+const recurringTasksWorker = new Worker(
+  RECURRING_TASKS_QUEUE,
+  async () => {
+    await runRecurringTaskGeneration();
+  },
+  { connection: redisConnection }
+);
+
+recurringTasksWorker.on("completed", () => {
+  logger.info("Recurring task generation completed");
+});
+
+recurringTasksWorker.on("failed", (job, err) => {
+  logger.error({ jobId: job?.id, err }, "Recurring task generation failed");
+});
+
+scheduleRecurringTasksJob()
+  .then(() => logger.info("Recurring task generation daily job scheduled"))
+  .catch((err) => logger.error({ err }, "Failed to schedule recurring task generation job"));
+
+logger.info("Recurring task worker started");

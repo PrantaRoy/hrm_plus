@@ -47,6 +47,23 @@ export const faviconUpload = createUploadMiddleware({
   maxSizeBytes: 512 * 1024,
 });
 
+export const projectAttachmentUpload = createUploadMiddleware({
+  allowedMimeTypes: [
+    "image/png",
+    "image/jpeg",
+    "image/webp",
+    "image/gif",
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "text/csv",
+    "text/plain",
+  ],
+  maxSizeBytes: 10 * 1024 * 1024,
+});
+
 export const resumeUpload = createUploadMiddleware({
   allowedMimeTypes: [
     "application/pdf",

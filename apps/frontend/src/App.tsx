@@ -16,6 +16,11 @@ import ScheduleMeeting from "./pages/meetings/ScheduleMeeting";
 import MeetingDetail from "./pages/meetings/MeetingDetail";
 import EditMeeting from "./pages/meetings/EditMeeting";
 import AllMeetings from "./pages/meetings/AllMeetings";
+import ClientList from "./pages/clients/ClientList";
+import ProjectList from "./pages/projects/ProjectList";
+import ProjectDetail from "./pages/projects/ProjectDetail";
+import TaskList from "./pages/tasks/TaskList";
+import TaskDetail from "./pages/tasks/TaskDetail";
 import ApplyLeave from "./pages/leave/ApplyLeave";
 import MyLeaveRequests from "./pages/leave/MyLeaveRequests";
 import LeaveApprovals from "./pages/leave/LeaveApprovals";
@@ -166,6 +171,15 @@ export default function App() {
             <Route path="/meetings/all" element={<AllMeetings />} />
           </Route>
           <Route path="/meetings/:id" element={<MeetingDetail />} />
+
+          <Route path="/projects" element={<ProjectList />} />
+          <Route path="/projects/:id" element={<ProjectDetail />} />
+          <Route path="/tasks" element={<TaskList mode="all" />} />
+          <Route path="/tasks/my" element={<TaskList mode="my" />} />
+          <Route path="/tasks/:id" element={<TaskDetail />} />
+          <Route element={<RequireAuth roles={["Admin", "HR", "Manager"]} />}>
+            <Route path="/clients" element={<ClientList />} />
+          </Route>
           <Route path="/meetings/:id/edit" element={<EditMeeting />} />
 
           <Route path="/documents/request" element={<RequestDocument />} />

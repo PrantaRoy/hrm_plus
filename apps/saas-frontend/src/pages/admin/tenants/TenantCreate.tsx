@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PackageDto } from "@hrm-plus/shared";
-import { Button, Card, Field, Input, PageHeader, Select, Textarea } from "@hrm-plus/ui";
+import { Alert, Button, Card, Field, Input, PageHeader, Select, Textarea } from "@hrm-plus/ui";
 import { listAdminPackages } from "../../../api/packages";
 import { createSaasTenant } from "../../../api/tenants";
 
@@ -71,9 +71,7 @@ export default function TenantCreate() {
       <Card className="max-w-xl">
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">
-              {error}
-            </div>
+            <Alert>{error}</Alert>
           )}
 
           <Field label="Company name" required>

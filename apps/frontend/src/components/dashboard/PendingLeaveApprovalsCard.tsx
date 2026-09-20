@@ -14,7 +14,7 @@ export function PendingLeaveApprovalsCard({ count, preview }: PendingLeaveApprov
       title="Pending Leave Approvals"
       description={`${count} request${count === 1 ? "" : "s"} waiting on a decision`}
       actions={
-        <Link to="/leave/approvals" className="text-sm text-brand-600 hover:underline">
+        <Link to="/leave/approvals" className="text-sm font-medium text-brand-600 hover:text-brand-700">
           View all →
         </Link>
       }

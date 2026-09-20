@@ -25,23 +25,28 @@ export default function StaffDashboard() {
       .catch(() => setPendingRequests([]));
   }, []);
 
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title={`Welcome back, ${user?.firstName ?? ""}`}
+        title={`${greeting}, ${user?.firstName ?? ""}`}
         description="Here's your attendance, schedule, and leave at a glance."
+        className="!mb-0"
       />
 
-      <LiveClock />
-
-      <AttendanceWidget />
+      <div className="grid items-start gap-6 lg:grid-cols-2">
+        <LiveClock />
+        <AttendanceWidget />
+      </div>
 
       <DutyScheduleReport />
 
       <MyMeetingsCard />
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card title="My Leave Balance" actions={<Link to="/leave/apply" className="text-sm text-brand-600 hover:underline">Apply for leave →</Link>}>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card title="My Leave Balance" actions={<Link to="/leave/apply" className="text-sm font-medium text-brand-600 hover:text-brand-700">Apply for leave →</Link>}>
           {allocations.length === 0 ? (
             <p className="text-sm text-slate-400">No leave allocations configured yet.</p>
           ) : (
@@ -56,9 +61,9 @@ export default function StaffDashboard() {
                         {allocation.remainingDays} of {allocation.allocatedDays} days remaining
                       </span>
                     </div>
-                    <div className="h-2 rounded-full bg-slate-100">
+                    <div className="h-2 overflow-hidden rounded-full bg-slate-100">
                       <div
-                        className="h-2 rounded-full bg-brand-500"
+                        className="h-2 rounded-full bg-gradient-to-r from-brand-500 to-brand-400"
                         style={{ width: `${Math.min(100, usedPct)}%` }}
                       />
                     </div>
@@ -72,7 +77,7 @@ export default function StaffDashboard() {
         <Card
           title="My Pending Leave Requests"
           actions={
-            <Link to="/leave/my-requests" className="text-sm text-brand-600 hover:underline">
+            <Link to="/leave/my-requests" className="text-sm font-medium text-brand-600 hover:text-brand-700">
               View all →
             </Link>
           }

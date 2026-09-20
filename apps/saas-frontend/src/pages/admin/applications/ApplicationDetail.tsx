@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { TenantApplicationDto } from "@hrm-plus/shared";
-import { Button, Card, Field, Input, Spinner, StatusPill, Textarea } from "@hrm-plus/ui";
+import { Alert, Button, Card, Field, Input, PageHeader, Spinner, StatusPill, Textarea } from "@hrm-plus/ui";
 import { approveApplication, getApplication, rejectApplication, updateApplication } from "../../../api/applications";
 
 export default function ApplicationDetail() {
@@ -76,7 +76,7 @@ export default function ApplicationDetail() {
   }
 
   return (
-    <div className="max-w-xl space-y-4">
+    <div className="max-w-2xl space-y-4">
       <button
         onClick={() => navigate(-1)}
         className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700"
@@ -85,19 +85,16 @@ export default function ApplicationDetail() {
         Back
       </button>
 
+      <PageHeader
+        title={application.companyName}
+        description={`${application.subdomainSlug}.hrmplus.test`}
+        actions={<StatusPill status={application.status} />}
+        className="!mb-2"
+      />
+
       <Card>
         <div className="space-y-4">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-xl font-semibold text-slate-900">{application.companyName}</h1>
-              <p className="text-sm text-slate-500">{application.subdomainSlug}.hrmplus.test</p>
-            </div>
-            <StatusPill status={application.status} />
-          </div>
-
-          {error && (
-            <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</div>
-          )}
+          {error && <Alert>{error}</Alert>}
 
           {!editing ? (
             <dl className="grid grid-cols-2 gap-y-3 text-sm">

@@ -8,20 +8,7 @@ import {
   SupportTicketStatus,
   TicketCategoryDto,
 } from "@hrm-plus/shared";
-import {
-  Button,
-  Card,
-  Field,
-  Input,
-  PageHeader,
-  Select,
-  StatusPill,
-  Table,
-  TableCell,
-  TableHead,
-  TableHeaderCell,
-  TableRow,
-} from "@hrm-plus/ui";
+import { Alert, Button, Card, Field, Input, PageHeader, Select, StatusPill, Table, TableCell, TableHead, TableHeaderCell, TableRow } from "@hrm-plus/ui";
 import { listAdminSupportTickets } from "../../../api/supportTickets";
 import { listAdminTicketCategories } from "../../../api/ticketCategories";
 
@@ -105,7 +92,7 @@ export default function TicketList() {
         </div>
 
         {error && (
-          <div className="mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</div>
+          <Alert className="mb-4">{error}</Alert>
         )}
 
         <Table>

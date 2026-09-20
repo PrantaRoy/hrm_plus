@@ -186,3 +186,30 @@ describe("Tenant application submission and review", () => {
     expect(res.status).toBe(409);
   });
 });
+
+describe("SaaS admin stats", () => {
+  it("requires a token", async () => {
+    const res = await request(app).get("/saas/admin/stats");
+    expect(res.status).toBe(401);
+  });
+
+  it("returns dashboard aggregates", async () => {
+    const res = await authed(request(app).get("/saas/admin/stats"));
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(
+      expect.objectContaining({
+        totalCompanies: expect.any(Number),
+        totalPackages: expect.any(Number),
+        activeCompanies: expect.any(Number),
+        pendingApplications: expect.any(Number),
+        openTickets: expect.any(Number),
+        unreadContacts: expect.any(Number),
+        companiesByPackage: expect.any(Array),
+        recentApplications: expect.any(Array),
+        recentTickets: expect.any(Array),
+      })
+    );
+    expect(res.body.applicationsByMonth).toHaveLength(6);
+    expect(res.body.activeCompanies).toBeLessThanOrEqual(res.body.totalCompanies);
+  });
+});

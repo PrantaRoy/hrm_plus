@@ -24,7 +24,10 @@ export { EmptyState } from "./components/EmptyState";
 export type { EmptyStateProps } from "./components/EmptyState";
 
 export { StatCard } from "./components/StatCard";
-export type { StatCardProps } from "./components/StatCard";
+export type { StatCardProps, StatTone } from "./components/StatCard";
+
+export { Alert } from "./components/Alert";
+export type { AlertProps, AlertTone } from "./components/Alert";
 
 export { Spinner } from "./components/Spinner";
 export type { SpinnerProps } from "./components/Spinner";

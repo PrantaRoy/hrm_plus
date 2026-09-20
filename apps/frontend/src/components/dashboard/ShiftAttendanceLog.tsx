@@ -119,7 +119,7 @@ function ShiftGroup({ group, mode }: { group: ShiftAttendanceLogDto["shifts"][nu
   }, [group.entries]);
 
   return (
-    <div className="rounded-lg border border-slate-200">
+    <div className="rounded-xl border border-slate-200/70">
       <div className="flex items-center justify-between gap-2 rounded-t-lg border-b border-slate-100 bg-slate-50 px-3 py-2">
         <p className="text-xs font-semibold text-slate-900">
           {group.dutyScheduleName}
@@ -198,7 +198,7 @@ export function ShiftAttendanceLog() {
       title="Attendance Log by Shift"
       description="Check-in / check-out, lateness, overtime and leave grouped by shift."
       actions={
-        <div className="flex rounded-md border border-slate-200 p-0.5 text-xs font-medium">
+        <div className="flex rounded-lg border border-slate-200 p-0.5 text-xs font-medium">
           <button
             type="button"
             onClick={() => switchMode("today")}
@@ -229,7 +229,7 @@ export function ShiftAttendanceLog() {
           <button
             type="button"
             onClick={() => setOffset((o) => o - 1)}
-            className="rounded-md border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50"
+            className="rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50"
             aria-label={mode === "today" ? "Previous day" : "Previous week"}
           >
             <ChevronLeft className="h-4 w-4" />
@@ -238,14 +238,14 @@ export function ShiftAttendanceLog() {
             type="button"
             onClick={() => setOffset(0)}
             disabled={offset === 0}
-            className="rounded-md border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+            className="rounded-lg border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40"
           >
             {mode === "today" ? "Today" : "This week"}
           </button>
           <button
             type="button"
             onClick={() => setOffset((o) => o + 1)}
-            className="rounded-md border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50"
+            className="rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50"
             aria-label={mode === "today" ? "Next day" : "Next week"}
           >
             <ChevronRight className="h-4 w-4" />

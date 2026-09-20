@@ -237,6 +237,8 @@ export type {
   SaasTenantDto,
   UpdateSaasTenantInput,
   SaasStats,
+  SaasStatsRecentApplication,
+  SaasStatsRecentTicket,
   SaasAdminUser,
   SaasLoginResponse,
 } from "./saas";

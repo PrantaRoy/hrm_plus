@@ -266,6 +266,7 @@ export default function DashboardShell() {
   const isAdminOrHr = role === "Admin" || role === "HR";
   const [mode, setMode] = useDashboardMode();
   const [branding, setBranding] = useState<GeneralSettingsDto | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     getGeneralSettings()
@@ -285,31 +286,33 @@ export default function DashboardShell() {
       ? buildAdminViewGroups(role === "Admin")
       : buildDefaultViewGroups(role);
 
+  const modeButton = (value: "staff" | "admin") =>
+    `flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 transition-colors ${
+      mode === value ? "bg-brand-500 text-white shadow-sm" : "text-sidebar-muted hover:text-white"
+    }`;
+
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-canvas">
       <Sidebar
-        header={<Logo size="sm" imageSrc={resolveFileUrl(branding?.logoUrl)} wordmark={branding?.siteTitle} />}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        header={
+          <Logo
+            size="sm"
+            tone="light"
+            imageSrc={resolveFileUrl(branding?.logoUrl)}
+            wordmark={branding?.siteTitle}
+          />
+        }
         groups={groups}
         footer={
           isAdminOrHr ? (
-            <div className="flex rounded-md border border-slate-200 p-0.5 text-xs font-medium">
-              <button
-                type="button"
-                onClick={() => setMode("staff")}
-                className={`flex flex-1 items-center justify-center gap-1.5 rounded px-2 py-1.5 transition-colors ${
-                  mode === "staff" ? "bg-brand-600 text-white" : "text-slate-500 hover:text-slate-700"
-                }`}
-              >
+            <div className="flex rounded-lg bg-sidebar-hover p-0.5 text-xs font-medium">
+              <button type="button" onClick={() => setMode("staff")} className={modeButton("staff")}>
                 <UserRound className="h-3.5 w-3.5" />
                 Staff
               </button>
-              <button
-                type="button"
-                onClick={() => setMode("admin")}
-                className={`flex flex-1 items-center justify-center gap-1.5 rounded px-2 py-1.5 transition-colors ${
-                  mode === "admin" ? "bg-brand-600 text-white" : "text-slate-500 hover:text-slate-700"
-                }`}
-              >
+              <button type="button" onClick={() => setMode("admin")} className={modeButton("admin")}>
                 <ShieldCheck className="h-3.5 w-3.5" />
                 Admin
               </button>
@@ -317,13 +320,14 @@ export default function DashboardShell() {
           ) : undefined
         }
       />
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col">
         <Topbar
           userName={`${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim()}
           userMeta={`${user?.role ?? ""} · ${tenantSlug ?? ""}`}
           onSignOut={logout}
+          onMenuClick={() => setSidebarOpen(true)}
         />
-        <main className="flex-1 p-6">
+        <main className="mx-auto w-full max-w-[1600px] flex-1 p-4 sm:p-6 lg:p-8">
           <Outlet context={{ dashboardMode: mode }} />
         </main>
       </div>

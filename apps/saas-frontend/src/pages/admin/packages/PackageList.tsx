@@ -1,23 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { CreatePackageInput, PackageDto } from "@hrm-plus/shared";
-import {
-  Badge,
-  Button,
-  Checkbox,
-  EmptyState,
-  Field,
-  Input,
-  Modal,
-  PageHeader,
-  Select,
-  Table,
-  TableCell,
-  TableHead,
-  TableHeaderCell,
-  TableRow,
-  Textarea,
-} from "@hrm-plus/ui";
+import { Alert, Badge, Button, Checkbox, EmptyState, Field, Input, Modal, PageHeader, Select, Table, TableCell, TableHead, TableHeaderCell, TableRow, Textarea } from "@hrm-plus/ui";
 import { createPackage, deletePackage, listAdminPackages, updatePackage } from "../../../api/packages";
 
 export default function PackageList() {
@@ -63,7 +47,7 @@ export default function PackageList() {
       />
 
       {error && (
-        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</div>
+        <Alert>{error}</Alert>
       )}
 
       <Table>
@@ -204,7 +188,7 @@ function PackageFormModal({
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</div>
+          <Alert>{error}</Alert>
         )}
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Name" required>

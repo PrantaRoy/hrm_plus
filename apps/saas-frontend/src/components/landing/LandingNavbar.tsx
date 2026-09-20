@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { LogIn, Menu, X } from "lucide-react";
 import { PublicSaasSiteSettingsDto } from "@hrm-plus/shared";
 import { Logo } from "@hrm-plus/ui";
 import { resolveFileUrl } from "../../utils/fileUrl";
@@ -45,18 +45,13 @@ export function LandingNavbar({ settings }: { settings: PublicSaasSiteSettingsDt
           ))}
         </nav>
 
-        <div className="hidden items-center gap-4 md:flex">
+        <div className="hidden items-center md:flex">
           <NavHref
             href={settings.loginUrl}
-            className="text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
+            className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700"
           >
-            Super-admin login
-          </NavHref>
-          <NavHref
-            href={settings.headerCtaHref}
-            className="inline-flex items-center rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
-          >
-            {settings.headerCtaLabel}
+            <LogIn className="h-4 w-4" />
+            Login
           </NavHref>
         </div>
 
@@ -85,17 +80,11 @@ export function LandingNavbar({ settings }: { settings: PublicSaasSiteSettingsDt
             ))}
             <NavHref
               href={settings.loginUrl}
-              className="rounded-md px-2 py-2 text-sm font-medium text-slate-500 hover:bg-slate-50"
+              className="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white"
               onClick={() => setMenuOpen(false)}
             >
-              Super-admin login
-            </NavHref>
-            <NavHref
-              href={settings.headerCtaHref}
-              className="mt-2 inline-flex items-center justify-center rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white"
-              onClick={() => setMenuOpen(false)}
-            >
-              {settings.headerCtaLabel}
+              <LogIn className="h-4 w-4" />
+              Login
             </NavHref>
           </nav>
         </div>

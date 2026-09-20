@@ -97,9 +97,35 @@ export interface UpdateSaasTenantInput {
   contactEmail?: string;
 }
 
+export interface SaasStatsRecentApplication {
+  id: number;
+  companyName: string;
+  companyType: string;
+  status: string;
+  submittedAt: string;
+}
+
+export interface SaasStatsRecentTicket {
+  id: number;
+  subject: string;
+  companyName: string;
+  status: string;
+  priority: string | null;
+  createdAt: string;
+}
+
 export interface SaasStats {
   totalCompanies: number;
   totalPackages: number;
+  activeCompanies: number;
+  pendingApplications: number;
+  openTickets: number;
+  unreadContacts: number;
+  companiesByPackage: { packageName: string; count: number }[];
+  /** Oldest to newest, last 6 calendar months. `month` is "YYYY-MM". */
+  applicationsByMonth: { month: string; count: number }[];
+  recentApplications: SaasStatsRecentApplication[];
+  recentTickets: SaasStatsRecentTicket[];
 }
 
 export interface SaasAdminUser {

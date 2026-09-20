@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import {
   Building2,
@@ -43,13 +44,25 @@ const NAV_GROUPS: SidebarGroup[] = [
 
 export default function DashboardShell() {
   const { admin, logout } = useSaasAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      <Sidebar header={<Logo size="sm" />} groups={NAV_GROUPS} />
-      <div className="flex flex-1 flex-col">
-        <Topbar title="Super Admin" userName={admin?.email ?? ""} onSignOut={logout} />
-        <main className="flex-1 p-6">
+    <div className="flex min-h-screen bg-canvas">
+      <Sidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        header={<Logo size="sm" tone="light" />}
+        groups={NAV_GROUPS}
+      />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Topbar
+          title="Super Admin"
+          userName={admin?.email ?? ""}
+          userMeta="Platform administrator"
+          onSignOut={logout}
+          onMenuClick={() => setSidebarOpen(true)}
+        />
+        <main className="mx-auto w-full max-w-[1600px] flex-1 p-4 sm:p-6 lg:p-8">
           <Outlet />
         </main>
       </div>

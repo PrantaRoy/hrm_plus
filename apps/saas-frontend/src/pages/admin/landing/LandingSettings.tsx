@@ -166,23 +166,9 @@ export default function LandingSettings() {
               )}
             />
           </div>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <Field label="Header button label">
-              <Input
-                value={form.headerCtaLabel}
-                onChange={(e) => patch({ headerCtaLabel: e.target.value })}
-              />
-            </Field>
-            <Field label="Header button link">
-              <Input
-                value={form.headerCtaHref}
-                onChange={(e) => patch({ headerCtaHref: e.target.value })}
-              />
-            </Field>
-            <Field label="Super-admin login URL">
-              <Input value={form.loginUrl} onChange={(e) => patch({ loginUrl: e.target.value })} />
-            </Field>
-          </div>
+          <Field label="Login button link" helperText="Where the header Login button points (default /admin/login).">
+            <Input value={form.loginUrl} onChange={(e) => patch({ loginUrl: e.target.value })} />
+          </Field>
         </div>
       </Card>
 

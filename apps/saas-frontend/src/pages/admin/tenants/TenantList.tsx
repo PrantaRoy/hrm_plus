@@ -1,18 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { SaasTenantDto } from "@hrm-plus/shared";
-import {
-  Button,
-  EmptyState,
-  Input,
-  PageHeader,
-  StatusPill,
-  Table,
-  TableCell,
-  TableHead,
-  TableHeaderCell,
-  TableRow,
-} from "@hrm-plus/ui";
+import { Alert, Button, EmptyState, Input, PageHeader, StatusPill, Table, TableCell, TableHead, TableHeaderCell, TableRow } from "@hrm-plus/ui";
 import { listSaasTenants, toggleTenantStatus, updateSaasTenant } from "../../../api/tenants";
 
 export default function TenantList() {
@@ -66,7 +55,7 @@ export default function TenantList() {
       />
 
       {error && (
-        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</div>
+        <Alert>{error}</Alert>
       )}
 
       <Table>

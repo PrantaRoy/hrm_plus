@@ -61,9 +61,14 @@ export function Footer({ content, tenantSlug }: { content: PublicSiteContentDto;
           </div>
         </div>
 
-        <p className="mt-8 text-xs text-white/40">
-          © {new Date().getFullYear()} {siteSettings.siteTitle}. All rights reserved.
-        </p>
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-6">
+          <p className="text-xs text-white/40">
+            © {new Date().getFullYear()} {siteSettings.siteTitle}. All rights reserved.
+          </p>
+          <Link to="/login" className="text-xs font-medium text-white/60 hover:text-white">
+            Login
+          </Link>
+        </div>
       </div>
     </footer>
   );

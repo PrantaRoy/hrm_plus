@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Link } from "react-router-dom";
+import { LogIn, Menu, X } from "lucide-react";
 import { PublicSiteContentDto } from "@hrm-plus/shared";
 import { resolveFileUrl } from "../../utils/fileUrl";
-import { PILL_BUTTON_OUTLINE } from "./decor/publicSiteClasses";
+import { PILL_BUTTON_OUTLINE, PILL_BUTTON_PRIMARY } from "./decor/publicSiteClasses";
 
 export function Navbar({ content }: { content: PublicSiteContentDto }) {
   const [open, setOpen] = useState(false);
@@ -50,6 +51,11 @@ export function Navbar({ content }: { content: PublicSiteContentDto }) {
             </a>
           )}
 
+          <Link to="/login" className={`hidden !px-5 !py-2 md:inline-flex ${PILL_BUTTON_PRIMARY}`}>
+            <LogIn size={16} />
+            Login
+          </Link>
+
           <button className="text-slate-600 md:hidden" onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">
             {open ? <X size={22} /> : <Menu size={22} />}
           </button>
@@ -74,6 +80,10 @@ export function Navbar({ content }: { content: PublicSiteContentDto }) {
                   {section.displayName}
                 </button>
               ))}
+              <Link to="/login" onClick={() => setOpen(false)} className={`mt-2 !py-2.5 ${PILL_BUTTON_PRIMARY}`}>
+                <LogIn size={16} />
+                Login
+              </Link>
             </div>
           </motion.nav>
         )}

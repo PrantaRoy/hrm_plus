@@ -1,20 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { TicketCategoryDto } from "@hrm-plus/shared";
-import {
-  Badge,
-  Button,
-  Card,
-  EmptyState,
-  Field,
-  Input,
-  PageHeader,
-  Table,
-  TableCell,
-  TableHead,
-  TableHeaderCell,
-  TableRow,
-} from "@hrm-plus/ui";
+import { Alert, Badge, Button, Card, EmptyState, Field, Input, PageHeader, Table, TableCell, TableHead, TableHeaderCell, TableRow } from "@hrm-plus/ui";
 import {
   createTicketCategory,
   deleteTicketCategory,
@@ -67,7 +54,7 @@ export default function TicketCategoryList() {
       />
 
       {error && (
-        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</div>
+        <Alert>{error}</Alert>
       )}
 
       {showForm && (
@@ -144,7 +131,7 @@ function CategoryForm({ onCreated }: { onCreated: () => void }) {
     <Card className="max-w-md">
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</div>
+          <Alert>{error}</Alert>
         )}
         <Field label="Name" required>
           <Input required value={name} onChange={(e) => setName(e.target.value)} maxLength={100} />

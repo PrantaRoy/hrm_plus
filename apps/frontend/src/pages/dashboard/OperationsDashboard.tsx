@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Card, PageHeader } from "@hrm-plus/ui";
+import { Card, PageHeader } from "@hrm-plus/ui";
 import { DashboardSummaryDto, DashboardTrendsDto } from "@hrm-plus/shared";
 import { getDashboardSummary, getDashboardTrends } from "../../api/dashboard";
 import { useAuth } from "../../auth/AuthContext";
@@ -30,33 +30,48 @@ export default function OperationsDashboard() {
       .catch(() => setTrends(null));
   }, [days]);
 
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <PageHeader
-        title={`Welcome back, ${user?.firstName ?? ""}`}
+        title={`${greeting}, ${user?.firstName ?? ""}`}
         description="Here's what's happening across your organisation today."
+        className="!mb-0"
       />
 
       <TodayOverviewCard summary={summary} trends={trends} />
 
-      <Card
-        title="Attendance Trend"
-        description="Present, absent, and late counts over time."
-        actions={
-          <div className="flex items-center gap-1.5">
-            <Button variant={days === 7 ? "primary" : "secondary"} size="sm" onClick={() => setDays(7)}>
-              7 days
-            </Button>
-            <Button variant={days === 30 ? "primary" : "secondary"} size="sm" onClick={() => setDays(30)}>
-              30 days
-            </Button>
-          </div>
-        }
-      >
-        {trends ? <AttendanceTrendChart points={trends.points} /> : <p className="text-sm text-slate-400">Loading…</p>}
-      </Card>
+      <div className="grid gap-6 xl:grid-cols-3">
+        <Card
+          className="xl:col-span-2"
+          title="Attendance Trend"
+          description="Present, absent, and late counts over time."
+          actions={
+            <div className="flex rounded-lg bg-slate-100 p-0.5 text-xs font-medium">
+              {([7, 30] as const).map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setDays(option)}
+                  className={`rounded-md px-3 py-1 transition-colors ${
+                    days === option ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  {option} days
+                </button>
+              ))}
+            </div>
+          }
+        >
+          {trends ? (
+            <AttendanceTrendChart points={trends.points} />
+          ) : (
+            <p className="text-sm text-slate-400">Loading…</p>
+          )}
+        </Card>
 
-      <div className="grid gap-5 lg:grid-cols-2">
         <Card title="Leave Requests by Status" description={`Requests created in the last ${days} days.`}>
           {trends ? (
             <LeaveStatusBreakdownChart breakdown={trends.leaveStatusBreakdown} />
@@ -64,7 +79,9 @@ export default function OperationsDashboard() {
             <p className="text-sm text-slate-400">Loading…</p>
           )}
         </Card>
+      </div>
 
+      <div className="grid gap-6 lg:grid-cols-2">
         <PendingLeaveApprovalsCard
           count={summary?.pendingLeaveApprovalsCount ?? 0}
           preview={summary?.pendingLeaveApprovalsPreview ?? []}

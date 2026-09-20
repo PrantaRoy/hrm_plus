@@ -1,18 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ApplicationStatus, TenantApplicationDto } from "@hrm-plus/shared";
-import {
-  Button,
-  EmptyState,
-  PageHeader,
-  Select,
-  StatusPill,
-  Table,
-  TableCell,
-  TableHead,
-  TableHeaderCell,
-  TableRow,
-} from "@hrm-plus/ui";
+import { Alert, Button, EmptyState, PageHeader, Select, StatusPill, Table, TableCell, TableHead, TableHeaderCell, TableRow } from "@hrm-plus/ui";
 import { approveApplication, listApplications, rejectApplication } from "../../../api/applications";
 
 const STATUSES: (ApplicationStatus | "All")[] = ["All", "Pending", "Approved", "Rejected"];
@@ -78,7 +67,7 @@ export default function ApplicationList() {
       />
 
       {error && (
-        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</div>
+        <Alert>{error}</Alert>
       )}
 
       <Table>

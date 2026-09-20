@@ -165,7 +165,7 @@ function TodayTimeline() {
           <button
             type="button"
             onClick={() => setOffset((o) => o - 1)}
-            className="rounded-md border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50"
+            className="rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50"
             aria-label="Previous day"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -174,14 +174,14 @@ function TodayTimeline() {
             type="button"
             onClick={() => setOffset(0)}
             disabled={offset === 0}
-            className="rounded-md border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+            className="rounded-lg border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40"
           >
             Today
           </button>
           <button
             type="button"
             onClick={() => setOffset((o) => o + 1)}
-            className="rounded-md border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50"
+            className="rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50"
             aria-label="Next day"
           >
             <ChevronRight className="h-4 w-4" />
@@ -331,7 +331,7 @@ function WeekGrid() {
           <button
             type="button"
             onClick={() => setWeekOffset((w) => w - 1)}
-            className="rounded-md border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50"
+            className="rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50"
             aria-label="Previous week"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -340,14 +340,14 @@ function WeekGrid() {
             type="button"
             onClick={() => setWeekOffset(0)}
             disabled={weekOffset === 0}
-            className="rounded-md border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+            className="rounded-lg border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40"
           >
             This week
           </button>
           <button
             type="button"
             onClick={() => setWeekOffset((w) => w + 1)}
-            className="rounded-md border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50"
+            className="rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50"
             aria-label="Next week"
           >
             <ChevronRight className="h-4 w-4" />
@@ -450,7 +450,7 @@ export function DutyScheduleReport() {
       title="Duty Schedule Report"
       description="Company-wide shift coverage for today and the current week."
       actions={
-        <div className="flex rounded-md border border-slate-200 p-0.5 text-xs font-medium">
+        <div className="flex rounded-lg border border-slate-200 p-0.5 text-xs font-medium">
           <button
             type="button"
             onClick={() => setTab("today")}

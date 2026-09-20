@@ -34,15 +34,15 @@ interface MetricTileProps {
 function MetricTile({ label, value, icon: Icon, accent, spark }: MetricTileProps) {
   const a = ACCENT[accent];
   return (
-    <div className="flex flex-col justify-between rounded-lg border border-slate-200 p-3">
+    <div className="flex flex-col justify-between rounded-xl border border-slate-200/70 bg-slate-50/60 p-3.5 transition-colors hover:bg-white hover:shadow-card">
       <div className="flex items-center justify-between">
-        <span className={`flex h-7 w-7 items-center justify-center rounded-md ${a.bg}`}>
+        <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${a.bg}`}>
           <Icon className={`h-4 w-4 ${a.icon}`} />
         </span>
         {spark && <Sparkline values={spark.values} color={spark.color} />}
       </div>
-      <p className={`mt-2 text-xl font-semibold tabular-nums ${a.text}`}>{value}</p>
-      <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">{label}</p>
+      <p className={`mt-3 text-2xl font-semibold tabular-nums tracking-tight ${a.text}`}>{value}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{label}</p>
     </div>
   );
 }
@@ -78,8 +78,10 @@ export function TodayOverviewCard({ summary, trends }: TodayOverviewCardProps) {
       actions={
         <Link
           to="/leave/approvals"
-          className={`rounded-md px-2.5 py-1 text-xs font-medium ${
-            pending > 0 ? "bg-amber-50 text-amber-700 hover:bg-amber-100" : "text-slate-400"
+          className={`rounded-full px-3 py-1 text-xs font-medium ${
+            pending > 0
+              ? "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200/70 hover:bg-amber-100"
+              : "bg-slate-100 text-slate-500"
           }`}
         >
           {pending} pending approval{pending === 1 ? "" : "s"}

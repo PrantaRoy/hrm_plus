@@ -7,7 +7,7 @@ import {
   SupportTicketPriority,
   SupportTicketStatus,
 } from "@hrm-plus/shared";
-import { Button, Card, Field, PageHeader, Select, StatusPill, Textarea } from "@hrm-plus/ui";
+import { Alert, Button, Card, Field, PageHeader, Select, StatusPill, Textarea } from "@hrm-plus/ui";
 import { getAdminSupportTicket, replyToAdminSupportTicket, updateAdminSupportTicketStatus } from "../../../api/supportTickets";
 
 const FILE_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000").replace(/\/$/, "");
@@ -128,7 +128,7 @@ export default function TicketDetail() {
         </div>
 
         {error && (
-          <div className="mt-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</div>
+          <Alert className="mt-4">{error}</Alert>
         )}
 
         {isClosed ? (

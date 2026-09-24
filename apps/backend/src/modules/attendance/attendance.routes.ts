@@ -5,8 +5,11 @@ import {
   checkInHandler,
   checkOutHandler,
   endBreakHandler,
+  createQrKioskSessionHandler,
   getEmployeeMethodsHandler,
   getEmployeeRulesHandler,
+  getQrKioskStaticTokenHandler,
+  getQrKioskTokenHandler,
   getSettingsHandler,
   getMyWorksheetHandler,
   getShiftAttendanceLogHandler,
@@ -40,6 +43,17 @@ attendanceRouter.get("/shift-log", requireRole("Admin", "HR", "Manager"), getShi
 attendanceRouter.get("/worksheet", requireRole("Admin", "HR", "Manager"), getWorksheetHandler);
 attendanceRouter.get("/settings", requireRole("Admin", "HR"), getSettingsHandler);
 attendanceRouter.patch("/settings", requireRole("Admin", "HR"), updateSettingsHandler);
+attendanceRouter.post("/qr/kiosk-sessions", requireRole("Admin", "HR"), createQrKioskSessionHandler);
+attendanceRouter.get(
+  "/qr/kiosk-sessions/:sessionId/token",
+  requireRole("Admin", "HR"),
+  getQrKioskTokenHandler
+);
+attendanceRouter.get(
+  "/qr/kiosk-sessions/:sessionId/static-token",
+  requireRole("Admin", "HR"),
+  getQrKioskStaticTokenHandler
+);
 attendanceRouter.put(
   "/employees/:employeeId/manual-entry",
   requireRole("Admin", "HR"),

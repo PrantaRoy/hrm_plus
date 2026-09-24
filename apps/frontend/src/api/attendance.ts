@@ -1,8 +1,12 @@
 import {
   AttendanceDto,
+  AttendanceQrKioskSessionDto,
+  AttendanceQrStaticTokenDto,
+  AttendanceQrTokenDto,
   AttendanceSettingsDto,
   CheckInInput,
   CheckOutInput,
+  CreateAttendanceQrKioskSessionInput,
   EmployeeAttendanceDeviceDto,
   EmployeeAttendanceMethodsDto,
   EmployeeAttendanceRulesDto,
@@ -128,6 +132,25 @@ export async function approveAttendanceDevice(employeeId: number, deviceId: numb
 export async function rejectAttendanceDevice(employeeId: number, deviceId: number): Promise<EmployeeAttendanceDeviceDto> {
   const res = await apiClient.post<EmployeeAttendanceDeviceDto>(
     `/attendance/employees/${employeeId}/devices/${deviceId}/reject`
+  );
+  return res.data;
+}
+
+export async function createQrKioskSession(
+  input: CreateAttendanceQrKioskSessionInput
+): Promise<AttendanceQrKioskSessionDto> {
+  const res = await apiClient.post<AttendanceQrKioskSessionDto>("/attendance/qr/kiosk-sessions", input);
+  return res.data;
+}
+
+export async function getQrKioskToken(sessionId: number): Promise<AttendanceQrTokenDto> {
+  const res = await apiClient.get<AttendanceQrTokenDto>(`/attendance/qr/kiosk-sessions/${sessionId}/token`);
+  return res.data;
+}
+
+export async function getQrKioskStaticToken(sessionId: number): Promise<AttendanceQrStaticTokenDto> {
+  const res = await apiClient.get<AttendanceQrStaticTokenDto>(
+    `/attendance/qr/kiosk-sessions/${sessionId}/static-token`
   );
   return res.data;
 }

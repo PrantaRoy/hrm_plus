@@ -9,6 +9,8 @@ import { ApiError } from "../../utils/ApiError";
 import { requestInclude, toLeaveRequestDto } from "./leaveRequest.mapper";
 import { listAllocationsForEmployee } from "../leave-allocations/leaveAllocation.service";
 import { isWeekendDate, loadWeekendNames } from "../../utils/weekday";
+import { createNotification } from "../notifications/notification.service";
+import { logger } from "../../logger";
 
 export interface ActingUser {
   id: number;
@@ -334,6 +336,16 @@ export async function decideLeaveRequest(
 
     return tx.leaveRequest.findUniqueOrThrow({ where: { id: requestId }, include: requestInclude });
   });
+
+  if (request.employee.userId) {
+    const title =
+      decision === "Approve" ? "Your leave request has been approved" : "Your leave request has been rejected";
+    createNotification(prisma, {
+      userId: request.employee.userId,
+      title,
+      targetUrl: "/leave/my-requests",
+    }).catch((err) => logger.error({ err }, "Failed to create leave decision notification"));
+  }
 
   return toLeaveRequestDto(updated);
 }

@@ -45,6 +45,7 @@ import { useAuth } from "../auth/AuthContext";
 import { getGeneralSettings } from "../api/generalSettings";
 import { resolveFileUrl } from "../utils/fileUrl";
 import { useDashboardMode } from "../hooks/useDashboardMode";
+import { NotificationBell } from "../components/notifications/NotificationBell";
 
 function applyBranding(settings: GeneralSettingsDto) {
   document.title = settings.siteTitle;
@@ -330,6 +331,7 @@ export default function DashboardShell() {
           userMeta={`${user?.role ?? ""} · ${tenantSlug ?? ""}`}
           onSignOut={logout}
           onMenuClick={() => setSidebarOpen(true)}
+          actions={<NotificationBell />}
         />
         <main className="mx-auto w-full max-w-[1600px] flex-1 p-4 sm:p-6 lg:p-8">
           <Outlet context={{ dashboardMode: mode }} />

@@ -5,6 +5,7 @@ import { getAttendanceSettings, getEmployeeAttendanceMethods, setEmployeeAttenda
 
 const METHOD_LABELS: Record<AttendanceMethod, string> = {
   PressAndHold: "Press & Hold",
+  QrCode: "QR Code",
 };
 
 export function EmployeeAttendanceMethodsPanel({ employeeId }: { employeeId: number }) {
@@ -19,7 +20,10 @@ export function EmployeeAttendanceMethodsPanel({ employeeId }: { employeeId: num
     setLoading(true);
     Promise.all([getAttendanceSettings(), getEmployeeAttendanceMethods(employeeId)])
       .then(([settings, employeeMethods]) => {
-        setEnabledTenantWide(settings.pressAndHoldEnabled ? ["PressAndHold"] : []);
+        const tenantWide: AttendanceMethod[] = [];
+        if (settings.pressAndHoldEnabled) tenantWide.push("PressAndHold");
+        if (settings.qrCodeEnabled) tenantWide.push("QrCode");
+        setEnabledTenantWide(tenantWide);
         setSelected(employeeMethods.methods);
       })
       .catch((err) => setError(err.response?.data?.error?.message ?? "Failed to load attendance methods"))

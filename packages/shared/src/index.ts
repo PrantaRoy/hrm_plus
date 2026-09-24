@@ -124,6 +124,10 @@ export type {
   WorksheetQuery,
   WorksheetRowDto,
   ManualAttendanceInput,
+  AttendanceQrKioskSessionDto,
+  CreateAttendanceQrKioskSessionInput,
+  AttendanceQrTokenDto,
+  AttendanceQrStaticTokenDto,
 } from "./attendance";
 
 export { HOLIDAY_SOURCES, HOLIDAY_STATUSES } from "./holiday";
@@ -565,6 +569,9 @@ export type {
   MyWorkTotalsDto,
   MyWorkDashboardDto,
 } from "./projects";
+
+export { NOTIFICATION_STATUSES } from "./notification";
+export type { NotificationDto, NotificationStatus, ListNotificationsQuery } from "./notification";
 
 export { GENDER_CODES, GENDER_CODE_MAP } from "./employeeBulkImport";
 export type {

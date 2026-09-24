@@ -48,6 +48,7 @@ model User {
   aiKpiReportsGenerated      AiKpiReport[]              @relation("AiKpiReportGeneratedBy")
   attendanceDevicesApproved  EmployeeAttendanceDevice[] @relation("AttendanceDeviceApprovedBy")
   attendanceManualEntries    Attendance[]               @relation("AttendanceManualEntryBy")
+  attendanceQrSessionsCreated AttendanceQrSession[]     @relation("AttendanceQrSessionCreatedBy")
   holidaysCreated            Holiday[]                  @relation("HolidayCreatedBy")
   holidaysUpdated            Holiday[]                  @relation("HolidayUpdatedBy")
   holidaysPublished          Holiday[]                  @relation("HolidayPublishedBy")
@@ -86,6 +87,7 @@ model User {
   tasksCreated               Task[]                     @relation("TaskCreatedBy")
   commentsWritten            Comment[]
   attachmentsUploaded        Attachment[]
+  notifications              Notification[]
   signatureImageUrl          String?
   signatureImageKey          String?
   signatureUpdatedAt         DateTime?
@@ -182,6 +184,7 @@ model Employee {
   attendanceLocations   EmployeeAttendanceLocation[]
   attendanceDevices     EmployeeAttendanceDevice[]
   attendanceRules       EmployeeAttendanceRules?
+  attendanceQrTokensUsed AttendanceQrToken[]
   documentRequests      DocumentRequest[]
   assetAssignments      AssetAssignment[]
   payCycleId            Int?
@@ -408,6 +411,7 @@ model DutyScheduleAssignment {
 model AttendanceSettings {
   id                  Int      @id @default(autoincrement())
   pressAndHoldEnabled Boolean  @default(true)
+  qrCodeEnabled       Boolean  @default(false)
   updatedById         Int?
   updatedBy           User?    @relation("AttendanceSettingsUpdatedBy", fields: [updatedById], references: [id])
   createdAt           DateTime @default(now())
@@ -658,6 +662,36 @@ model EmployeeAttendanceRules {
   deviceBindingEnabled   Boolean  @default(false)
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
+}
+
+// One row per physical kiosk/display (e.g. a tablet at the office entrance). Long-lived;
+// rotation of the displayed code happens via AttendanceQrToken, not by recreating this row.
+model AttendanceQrSession {
+  id          Int                 @id @default(autoincrement())
+  label       String?
+  createdById Int
+  createdBy   User                @relation("AttendanceQrSessionCreatedBy", fields: [createdById], references: [id])
+  isActive    Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  tokens      AttendanceQrToken[]
+}
+
+// One row per ~25s rotation tick of a kiosk session. Single-use: assertValidQrToken()
+// atomically claims a row (usedAt set) so a photographed or reused code is rejected.
+model AttendanceQrToken {
+  id               Int                 @id @default(autoincrement())
+  sessionId        Int
+  session          AttendanceQrSession @relation(fields: [sessionId], references: [id])
+  jti              String              @unique
+  issuedAt         DateTime            @default(now())
+  expiresAt        DateTime
+  usedAt           DateTime?
+  usedByEmployeeId Int?
+  usedByEmployee   Employee?           @relation(fields: [usedByEmployeeId], references: [id])
+  usedForMethod    String?
+
+  @@index([sessionId, expiresAt])
+  @@index([expiresAt])
 }
 
 model PasswordResetToken {
@@ -1601,4 +1635,18 @@ model Attachment {
 
   @@index([attachableType, attachableId])
   @@index([uploaderId])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  targetUrl String?
+  status    String   @default("Unread") // "Unread" | "Read"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, status])
+  @@index([userId, createdAt])
 }

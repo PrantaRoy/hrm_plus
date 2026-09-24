@@ -24,6 +24,7 @@ import TaskDetail from "./pages/tasks/TaskDetail";
 import ApplyLeave from "./pages/leave/ApplyLeave";
 import MyLeaveRequests from "./pages/leave/MyLeaveRequests";
 import LeaveApprovals from "./pages/leave/LeaveApprovals";
+import NotificationsList from "./pages/notifications/NotificationsList";
 import DutyScheduleList from "./pages/duty-schedules/DutyScheduleList";
 import DutyScheduleCreate from "./pages/duty-schedules/DutyScheduleCreate";
 import DutyScheduleEdit from "./pages/duty-schedules/DutyScheduleEdit";
@@ -47,6 +48,8 @@ import AttendanceIpRuleSettings from "./pages/settings/AttendanceIpRuleSettings"
 import AttendanceLocationList from "./pages/attendance/AttendanceLocationList";
 import AttendanceLocationCreate from "./pages/attendance/AttendanceLocationCreate";
 import AttendanceLocationEdit from "./pages/attendance/AttendanceLocationEdit";
+import AttendanceQrKiosk from "./pages/attendance/AttendanceQrKiosk";
+import AttendanceQrPrint from "./pages/attendance/AttendanceQrPrint";
 import RecordsLayout from "./pages/records/RecordsLayout";
 import AttendanceReport from "./pages/records/AttendanceReport";
 import LeaveReport from "./pages/records/LeaveReport";
@@ -146,6 +149,11 @@ export default function App() {
       <Route element={<RequireAuth />}>
         <Route path="/change-password" element={<ChangePassword />} />
 
+        <Route element={<RequireAuth roles={["Admin", "HR"]} />}>
+          <Route path="/attendance/kiosk" element={<AttendanceQrKiosk />} />
+          <Route path="/attendance/kiosk/print" element={<AttendanceQrPrint />} />
+        </Route>
+
         <Route element={<DashboardShell />}>
           <Route element={<RequireAuth roles={["Admin", "HR", "Manager"]} />}>
             <Route path="/employees" element={<EmployeeList />} />
@@ -164,6 +172,7 @@ export default function App() {
 
           <Route path="/leave/apply" element={<ApplyLeave />} />
           <Route path="/leave/my-requests" element={<MyLeaveRequests />} />
+          <Route path="/notifications" element={<NotificationsList />} />
           <Route path="/leave/approvals" element={<LeaveApprovals />} />
 
           <Route path="/meetings" element={<MyMeetings />} />

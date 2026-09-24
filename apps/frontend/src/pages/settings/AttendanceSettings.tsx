@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Button, Card, Checkbox, Spinner } from "@hrm-plus/ui";
 import { getAttendanceSettings, updateAttendanceSettings } from "../../api/attendance";
 
 export default function AttendanceSettings() {
   const [pressAndHoldEnabled, setPressAndHoldEnabled] = useState(true);
+  const [qrCodeEnabled, setQrCodeEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -11,7 +13,10 @@ export default function AttendanceSettings() {
 
   useEffect(() => {
     getAttendanceSettings()
-      .then((settings) => setPressAndHoldEnabled(settings.pressAndHoldEnabled))
+      .then((settings) => {
+        setPressAndHoldEnabled(settings.pressAndHoldEnabled);
+        setQrCodeEnabled(settings.qrCodeEnabled);
+      })
       .catch((err) => setError(err.response?.data?.error?.message ?? "Failed to load attendance settings"))
       .finally(() => setLoading(false));
   }, []);
@@ -21,8 +26,9 @@ export default function AttendanceSettings() {
     setError(null);
     setSaved(false);
     try {
-      const updated = await updateAttendanceSettings({ pressAndHoldEnabled });
+      const updated = await updateAttendanceSettings({ pressAndHoldEnabled, qrCodeEnabled });
       setPressAndHoldEnabled(updated.pressAndHoldEnabled);
+      setQrCodeEnabled(updated.qrCodeEnabled);
       setSaved(true);
       window.setTimeout(() => setSaved(false), 3000);
     } catch (err: any) {
@@ -60,6 +66,22 @@ export default function AttendanceSettings() {
             <Checkbox checked={pressAndHoldEnabled} onChange={(e) => setPressAndHoldEnabled(e.target.checked)} />
             Press &amp; Hold — staff hold a button for 2 seconds to check in/out
           </label>
+
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            <Checkbox checked={qrCodeEnabled} onChange={(e) => setQrCodeEnabled(e.target.checked)} />
+            QR Code — staff scan a rotating QR code displayed at a kiosk to check in/out
+          </label>
+
+          {qrCodeEnabled && (
+            <div className="ml-6 flex flex-wrap gap-3 text-sm">
+              <Link to="/attendance/kiosk" className="text-brand-700 underline hover:text-brand-800">
+                Open kiosk display
+              </Link>
+              <Link to="/attendance/kiosk/print" className="text-brand-700 underline hover:text-brand-800">
+                Generate &amp; print a QR code
+              </Link>
+            </div>
+          )}
 
           <Button onClick={handleSave} isLoading={saving}>
             Save

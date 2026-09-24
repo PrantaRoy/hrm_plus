@@ -5,6 +5,7 @@ const geoFields = {
   deviceToken: z.string().trim().min(1).optional(),
   latitude: z.number().min(-90).max(90).optional(),
   longitude: z.number().min(-180).max(180).optional(),
+  qrToken: z.string().trim().min(1).optional(),
 };
 
 export const checkInSchema = z.object({
@@ -21,6 +22,11 @@ export const checkOutSchema = z.object({
 
 export const updateAttendanceSettingsSchema = z.object({
   pressAndHoldEnabled: z.boolean().optional(),
+  qrCodeEnabled: z.boolean().optional(),
+});
+
+export const createQrKioskSessionSchema = z.object({
+  label: z.string().trim().max(100).optional(),
 });
 
 export const setEmployeeMethodsSchema = z.object({

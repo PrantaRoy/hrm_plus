@@ -30,6 +30,7 @@ import {
   totalBreakMinutes,
 } from "./attendance.mapper";
 import { enforceAttendanceRestrictions } from "./attendanceRestrictions.service";
+import { assertValidQrToken } from "./attendanceQr.service";
 
 const assignmentWithAttendance = Prisma.validator<Prisma.DutyScheduleAssignmentDefaultArgs>()({
   include: {
@@ -75,7 +76,7 @@ export async function updateAttendanceSettings(
   const existing = await getOrCreateSettings(prisma);
   const updated = await prisma.attendanceSettings.update({
     where: { id: existing.id },
-    data: { pressAndHoldEnabled: input.pressAndHoldEnabled, updatedById },
+    data: { pressAndHoldEnabled: input.pressAndHoldEnabled, qrCodeEnabled: input.qrCodeEnabled, updatedById },
   });
   return toAttendanceSettingsDto(updated);
 }
@@ -84,6 +85,7 @@ async function tenantEnabledMethods(prisma: PrismaClient): Promise<Set<Attendanc
   const settings = await getOrCreateSettings(prisma);
   const enabled = new Set<AttendanceMethod>();
   if (settings.pressAndHoldEnabled) enabled.add("PressAndHold");
+  if (settings.qrCodeEnabled) enabled.add("QrCode");
   return enabled;
 }
 
@@ -252,12 +254,16 @@ export async function checkIn(prisma: PrismaClient, employeeId: number, input: C
   }
 
   await assertMethodAllowed(prisma, employeeId, input.method);
-  await enforceAttendanceRestrictions(prisma, employeeId, {
-    ip: input.clientIp,
-    deviceToken: input.deviceToken,
-    latitude: input.latitude,
-    longitude: input.longitude,
-  });
+  if (input.method === "QrCode") {
+    await assertValidQrToken(prisma, input.qrToken, employeeId, "CheckIn");
+  } else {
+    await enforceAttendanceRestrictions(prisma, employeeId, {
+      ip: input.clientIp,
+      deviceToken: input.deviceToken,
+      latitude: input.latitude,
+      longitude: input.longitude,
+    });
+  }
   await assertNotPayrollLocked(prisma, employeeId, assignment.date);
 
   const now = new Date();
@@ -351,12 +357,16 @@ export async function checkOut(prisma: PrismaClient, employeeId: number, input: 
   }
 
   await assertMethodAllowed(prisma, employeeId, input.method);
-  await enforceAttendanceRestrictions(prisma, employeeId, {
-    ip: input.clientIp,
-    deviceToken: input.deviceToken,
-    latitude: input.latitude,
-    longitude: input.longitude,
-  });
+  if (input.method === "QrCode") {
+    await assertValidQrToken(prisma, input.qrToken, employeeId, "CheckOut");
+  } else {
+    await enforceAttendanceRestrictions(prisma, employeeId, {
+      ip: input.clientIp,
+      deviceToken: input.deviceToken,
+      latitude: input.latitude,
+      longitude: input.longitude,
+    });
+  }
   await assertNotPayrollLocked(prisma, employeeId, assignment.date);
 
   const now = new Date();

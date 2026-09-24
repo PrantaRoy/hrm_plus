@@ -45,12 +45,14 @@ export function toAttendanceDto(attendance: AttendanceWithBreaks): AttendanceDto
 export function toAttendanceSettingsDto(settings: {
   id: number;
   pressAndHoldEnabled: boolean;
+  qrCodeEnabled: boolean;
   updatedById: number | null;
   updatedAt: Date;
 }): AttendanceSettingsDto {
   return {
     id: settings.id,
     pressAndHoldEnabled: settings.pressAndHoldEnabled,
+    qrCodeEnabled: settings.qrCodeEnabled,
     updatedById: settings.updatedById,
     updatedAt: settings.updatedAt.toISOString(),
   };

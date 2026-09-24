@@ -4,6 +4,7 @@ import { resolveEmployeeForUser } from "../leave-requests/leaveRequest.service";
 import {
   checkInSchema,
   checkOutSchema,
+  createQrKioskSessionSchema,
   listAttendanceQuerySchema,
   manualAttendanceSchema,
   setEmployeeMethodsSchema,
@@ -15,6 +16,7 @@ import {
 import * as attendanceService from "./attendance.service";
 import { toDateOnlyUTC } from "../../utils/date";
 import * as restrictionsService from "./attendanceRestrictions.service";
+import * as attendanceQrService from "./attendanceQr.service";
 
 export const getTodayHandler: RequestHandler = async (req, res, next) => {
   try {
@@ -199,6 +201,35 @@ export const rejectDeviceHandler: RequestHandler = async (req, res, next) => {
     const deviceId = Number(req.params.deviceId);
     if (Number.isNaN(employeeId) || Number.isNaN(deviceId)) throw ApiError.badRequest("Invalid id");
     res.json(await restrictionsService.rejectDevice(req.prisma!, employeeId, deviceId));
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const createQrKioskSessionHandler: RequestHandler = async (req, res, next) => {
+  try {
+    const input = createQrKioskSessionSchema.parse(req.body);
+    res.json(await attendanceQrService.createKioskSession(req.prisma!, input.label, req.user!.id));
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getQrKioskTokenHandler: RequestHandler = async (req, res, next) => {
+  try {
+    const sessionId = Number(req.params.sessionId);
+    if (Number.isNaN(sessionId)) throw ApiError.badRequest("Invalid kiosk session id");
+    res.json(await attendanceQrService.getOrRotateKioskToken(req.prisma!, sessionId));
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getQrKioskStaticTokenHandler: RequestHandler = async (req, res, next) => {
+  try {
+    const sessionId = Number(req.params.sessionId);
+    if (Number.isNaN(sessionId)) throw ApiError.badRequest("Invalid kiosk session id");
+    res.json(await attendanceQrService.getOrCreateStaticQrImage(req.prisma!, sessionId));
   } catch (err) {
     next(err);
   }

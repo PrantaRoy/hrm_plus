@@ -1,18 +1,20 @@
 import { AssignmentStatus, DutyScheduleAssignmentDto } from "./roster";
 import { SettingStatus } from "./employee";
 
-export const ATTENDANCE_METHODS = ["PressAndHold"] as const;
+export const ATTENDANCE_METHODS = ["PressAndHold", "QrCode"] as const;
 export type AttendanceMethod = (typeof ATTENDANCE_METHODS)[number];
 
 export interface AttendanceSettingsDto {
   id: number;
   pressAndHoldEnabled: boolean;
+  qrCodeEnabled: boolean;
   updatedById: number | null;
   updatedAt: string;
 }
 
 export interface UpdateAttendanceSettingsInput {
   pressAndHoldEnabled?: boolean;
+  qrCodeEnabled?: boolean;
 }
 
 export interface EmployeeAttendanceMethodsDto {
@@ -61,6 +63,7 @@ export interface CheckInInput {
   deviceToken?: string;
   latitude?: number;
   longitude?: number;
+  qrToken?: string;
 }
 
 export interface CheckOutInput {
@@ -69,6 +72,28 @@ export interface CheckOutInput {
   deviceToken?: string;
   latitude?: number;
   longitude?: number;
+  qrToken?: string;
+}
+
+export interface AttendanceQrKioskSessionDto {
+  id: number;
+  label: string | null;
+  createdAt: string;
+}
+
+export interface CreateAttendanceQrKioskSessionInput {
+  label?: string;
+}
+
+export interface AttendanceQrTokenDto {
+  token: string;
+  expiresAt: string;
+  qrImageDataUri: string;
+}
+
+export interface AttendanceQrStaticTokenDto {
+  token: string;
+  qrImageDataUri: string;
 }
 
 export interface TodayAttendanceDto {

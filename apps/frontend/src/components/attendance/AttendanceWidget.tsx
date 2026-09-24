@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { Card, Textarea, cn } from "@hrm-plus/ui";
-import { CheckInInput, TodayAttendanceDto } from "@hrm-plus/shared";
+import { AttendanceMethod, CheckInInput, CheckOutInput, TodayAttendanceDto } from "@hrm-plus/shared";
 import { checkIn, checkOut, endBreak, getTodayAttendance, startBreak } from "../../api/attendance";
 import { getGeneralSettings } from "../../api/generalSettings";
 import { useAuth } from "../../auth/AuthContext";
 import { useLongPress } from "../../hooks/useLongPress";
 import { getDeviceToken } from "../../utils/deviceToken";
+import { QrScanner } from "./QrScanner";
 
 const HOLD_MS = 2000;
-const METHOD = "PressAndHold" as const;
 
 function formatTime(iso: string | null | undefined): string {
   if (!iso) return "--:--";
@@ -112,6 +112,7 @@ export function AttendanceWidget() {
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [timezone, setTimezone] = useState("UTC");
+  const [scanningFor, setScanningFor] = useState<"checkin" | "checkout" | null>(null);
 
   function refresh() {
     setLoading(true);
@@ -188,11 +189,11 @@ export function AttendanceWidget() {
   const locationBlocked = today.requiresLocationBinding && !coords;
   const geoFields = coords ? { latitude: coords.latitude, longitude: coords.longitude } : {};
 
-  async function submitCheckIn(extra: Partial<CheckInInput> = {}) {
+  async function submitCheckIn(method: AttendanceMethod, extra: Partial<CheckInInput> = {}) {
     setBusy(true);
     setError(null);
     try {
-      const result = await checkIn({ method: METHOD, deviceToken, ...geoFields, ...extra });
+      const result = await checkIn({ method, deviceToken, ...geoFields, ...extra });
       setToday(result);
       setLateReason("");
       const lateNote = result.attendance?.isLate ? " You're marked late for today." : "";
@@ -209,22 +210,23 @@ export function AttendanceWidget() {
   }
 
   async function handleCheckIn() {
-    await submitCheckIn({ reason: lateReason.trim() || undefined });
+    await submitCheckIn("PressAndHold", { reason: lateReason.trim() || undefined });
   }
 
   async function handleResume() {
-    await submitCheckIn();
+    await submitCheckIn("PressAndHold");
   }
 
-  async function handleCheckOut() {
+  async function handleCheckOut(method: AttendanceMethod, extra: Partial<CheckOutInput> = {}) {
     setBusy(true);
     setError(null);
     try {
       const result = await checkOut({
-        method: METHOD,
+        method,
         reason: earlyReason.trim() || undefined,
         deviceToken,
         ...geoFields,
+        ...extra,
       });
       setToday(result);
       setEarlyReason("");
@@ -239,6 +241,23 @@ export function AttendanceWidget() {
       setBusy(false);
     }
   }
+
+  function handlePressAndHoldCheckOut() {
+    return handleCheckOut("PressAndHold");
+  }
+
+  async function handleQrDecode(decodedText: string) {
+    const action = scanningFor;
+    setScanningFor(null);
+    if (action === "checkin") {
+      await submitCheckIn("QrCode", { qrToken: decodedText, reason: lateReason.trim() || undefined });
+    } else if (action === "checkout") {
+      await handleCheckOut("QrCode", { qrToken: decodedText });
+    }
+  }
+
+  const canUseQr = today.availableMethods.includes("QrCode");
+  const canUsePressAndHold = today.availableMethods.includes("PressAndHold");
 
   async function handleStartBreak() {
     setError(null);
@@ -306,13 +325,25 @@ export function AttendanceWidget() {
                 />
               </div>
             )}
-            <HoldButton
-              label="Hold to check in"
-              subLabel={`${HOLD_MS / 1000}s`}
-              tone="brand"
-              disabled={busy || locationBlocked || (isLikelyLate && !lateReason.trim())}
-              onComplete={handleCheckIn}
-            />
+            {canUsePressAndHold && (
+              <HoldButton
+                label="Hold to check in"
+                subLabel={`${HOLD_MS / 1000}s`}
+                tone="brand"
+                disabled={busy || locationBlocked || (isLikelyLate && !lateReason.trim())}
+                onComplete={handleCheckIn}
+              />
+            )}
+            {canUseQr && (
+              <button
+                type="button"
+                disabled={busy || (isLikelyLate && !lateReason.trim())}
+                onClick={() => setScanningFor("checkin")}
+                className="rounded-md border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-medium text-brand-700 hover:bg-brand-100 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Scan QR to check in
+              </button>
+            )}
           </div>
         )}
 
@@ -363,13 +394,25 @@ export function AttendanceWidget() {
                     />
                   </div>
                 )}
-                <HoldButton
-                  label="Hold to check out"
-                  subLabel={`${HOLD_MS / 1000}s`}
-                  tone="slate"
-                  disabled={busy || locationBlocked || (isLikelyEarlyCheckout && !earlyReason.trim())}
-                  onComplete={handleCheckOut}
-                />
+                {canUsePressAndHold && (
+                  <HoldButton
+                    label="Hold to check out"
+                    subLabel={`${HOLD_MS / 1000}s`}
+                    tone="slate"
+                    disabled={busy || locationBlocked || (isLikelyEarlyCheckout && !earlyReason.trim())}
+                    onComplete={handlePressAndHoldCheckOut}
+                  />
+                )}
+                {canUseQr && (
+                  <button
+                    type="button"
+                    disabled={busy || (isLikelyEarlyCheckout && !earlyReason.trim())}
+                    onClick={() => setScanningFor("checkout")}
+                    className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Scan QR to check out
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -410,6 +453,7 @@ export function AttendanceWidget() {
           </div>
         )}
       </div>
+      {scanningFor && <QrScanner onDecode={handleQrDecode} onClose={() => setScanningFor(null)} />}
     </Card>
   );
 }

@@ -1,5 +1,5 @@
 import { RequestHandler } from "express";
-import { generateWorkReportsSchema, listWorkReportsQuerySchema } from "./workReport.schemas";
+import { generateWorkReportsSchema, listWorkReportsQuerySchema, updateWorkReportSchema } from "./workReport.schemas";
 import * as workReportService from "./workReport.service";
 import { ApiError } from "../../utils/ApiError";
 
@@ -43,6 +43,28 @@ export const approveWorkReportHandler: RequestHandler = async (req, res, next) =
     const id = Number(req.params.id);
     if (Number.isNaN(id)) throw ApiError.badRequest("Invalid work report id");
     res.json(await workReportService.approveWorkReport(req.prisma!, id, req.user!.id));
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updateWorkReportHandler: RequestHandler = async (req, res, next) => {
+  try {
+    const id = Number(req.params.id);
+    if (Number.isNaN(id)) throw ApiError.badRequest("Invalid work report id");
+    const input = updateWorkReportSchema.parse(req.body);
+    res.json(await workReportService.updateWorkReport(req.prisma!, id, input));
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const deleteWorkReportHandler: RequestHandler = async (req, res, next) => {
+  try {
+    const id = Number(req.params.id);
+    if (Number.isNaN(id)) throw ApiError.badRequest("Invalid work report id");
+    await workReportService.deleteWorkReport(req.prisma!, id);
+    res.status(204).send();
   } catch (err) {
     next(err);
   }

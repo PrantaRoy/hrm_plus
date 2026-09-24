@@ -143,3 +143,39 @@ export async function approveWorkReport(prisma: PrismaClient, workReportId: numb
   });
   return toWorkReportDto(updated);
 }
+
+// Lets Admin/HR manually correct the aggregated hours on a report that hasn't been
+// paid out yet — e.g. an attendance gap the auto-aggregation couldn't fill in.
+// Once PAYROLL_PROCESSED (a payslip exists), the figures are locked in.
+export async function updateWorkReport(
+  prisma: PrismaClient,
+  workReportId: number,
+  input: { regularHours: number; extraHours: number }
+): Promise<WorkReportDto> {
+  const report = await prisma.workReport.findUnique({ where: { id: workReportId } });
+  if (!report) throw ApiError.notFound("Work report not found");
+  if (report.status === "PAYROLL_PROCESSED" || report.payslipId !== null) {
+    throw ApiError.conflict("Cannot edit a work report that already has a payslip generated");
+  }
+
+  const totalHours = round2(input.regularHours + input.extraHours);
+  const updated = await prisma.workReport.update({
+    where: { id: workReportId },
+    data: { regularHours: input.regularHours, extraHours: input.extraHours, totalHours },
+    include: workReportInclude,
+  });
+  return toWorkReportDto(updated);
+}
+
+// Admin-only cleanup for a DRAFT/HR_APPROVED report entered or approved in error.
+// Once a payslip has been generated for it (status PAYROLL_PROCESSED / payslipId set),
+// it's part of a payroll run's financial record and can no longer be removed here.
+export async function deleteWorkReport(prisma: PrismaClient, workReportId: number): Promise<void> {
+  const report = await prisma.workReport.findUnique({ where: { id: workReportId } });
+  if (!report) throw ApiError.notFound("Work report not found");
+  if (report.status === "PAYROLL_PROCESSED" || report.payslipId !== null) {
+    throw ApiError.conflict("Cannot delete a work report that already has a payslip generated");
+  }
+
+  await prisma.workReport.delete({ where: { id: workReportId } });
+}

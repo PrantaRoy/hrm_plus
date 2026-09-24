@@ -96,6 +96,11 @@ export interface GenerateWorkReportsInput {
   periodEnd: string;
 }
 
+export interface UpdateWorkReportInput {
+  regularHours: number;
+  extraHours: number;
+}
+
 export interface ListWorkReportsQuery {
   status?: WorkReportStatus;
   employeeId?: number;

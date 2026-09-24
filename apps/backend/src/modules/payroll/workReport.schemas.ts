@@ -7,6 +7,11 @@ export const generateWorkReportsSchema = z.object({
   periodEnd: z.string().min(1),
 });
 
+export const updateWorkReportSchema = z.object({
+  regularHours: z.number().min(0),
+  extraHours: z.number().min(0),
+});
+
 export const listWorkReportsQuerySchema = z.object({
   status: z.enum(WORK_REPORT_STATUSES).optional(),
   employeeId: z.coerce.number().int().optional(),

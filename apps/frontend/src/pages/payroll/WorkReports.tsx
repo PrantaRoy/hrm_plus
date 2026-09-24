@@ -16,11 +16,19 @@ import {
   TableRow,
 } from "@hrm-plus/ui";
 import { useAuth } from "../../auth/AuthContext";
-import { approveWorkReport, generateWorkReports, listPayCycles, listWorkReports } from "../../api/payroll";
+import {
+  approveWorkReport,
+  deleteWorkReport,
+  generateWorkReports,
+  listPayCycles,
+  listWorkReports,
+  updateWorkReport,
+} from "../../api/payroll";
 
 export default function WorkReports() {
   const { user } = useAuth();
   const isHr = user?.role === "Admin" || user?.role === "HR";
+  const isAdmin = user?.role === "Admin";
 
   const [payCycles, setPayCycles] = useState<PayCycleDto[]>([]);
   const [payCycleId, setPayCycleId] = useState<number | null>(null);
@@ -31,6 +39,9 @@ export default function WorkReports() {
   const [error, setError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [actingId, setActingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editRegular, setEditRegular] = useState("");
+  const [editExtra, setEditExtra] = useState("");
 
   function refresh() {
     setLoading(true);
@@ -70,6 +81,50 @@ export default function WorkReports() {
       refresh();
     } catch (err: any) {
       setError(err.response?.data?.error?.message ?? "Failed to approve work report");
+    } finally {
+      setActingId(null);
+    }
+  }
+
+  function startEdit(r: WorkReportDto) {
+    setEditingId(r.id);
+    setEditRegular(String(r.regularHours));
+    setEditExtra(String(r.extraHours));
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+  }
+
+  async function handleSaveEdit(id: number) {
+    const regularHours = Number(editRegular);
+    const extraHours = Number(editExtra);
+    if (Number.isNaN(regularHours) || Number.isNaN(extraHours) || regularHours < 0 || extraHours < 0) {
+      setError("Hours must be non-negative numbers");
+      return;
+    }
+    setActingId(id);
+    setError(null);
+    try {
+      await updateWorkReport(id, { regularHours, extraHours });
+      setEditingId(null);
+      refresh();
+    } catch (err: any) {
+      setError(err.response?.data?.error?.message ?? "Failed to update work report");
+    } finally {
+      setActingId(null);
+    }
+  }
+
+  async function handleDelete(id: number) {
+    if (!window.confirm("Delete this work report?")) return;
+    setActingId(id);
+    setError(null);
+    try {
+      await deleteWorkReport(id);
+      refresh();
+    } catch (err: any) {
+      setError(err.response?.data?.error?.message ?? "Failed to delete work report");
     } finally {
       setActingId(null);
     }
@@ -143,20 +198,78 @@ export default function WorkReports() {
                   <TableCell>
                     {r.periodStart.slice(0, 10)} → {r.periodEnd.slice(0, 10)}
                   </TableCell>
-                  <TableCell>{r.regularHours.toFixed(2)}</TableCell>
-                  <TableCell>
-                    <Badge color={r.extraHours > 0 ? "amber" : "slate"}>{r.extraHours.toFixed(2)}</Badge>
-                  </TableCell>
-                  <TableCell>{r.totalHours.toFixed(2)}</TableCell>
+                  {editingId === r.id ? (
+                    <>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          className="w-20"
+                          value={editRegular}
+                          onChange={(e) => setEditRegular(e.target.value)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          className="w-20"
+                          value={editExtra}
+                          onChange={(e) => setEditExtra(e.target.value)}
+                        />
+                      </TableCell>
+                      <TableCell>{(Number(editRegular || 0) + Number(editExtra || 0)).toFixed(2)}</TableCell>
+                    </>
+                  ) : (
+                    <>
+                      <TableCell>{r.regularHours.toFixed(2)}</TableCell>
+                      <TableCell>
+                        <Badge color={r.extraHours > 0 ? "amber" : "slate"}>{r.extraHours.toFixed(2)}</Badge>
+                      </TableCell>
+                      <TableCell>{r.totalHours.toFixed(2)}</TableCell>
+                    </>
+                  )}
                   <TableCell>
                     <StatusPill status={r.status} />
                   </TableCell>
                   <TableCell className="text-right">
-                    {r.status === "DRAFT" && isHr && (
-                      <Button size="sm" isLoading={actingId === r.id} onClick={() => handleApprove(r.id)}>
-                        Approve
-                      </Button>
-                    )}
+                    <div className="flex justify-end gap-2">
+                      {editingId === r.id ? (
+                        <>
+                          <Button size="sm" isLoading={actingId === r.id} onClick={() => handleSaveEdit(r.id)}>
+                            Save
+                          </Button>
+                          <Button size="sm" variant="secondary" onClick={cancelEdit}>
+                            Cancel
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          {r.status === "DRAFT" && isHr && (
+                            <Button size="sm" isLoading={actingId === r.id} onClick={() => handleApprove(r.id)}>
+                              Approve
+                            </Button>
+                          )}
+                          {r.status !== "PAYROLL_PROCESSED" && isHr && (
+                            <Button size="sm" variant="secondary" onClick={() => startEdit(r)}>
+                              Edit
+                            </Button>
+                          )}
+                          {r.status !== "PAYROLL_PROCESSED" && isAdmin && (
+                            <Button
+                              size="sm"
+                              variant="danger"
+                              isLoading={actingId === r.id}
+                              onClick={() => handleDelete(r.id)}
+                            >
+                              Delete
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

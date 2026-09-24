@@ -13,6 +13,7 @@ import {
   PayslipDto,
   UpdatePayCycleInput,
   UpdatePayrollSettingsInput,
+  UpdateWorkReportInput,
   WorkReportDto,
 } from "@hrm-plus/shared";
 import { apiClient } from "./client";
@@ -63,6 +64,14 @@ export async function generateWorkReports(input: GenerateWorkReportsInput): Prom
 
 export async function approveWorkReport(id: number): Promise<WorkReportDto> {
   return (await apiClient.post<WorkReportDto>(`/work-reports/${id}/approve`)).data;
+}
+
+export async function updateWorkReport(id: number, input: UpdateWorkReportInput): Promise<WorkReportDto> {
+  return (await apiClient.patch<WorkReportDto>(`/work-reports/${id}`, input)).data;
+}
+
+export async function deleteWorkReport(id: number): Promise<void> {
+  await apiClient.delete(`/work-reports/${id}`);
 }
 
 // Payroll runs

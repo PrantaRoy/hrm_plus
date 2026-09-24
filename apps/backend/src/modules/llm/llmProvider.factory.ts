@@ -39,3 +39,24 @@ export async function getLlmProvider(prisma: PrismaClient): Promise<LlmProvider>
       return new GroqProvider({ apiKey: env.GROQ_API_KEY, model: env.GROQ_MODEL });
   }
 }
+
+/**
+ * Name + model of whichever provider getLlmProvider() would build, for stamping onto
+ * saved AI output (e.g. AI KPI reports) so it's traceable to the model that wrote it.
+ */
+export async function getLlmProviderInfo(prisma: PrismaClient): Promise<{ provider: string; model: string }> {
+  const tenantConfig = await resolveProviderConfig(prisma);
+  if (tenantConfig) return { provider: tenantConfig.provider.toLowerCase(), model: tenantConfig.model };
+
+  switch (env.LLM_PROVIDER) {
+    case "anthropic":
+      return { provider: "anthropic", model: env.ANTHROPIC_MODEL };
+    case "gemini":
+      return { provider: "gemini", model: env.GEMINI_MODEL };
+    case "openai":
+      return { provider: "openai", model: env.OPENAI_MODEL };
+    case "groq":
+    default:
+      return { provider: "groq", model: env.GROQ_MODEL };
+  }
+}

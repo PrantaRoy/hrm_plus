@@ -9,6 +9,7 @@ import { AttendanceWidget } from "../../components/attendance/AttendanceWidget";
 import { DutyScheduleMonthCalendar } from "../../components/DutyScheduleMonthCalendar";
 import { DutyScheduleReport } from "../../components/dashboard/DutyScheduleReport";
 import { MyMeetingsCard } from "../../components/dashboard/MyMeetingsCard";
+import { MyWorkSection } from "../../components/dashboard/MyWorkSection";
 import { LiveClock } from "../../components/LiveClock";
 
 export default function StaffDashboard() {
@@ -32,7 +33,7 @@ export default function StaffDashboard() {
     <div className="space-y-6">
       <PageHeader
         title={`${greeting}, ${user?.firstName ?? ""}`}
-        description="Here's your attendance, schedule, and leave at a glance."
+        description="Here's your attendance, schedule, work, and leave at a glance."
         className="!mb-0"
       />
 
@@ -42,6 +43,8 @@ export default function StaffDashboard() {
       </div>
 
       <DutyScheduleReport />
+
+      <MyWorkSection />
 
       <MyMeetingsCard />
 

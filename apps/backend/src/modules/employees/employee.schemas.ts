@@ -25,6 +25,12 @@ export const createEmployeeSchema = z.object({
   password: z.string().min(8),
 });
 
+export const bulkImportEmployeesFieldsSchema = z.object({
+  role: z.string().trim().min(1),
+  departmentId: z.coerce.number().int().optional(),
+  designationId: z.coerce.number().int().optional(),
+});
+
 export const updateEmployeeSchema = z.object({
   firstName: z.string().trim().min(1).optional(),
   lastName: z.string().trim().min(1).optional(),

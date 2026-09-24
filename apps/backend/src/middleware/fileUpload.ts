@@ -64,6 +64,15 @@ export const projectAttachmentUpload = createUploadMiddleware({
   maxSizeBytes: 10 * 1024 * 1024,
 });
 
+export const bulkImportUpload = createUploadMiddleware({
+  allowedMimeTypes: [
+    "text/csv",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ],
+  maxSizeBytes: 5 * 1024 * 1024,
+});
+
 export const resumeUpload = createUploadMiddleware({
   allowedMimeTypes: [
     "application/pdf",

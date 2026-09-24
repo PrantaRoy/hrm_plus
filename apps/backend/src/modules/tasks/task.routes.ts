@@ -12,6 +12,7 @@ import {
 import {
   createTaskHandler,
   deleteTaskHandler,
+  getMyWorkDashboardHandler,
   getTaskHandler,
   listMyTasksHandler,
   listTasksHandler,
@@ -36,6 +37,8 @@ taskRouter.use(requireAuth);
 
 taskRouter.get("/", listTasksHandler);
 taskRouter.get("/my", listMyTasksHandler);
+// Declared before "/:id" so "dashboard" is not read as a task id.
+taskRouter.get("/dashboard", getMyWorkDashboardHandler);
 taskRouter.post("/", createTaskHandler);
 
 // Single time entries are addressed without the task id; declared before "/:id".

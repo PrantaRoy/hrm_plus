@@ -1,8 +1,10 @@
 import { Router } from "express";
 import { requireAuth, requireRole } from "../../middleware/auth";
-import { avatarUpload, signatureUpload } from "../../middleware/fileUpload";
+import { avatarUpload, bulkImportUpload, signatureUpload } from "../../middleware/fileUpload";
 import {
+  bulkImportEmployeesHandler,
   createEmployeeHandler,
+  downloadBulkImportTemplateHandler,
   getEmployeeHandler,
   listEmployeesHandler,
   resetEmployeePasswordHandler,
@@ -20,6 +22,13 @@ employeeRouter.use(requireAuth);
 employeeRouter.get("/", listEmployeesHandler);
 employeeRouter.get("/:id", getEmployeeHandler);
 employeeRouter.post("/", requireRole("Admin", "HR"), createEmployeeHandler);
+employeeRouter.get("/bulk-import/template", requireRole("Admin", "HR"), downloadBulkImportTemplateHandler);
+employeeRouter.post(
+  "/bulk-import",
+  requireRole("Admin", "HR"),
+  bulkImportUpload.single("file"),
+  bulkImportEmployeesHandler
+);
 employeeRouter.patch("/:id", requireRole("Admin", "HR", "Manager"), updateEmployeeHandler);
 employeeRouter.post("/:id/reset-password", requireRole("Admin", "HR"), resetEmployeePasswordHandler);
 employeeRouter.post(

@@ -103,8 +103,12 @@ export type ClientPaginatedResult = PaginatedResult<ClientDto>;
 
 /** What the requesting user may do with this project; only present on detail/mutation responses. */
 export interface ProjectViewerPermissions {
+  /** Edit, delete and change members (Admin only). */
   canManage: boolean;
+  /** Add tasks (Admin, HR, Manager). */
   canCreateTasks: boolean;
+  /** Resolve comments / delete others' comments and files (Admin or the project supervisor). */
+  canModerate: boolean;
 }
 
 export interface ProjectDto {
@@ -175,8 +179,14 @@ export interface ChecklistDto {
 
 /** What the requesting user may do with this task; only present on detail/mutation responses. */
 export interface TaskViewerPermissions {
+  /** Edit or delete the task, change its people, edit the checklist (Admin only). */
   canManage: boolean;
+  /** Update status/progress, tick checklist items, log time. */
   canWork: boolean;
+  /** Verify checklist items (Admin or the task/project supervisor). */
+  canVerify: boolean;
+  /** Resolve comments / delete others' comments and files (Admin or the task/project supervisor). */
+  canModerate: boolean;
 }
 
 export interface TaskDto {
@@ -331,4 +341,36 @@ export interface AttachmentDto {
   fileSize: number;
   fileUrl: string;
   createdAt: string;
+}
+
+// ── Dashboard ────────────────────────────────────────────────────────────────
+
+export interface RunningTimerDto {
+  entryId: number;
+  taskId: number;
+  taskNumber: string;
+  taskTitle: string;
+  startTime: string;
+}
+
+/** Full counts behind each capped dashboard list, for "showing 10 of N". */
+export interface MyWorkTotalsDto {
+  inProgressTasks: number;
+  upcomingTasks: number;
+  supervisedProjects: number;
+  supervisedTasks: number;
+  followedTasks: number;
+}
+
+/** Everything the staff dashboard shows about the caller's projects and tasks. */
+export interface MyWorkDashboardDto {
+  runningTimer: RunningTimerDto | null;
+  /** Tasks I am a member of that are in progress. */
+  inProgressTasks: TaskDto[];
+  /** Tasks I am a member of that are still To do. */
+  upcomingTasks: TaskDto[];
+  supervisedProjects: ProjectDto[];
+  supervisedTasks: TaskDto[];
+  followedTasks: TaskDto[];
+  totals: MyWorkTotalsDto;
 }

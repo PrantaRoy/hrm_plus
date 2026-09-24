@@ -84,7 +84,7 @@ export default function ProjectDetail() {
     );
   }
 
-  const viewer = project.viewer ?? { canManage: false, canCreateTasks: false };
+  const viewer = project.viewer ?? { canManage: false, canCreateTasks: false, canModerate: false };
 
   return (
     <div className="space-y-5">
@@ -170,8 +170,8 @@ export default function ProjectDetail() {
       </Card>
 
       <div className="grid grid-cols-2 gap-5 items-start">
-        <CommentsPanel kind="project" ownerId={project.id} canModerate={viewer.canManage || viewer.canCreateTasks} />
-        <AttachmentsPanel kind="project" ownerId={project.id} canModerate={viewer.canManage || viewer.canCreateTasks} />
+        <CommentsPanel kind="project" ownerId={project.id} canModerate={viewer.canModerate} />
+        <AttachmentsPanel kind="project" ownerId={project.id} canModerate={viewer.canModerate} />
       </div>
 
       <ProjectFormModal open={editing} onClose={() => setEditing(false)} project={project} onSaved={setProject} />

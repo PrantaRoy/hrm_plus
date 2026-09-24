@@ -9,6 +9,8 @@ import { DutyScheduleReport } from "../../components/dashboard/DutyScheduleRepor
 import { ShiftAttendanceLog } from "../../components/dashboard/ShiftAttendanceLog";
 import { PendingLeaveApprovalsCard } from "../../components/dashboard/PendingLeaveApprovalsCard";
 import { MyMeetingsCard } from "../../components/dashboard/MyMeetingsCard";
+import { InProgressProjectsCard } from "../../components/dashboard/InProgressProjectsCard";
+import { MyWorkSection } from "../../components/dashboard/MyWorkSection";
 import { AttendanceTrendChart } from "../../components/dashboard/charts/AttendanceTrendChart";
 import { LeaveStatusBreakdownChart } from "../../components/dashboard/charts/LeaveStatusBreakdownChart";
 
@@ -80,6 +82,11 @@ export default function OperationsDashboard() {
           )}
         </Card>
       </div>
+
+      <InProgressProjectsCard />
+
+      {/* Managers have no Staff/Admin toggle, so their own work is shown here. */}
+      {user?.role === "Manager" && <MyWorkSection />}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <PendingLeaveApprovalsCard

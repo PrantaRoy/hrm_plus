@@ -3,6 +3,7 @@ import {
   CreateTaskInput,
   CreateTimeEntryInput,
   ListTasksQuery,
+  MyWorkDashboardDto,
   TaskDto,
   TaskPaginatedResult,
   TimeEntryDto,
@@ -19,6 +20,11 @@ export async function listTasks(query: ListTasksQuery = {}): Promise<TaskPaginat
 
 export async function listMyTasks(query: ListTasksQuery = {}): Promise<TaskPaginatedResult> {
   const res = await apiClient.get<TaskPaginatedResult>("/tasks/my", { params: query });
+  return res.data;
+}
+
+export async function getMyWorkDashboard(): Promise<MyWorkDashboardDto> {
+  const res = await apiClient.get<MyWorkDashboardDto>("/tasks/dashboard");
   return res.data;
 }
 

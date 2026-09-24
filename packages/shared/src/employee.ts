@@ -10,7 +10,7 @@ export interface ResetEmployeePasswordResponse {
   newPassword: string;
 }
 
-export const GENDERS = ["Male", "Female", "Other"] as const;
+export const GENDERS = ["Male", "Female", "Other", "Not Specified"] as const;
 export type Gender = (typeof GENDERS)[number];
 
 export const EMPLOYMENT_TYPES = ["Full-Time", "Part-Time", "Contract", "Intern", "Casual"] as const;

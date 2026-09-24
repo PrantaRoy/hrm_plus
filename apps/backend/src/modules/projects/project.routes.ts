@@ -15,15 +15,16 @@ export const projectRouter = Router();
 
 projectRouter.use(requireAuth);
 
-// Reads are scoped per viewer in the service (managers see all; others see their projects).
+// Reads are scoped per viewer in the service (Admin/HR/Manager see all; others see their projects).
 projectRouter.get("/", listProjectsHandler);
 projectRouter.get("/:id", getProjectHandler);
 
-const managers = requireRole("Admin", "HR", "Manager");
-projectRouter.post("/", managers, createProjectHandler);
-projectRouter.patch("/:id", managers, updateProjectHandler);
-projectRouter.put("/:id/members", managers, setProjectMembersHandler);
-projectRouter.delete("/:id", managers, deleteProjectHandler);
+// Only an Admin creates, edits or deletes projects (HR/Manager can add tasks, not projects).
+const adminOnly = requireRole("Admin");
+projectRouter.post("/", adminOnly, createProjectHandler);
+projectRouter.patch("/:id", adminOnly, updateProjectHandler);
+projectRouter.put("/:id/members", adminOnly, setProjectMembersHandler);
+projectRouter.delete("/:id", adminOnly, deleteProjectHandler);
 
 projectRouter.use("/:id/comments", buildCommentRouter("project"));
 projectRouter.use("/:id/attachments", buildAttachmentRouter("project"));

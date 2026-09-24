@@ -7,6 +7,7 @@ import {
   taskIdParamSchema,
   updateTaskSchema,
 } from "./task.schemas";
+import { getMyWorkDashboard } from "./myWorkDashboard.service";
 import * as taskService from "./task.service";
 
 export const listTasksHandler: RequestHandler = async (req, res, next) => {
@@ -24,6 +25,15 @@ export const listMyTasksHandler: RequestHandler = async (req, res, next) => {
     const query = listTasksQuerySchema.parse(req.query);
     const actor = await resolveActor(req.prisma!, req.user!);
     res.json(await taskService.listMyTasks(req.prisma!, actor, query));
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getMyWorkDashboardHandler: RequestHandler = async (req, res, next) => {
+  try {
+    const actor = await resolveActor(req.prisma!, req.user!);
+    res.json(await getMyWorkDashboard(req.prisma!, actor));
   } catch (err) {
     next(err);
   }

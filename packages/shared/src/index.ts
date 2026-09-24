@@ -561,4 +561,39 @@ export type {
   CreateCommentInput,
   UpdateCommentInput,
   AttachmentDto,
+  RunningTimerDto,
+  MyWorkTotalsDto,
+  MyWorkDashboardDto,
 } from "./projects";
+
+export { GENDER_CODES, GENDER_CODE_MAP } from "./employeeBulkImport";
+export type {
+  GenderCode,
+  BulkImportRowError,
+  BulkImportEmployeesResult,
+  BulkImportEmployeesFormFields,
+} from "./employeeBulkImport";
+
+export { AI_KPI_SCOPE_TYPES, AI_KPI_PERIOD_TYPES, AI_KPI_RATINGS, AI_KPI_MAX_CUSTOM_DAYS } from "./aiKpiReport";
+export type {
+  AiKpiScopeType,
+  AiKpiPeriodType,
+  AiKpiRating,
+  GenerateAiKpiReportInput,
+  AttendanceKpiTotals,
+  AttendanceKpiEmployeeRow,
+  AttendanceKpiMetrics,
+  LeaveKpiTotals,
+  LeaveKpiEmployeeRow,
+  LeaveKpiMetrics,
+  TaskKpiTotals,
+  TaskKpiEmployeeRow,
+  TaskKpiMetrics,
+  AiKpiMetrics,
+  AiKpiSectionImpression,
+  AiKpiImpression,
+  AiKpiReportDto,
+  AiKpiReportListItemDto,
+  ListAiKpiReportsQuery,
+  AiKpiReportPaginatedResult,
+} from "./aiKpiReport";

@@ -1,4 +1,6 @@
 import {
+  BulkImportEmployeesFormFields,
+  BulkImportEmployeesResult,
   CreateEmployeeInput,
   EmployeeDto,
   PaginatedResult,
@@ -52,5 +54,23 @@ export async function uploadEmployeeSignature(id: number, file: File): Promise<{
   const formData = new FormData();
   formData.append("signature", file);
   const res = await apiClient.post<{ signatureImageUrl: string }>(`/employees/${id}/signature`, formData);
+  return res.data;
+}
+
+export async function bulkImportEmployees(
+  file: File,
+  fields: BulkImportEmployeesFormFields
+): Promise<BulkImportEmployeesResult> {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("role", fields.role);
+  if (fields.departmentId) formData.append("departmentId", String(fields.departmentId));
+  if (fields.designationId) formData.append("designationId", String(fields.designationId));
+  const res = await apiClient.post<BulkImportEmployeesResult>("/employees/bulk-import", formData);
+  return res.data;
+}
+
+export async function downloadBulkImportTemplate(): Promise<string> {
+  const res = await apiClient.get<string>("/employees/bulk-import/template", { responseType: "text" });
   return res.data;
 }

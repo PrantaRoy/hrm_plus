@@ -29,13 +29,24 @@ export interface ListTasksOptions {
   dueAfter?: string;
 }
 
-// Task members (who are not supervisors/managers) may only report their own progress.
+// Everyone except an Admin may only report progress on a task (status, progress %).
 const MEMBER_EDITABLE_FIELDS = ["status", "progressPercentage"];
 
 const CLOSED_PROJECT_STATUSES = ["archived", "cancelled"];
 
-function withViewer(dto: TaskDto, access: Pick<TaskAccess, "canManage" | "canWork">): TaskDto {
-  return { ...dto, viewer: { canManage: access.canManage, canWork: access.canWork } };
+function withViewer(
+  dto: TaskDto,
+  access: Pick<TaskAccess, "canManage" | "canWork" | "canVerify" | "canModerate">
+): TaskDto {
+  return {
+    ...dto,
+    viewer: {
+      canManage: access.canManage,
+      canWork: access.canWork,
+      canVerify: access.canVerify,
+      canModerate: access.canModerate,
+    },
+  };
 }
 
 function unique(ids: number[] | undefined): number[] {
@@ -111,7 +122,7 @@ export async function getTask(prisma: PrismaClient, actor: Actor, id: number): P
 export async function createTask(prisma: PrismaClient, actor: Actor, input: CreateTaskInput): Promise<TaskDto> {
   const access = await loadProjectAccess(prisma, actor, input.projectId);
   if (!access.canCreateTasks) {
-    throw ApiError.forbidden("Only managers or the project supervisor can create tasks");
+    throw ApiError.forbidden("Only Admin, HR or Manager users can add tasks");
   }
   if (CLOSED_PROJECT_STATUSES.includes(access.project.status)) {
     throw ApiError.conflict("Tasks cannot be added to an archived or cancelled project", "PROJECT_CLOSED");
@@ -149,6 +160,7 @@ export async function createTask(prisma: PrismaClient, actor: Actor, input: Crea
       description: input.description ?? "",
       progressPercentage: progressFor(status, input.progressPercentage) ?? 0,
       dueDate: input.dueDate ? new Date(input.dueDate) : null,
+      completedAt: status === "completed" ? new Date() : null,
       createdById: actor.userId,
     });
 
@@ -166,8 +178,8 @@ export async function createTask(prisma: PrismaClient, actor: Actor, input: Crea
     return tx.task.findUniqueOrThrow({ where: { id: created.id }, include: taskInclude });
   });
 
-  // Only managers and the project supervisor can create, so the creator can manage the task.
-  return withViewer(toTaskDto(task), { canManage: true, canWork: true });
+  // What the creator may do with the task depends on their role (HR/Manager can add but not edit).
+  return withViewer(toTaskDto(task), await loadTaskAccess(prisma, actor, task.id));
 }
 
 export async function updateTask(
@@ -178,10 +190,10 @@ export async function updateTask(
 ): Promise<TaskDto> {
   const access = await loadTaskAccess(prisma, actor, id);
   if (!access.canManage) {
-    if (!access.canWork) throw ApiError.forbidden("You do not have permission to edit this task");
+    if (!access.canWork) throw ApiError.forbidden("Only an Admin can edit this task");
     const disallowed = Object.keys(input).filter((key) => !MEMBER_EDITABLE_FIELDS.includes(key));
     if (disallowed.length > 0) {
-      throw ApiError.forbidden(`Task members can only update: ${MEMBER_EDITABLE_FIELDS.join(", ")}`);
+      throw ApiError.forbidden(`Only an Admin can edit a task. You can update: ${MEMBER_EDITABLE_FIELDS.join(", ")}`);
     }
   }
 
@@ -235,6 +247,10 @@ export async function updateTask(
         ...(input.title !== undefined ? { title: input.title } : {}),
         ...(input.priority !== undefined ? { priority: input.priority } : {}),
         ...(input.status !== undefined ? { status: input.status } : {}),
+        // Stamp the moment a task becomes completed (kept if it already was), clear it when reopened.
+        ...(input.status !== undefined
+          ? { completedAt: input.status === "completed" ? (existing.completedAt ?? new Date()) : null }
+          : {}),
         ...(input.timeType !== undefined ? { timeType: input.timeType } : {}),
         ...(input.budgetAmount !== undefined ? { budgetAmount: input.budgetAmount } : {}),
         ...(recurrence
@@ -270,7 +286,7 @@ export async function setTaskPeople(
   employeeIds: number[]
 ): Promise<TaskDto> {
   const access = await loadTaskAccess(prisma, actor, id);
-  if (!access.canManage) throw ApiError.forbidden("Only managers or the supervisor can change task people");
+  if (!access.canManage) throw ApiError.forbidden("Only an Admin can change task members and followers");
 
   const ids = unique(employeeIds);
   await assertEmployeesExist(prisma, ids);
@@ -295,7 +311,7 @@ export async function setTaskPeople(
  */
 export async function deleteTask(prisma: PrismaClient, actor: Actor, id: number): Promise<void> {
   const access = await loadTaskAccess(prisma, actor, id);
-  if (!access.canManage) throw ApiError.forbidden("Only managers or the supervisor can delete tasks");
+  if (!access.canManage) throw ApiError.forbidden("Only an Admin can delete tasks");
 
   const loggedEntries = await prisma.timeEntry.count({ where: { taskId: id } });
   if (loggedEntries > 0) {

@@ -26,6 +26,7 @@ import { locationRouter } from "./modules/attendance-locations/location.routes";
 import { dashboardRouter } from "./modules/dashboard/dashboard.routes";
 import { generalSettingsRouter } from "./modules/general-settings/generalSettings.routes";
 import { aiSettingsRouter } from "./modules/ai-settings/aiSettings.routes";
+import { aiKpiReportRouter } from "./modules/ai-kpi-reports/aiKpiReport.routes";
 import { documentCategoryRouter } from "./modules/document-templates/documentCategory.routes";
 import { documentTemplateRouter } from "./modules/document-templates/documentTemplate.routes";
 import { documentRequestRouter } from "./modules/document-requests/documentRequest.routes";
@@ -125,6 +126,7 @@ export function createApp(): Express {
   app.use("/api/dashboard", tenantResolver, dashboardRouter);
   app.use("/api/general-settings", tenantResolver, generalSettingsRouter);
   app.use("/api/ai-settings", tenantResolver, aiSettingsRouter);
+  app.use("/api/ai-kpi-reports", tenantResolver, aiKpiReportRouter);
   app.use("/api/document-categories", tenantResolver, documentCategoryRouter);
   app.use("/api/document-templates", tenantResolver, documentTemplateRouter);
   app.use("/api/document-requests", tenantResolver, documentRequestRouter);

@@ -1,15 +1,26 @@
 import { PrismaClient, Prisma } from "../../../generated/tenant";
 import { ApiError } from "../../utils/ApiError";
 
-// Roles that see and manage every project/task. Everyone else is scoped to the
-// projects/tasks they supervise, are a member of, or follow.
-export const PROJECT_MANAGER_ROLES = ["Admin", "HR", "Manager"];
+// Who can do what with projects and tasks:
+//  - Admin              everything: create/edit/delete projects and tasks, people, checklist items.
+//  - HR, Manager        see every project/task and can add new tasks; they cannot edit or delete.
+//  - everyone else      sees only projects/tasks they supervise, are a member of, or follow.
+//  - task/project supervisor (any role) can verify checklist items and moderate comments/files;
+//    editing or deleting the task/project itself stays Admin-only.
+export const ADMIN_ROLE = "Admin";
+export const PROJECT_VIEW_ALL_ROLES = ["Admin", "HR", "Manager"];
+export const TASK_CREATOR_ROLES = ["Admin", "HR", "Manager"];
 
 export interface Actor {
   userId: number;
   role: string;
   employeeId: number | null;
-  isManager: boolean;
+  /** Full control over projects and tasks. */
+  isAdmin: boolean;
+  /** Sees every project and task instead of only the ones they are involved in. */
+  canViewAll: boolean;
+  /** May add new tasks to any visible, open project. */
+  canAddTasks: boolean;
 }
 
 export async function resolveActor(prisma: PrismaClient, user: { id: number; role: string }): Promise<Actor> {
@@ -18,7 +29,9 @@ export async function resolveActor(prisma: PrismaClient, user: { id: number; rol
     userId: user.id,
     role: user.role,
     employeeId: employee?.id ?? null,
-    isManager: PROJECT_MANAGER_ROLES.includes(user.role),
+    isAdmin: user.role === ADMIN_ROLE,
+    canViewAll: PROJECT_VIEW_ALL_ROLES.includes(user.role),
+    canAddTasks: TASK_CREATOR_ROLES.includes(user.role),
   };
 }
 
@@ -32,7 +45,7 @@ export function requireEmployeeId(actor: Actor): number {
 const NOTHING_VISIBLE = { id: -1 };
 
 export function taskVisibilityWhere(actor: Actor): Prisma.TaskWhereInput {
-  if (actor.isManager) return {};
+  if (actor.canViewAll) return {};
   const e = actor.employeeId;
   if (e == null) return NOTHING_VISIBLE;
   return {
@@ -46,7 +59,7 @@ export function taskVisibilityWhere(actor: Actor): Prisma.TaskWhereInput {
 }
 
 export function projectVisibilityWhere(actor: Actor): Prisma.ProjectWhereInput {
-  if (actor.isManager) return {};
+  if (actor.canViewAll) return {};
   const e = actor.employeeId;
   if (e == null) return NOTHING_VISIBLE;
   return {
@@ -71,10 +84,12 @@ export function projectVisibilityWhere(actor: Actor): Prisma.ProjectWhereInput {
 export interface ProjectAccess {
   project: { id: number; code: string; supervisorId: number; status: string };
   isSupervisor: boolean;
-  /** Edit the project itself, manage members, archive/delete. */
+  /** Edit the project itself, manage members, delete (Admin only). */
   canManage: boolean;
-  /** Create tasks in the project (managers or the project supervisor). */
+  /** Add tasks to the project (Admin, HR, Manager). */
   canCreateTasks: boolean;
+  /** Resolve/delete other people's comments and files (Admin or the project supervisor). */
+  canModerate: boolean;
 }
 
 /** Throws 404 when the project does not exist *or* the actor cannot see it (no existence leak). */
@@ -92,8 +107,9 @@ export async function loadProjectAccess(
   return {
     project,
     isSupervisor,
-    canManage: actor.isManager,
-    canCreateTasks: actor.isManager || isSupervisor,
+    canManage: actor.isAdmin,
+    canCreateTasks: actor.canAddTasks,
+    canModerate: actor.isAdmin || isSupervisor,
   };
 }
 
@@ -110,9 +126,13 @@ export interface TaskAccess {
   isSupervisor: boolean;
   isMember: boolean;
   isFollower: boolean;
-  /** Edit the task, manage people/checklist, verify checklist items (managers, task/project supervisor). */
+  /** Edit or delete the task, change its people, add/rename/delete checklist items (Admin only). */
   canManage: boolean;
-  /** Tick checklist items, log time (canManage or a task member). */
+  /** Verify checklist items (Admin or the task/project supervisor). */
+  canVerify: boolean;
+  /** Resolve/delete other people's comments and files (Admin or the task/project supervisor). */
+  canModerate: boolean;
+  /** Update status/progress, tick checklist items, log time (Admin, supervisors and members). */
   canWork: boolean;
 }
 
@@ -138,7 +158,7 @@ export async function loadTaskAccess(prisma: PrismaClient, actor: Actor, taskId:
   const isSupervisor = e != null && (row.supervisorId === e || row.project.supervisorId === e);
   const isMember = e != null && row.members.some((m) => m.employeeId === e);
   const isFollower = e != null && row.followers.some((f) => f.employeeId === e);
-  const canManage = actor.isManager || isSupervisor;
+  const canVerify = actor.isAdmin || isSupervisor;
 
   return {
     task: {
@@ -153,8 +173,10 @@ export async function loadTaskAccess(prisma: PrismaClient, actor: Actor, taskId:
     isSupervisor,
     isMember,
     isFollower,
-    canManage,
-    canWork: canManage || isMember,
+    canManage: actor.isAdmin,
+    canVerify,
+    canModerate: canVerify,
+    canWork: actor.isAdmin || isSupervisor || isMember,
   };
 }
 
@@ -164,7 +186,7 @@ export interface OwnerAccess {
   /** Comment on / upload to / read the owner (anyone who can see it). */
   canContribute: boolean;
   /** Moderate: resolve comments, delete others' comments/files. */
-  canManage: boolean;
+  canModerate: boolean;
 }
 
 /** Resolves access for a polymorphic owner. Throws 404 if it does not exist or is not visible. */
@@ -176,10 +198,10 @@ export async function loadOwnerAccess(
 ): Promise<OwnerAccess> {
   if (type === "task") {
     const access = await loadTaskAccess(prisma, actor, id);
-    return { canContribute: true, canManage: access.canManage };
+    return { canContribute: true, canModerate: access.canModerate };
   }
   const access = await loadProjectAccess(prisma, actor, id);
-  return { canContribute: true, canManage: access.canManage || access.isSupervisor };
+  return { canContribute: true, canModerate: access.canModerate };
 }
 
 export async function assertEmployeesExist(

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, UserPlus } from "lucide-react";
+import { Search, Upload, UserPlus } from "lucide-react";
 import { DEFAULT_RESET_PASSWORD, DepartmentDto, EmployeeDto, PaginatedResult } from "@hrm-plus/shared";
 import {
   Avatar,
@@ -20,6 +20,7 @@ import {
 import { listEmployees, resetEmployeePassword } from "../../api/employees";
 import { listDepartments } from "../../api/departments";
 import { resolveFileUrl } from "../../utils/fileUrl";
+import { BulkImportEmployeesModal } from "../../components/employees/BulkImportEmployeesModal";
 
 const PAGE_SIZE = 10;
 
@@ -31,6 +32,8 @@ export default function EmployeeList() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [resettingId, setResettingId] = useState<number | null>(null);
+  const [bulkImportOpen, setBulkImportOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     listDepartments().then(setDepartments).catch(() => setDepartments([]));
@@ -54,7 +57,7 @@ export default function EmployeeList() {
     return () => {
       cancelled = true;
     };
-  }, [search, departmentId, page]);
+  }, [search, departmentId, page, refreshKey]);
 
   const totalPages = result ? Math.max(1, Math.ceil(result.total / PAGE_SIZE)) : 1;
 
@@ -82,13 +85,19 @@ export default function EmployeeList() {
         title="Employee Directory"
         description="Browse and manage everyone in your organisation."
         actions={
-          <Link
-            to="/employees/new"
-            className="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
-          >
-            <UserPlus className="h-4 w-4" />
-            New Employee
-          </Link>
+          <div className="flex items-center gap-2">
+            <Button variant="secondary" className="gap-2" onClick={() => setBulkImportOpen(true)}>
+              <Upload className="h-4 w-4" />
+              Bulk Import
+            </Button>
+            <Link
+              to="/employees/new"
+              className="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+            >
+              <UserPlus className="h-4 w-4" />
+              New Employee
+            </Link>
+          </div>
         }
       />
 
@@ -216,6 +225,16 @@ export default function EmployeeList() {
           </Button>
         </div>
       </div>
+
+      <BulkImportEmployeesModal
+        open={bulkImportOpen}
+        onClose={() => setBulkImportOpen(false)}
+        onImported={(createdCount) => {
+          window.alert(`${createdCount} employee(s) imported successfully.`);
+          setPage(1);
+          setRefreshKey((k) => k + 1);
+        }}
+      />
     </div>
   );
 }

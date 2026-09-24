@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { PROJECT_STATUSES, ProjectDto } from "@hrm-plus/shared";
 import {
   Button,
@@ -24,12 +24,19 @@ import { formatDate, humanize } from "../../components/projects/format";
 export default function ProjectList() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const canCreate = user?.role === "Admin" || user?.role === "HR" || user?.role === "Manager";
+  // Only an Admin creates projects; HR and Manager see all of them, everyone else just their own.
+  const canCreate = user?.role === "Admin";
+  const seesAll = canCreate || user?.role === "HR" || user?.role === "Manager";
 
   const [items, setItems] = useState<ProjectDto[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [status, setStatus] = useState("");
+  // The dashboard links here with ?status=in_progress.
+  const [searchParams] = useSearchParams();
+  const [status, setStatus] = useState(() => {
+    const fromUrl = searchParams.get("status") ?? "";
+    return (PROJECT_STATUSES as readonly string[]).includes(fromUrl) ? fromUrl : "";
+  });
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +67,7 @@ export default function ProjectList() {
     <div className="space-y-5">
       <PageHeader
         title="Projects"
-        description={canCreate ? "All projects across the organisation." : "Projects you are part of."}
+        description={seesAll ? "All projects across the organisation." : "Projects you supervise, belong to or follow through a task."}
         actions={canCreate ? <Button onClick={() => setCreating(true)}>New project</Button> : undefined}
       />
 

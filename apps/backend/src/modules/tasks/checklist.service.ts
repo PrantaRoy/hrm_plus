@@ -17,7 +17,7 @@ export async function addChecklistItem(
   title: string
 ): Promise<ChecklistDto> {
   const access = await loadTaskAccess(prisma, actor, taskId);
-  if (!access.canManage) throw ApiError.forbidden("Only managers or the supervisor can edit the checklist");
+  if (!access.canManage) throw ApiError.forbidden("Only an Admin can edit the checklist");
   return toChecklistDto(await prisma.checklist.create({ data: { taskId, title } }));
 }
 
@@ -29,7 +29,7 @@ export async function renameChecklistItem(
   title: string
 ): Promise<ChecklistDto> {
   const access = await loadTaskAccess(prisma, actor, taskId);
-  if (!access.canManage) throw ApiError.forbidden("Only managers or the supervisor can edit the checklist");
+  if (!access.canManage) throw ApiError.forbidden("Only an Admin can edit the checklist");
   await loadItemOrThrow(prisma, taskId, itemId);
   return toChecklistDto(await prisma.checklist.update({ where: { id: itemId }, data: { title } }));
 }
@@ -41,7 +41,7 @@ export async function deleteChecklistItem(
   itemId: number
 ): Promise<void> {
   const access = await loadTaskAccess(prisma, actor, taskId);
-  if (!access.canManage) throw ApiError.forbidden("Only managers or the supervisor can edit the checklist");
+  if (!access.canManage) throw ApiError.forbidden("Only an Admin can edit the checklist");
   await loadItemOrThrow(prisma, taskId, itemId);
   await prisma.checklist.delete({ where: { id: itemId } });
 }
@@ -74,7 +74,7 @@ export async function setChecklistVerified(
   value: boolean
 ): Promise<ChecklistDto> {
   const access = await loadTaskAccess(prisma, actor, taskId);
-  if (!access.canManage) throw ApiError.forbidden("Only the supervisor can verify checklist items");
+  if (!access.canVerify) throw ApiError.forbidden("Only the supervisor can verify checklist items");
   const item = await loadItemOrThrow(prisma, taskId, itemId);
   if (value && !item.isCompleted) {
     throw ApiError.conflict("Only completed checklist items can be verified", "CHECKLIST_NOT_COMPLETED");

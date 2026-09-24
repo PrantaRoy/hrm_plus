@@ -28,7 +28,7 @@ export async function createComment(
 ): Promise<CommentDto> {
   const access = await loadOwnerAccess(prisma, actor, type, ownerId);
   // Setting a review status on creation is a moderator action.
-  if (input.status && !access.canManage) {
+  if (input.status && !access.canModerate) {
     throw ApiError.forbidden("Only the supervisor can set a comment status");
   }
   const comment = await prisma.comment.create({
@@ -68,7 +68,7 @@ export async function updateComment(
   if (input.body !== undefined && !isAuthor) {
     throw ApiError.forbidden("Only the author can edit a comment");
   }
-  if (input.status !== undefined && !isAuthor && !access.canManage) {
+  if (input.status !== undefined && !isAuthor && !access.canModerate) {
     throw ApiError.forbidden("Only the author or a supervisor can change a comment status");
   }
   const updated = await prisma.comment.update({
@@ -84,7 +84,7 @@ export async function updateComment(
 
 export async function deleteComment(prisma: PrismaClient, actor: Actor, commentId: number): Promise<void> {
   const { access, isAuthor } = await loadCommentWithAccess(prisma, actor, commentId);
-  if (!isAuthor && !access.canManage) {
+  if (!isAuthor && !access.canModerate) {
     throw ApiError.forbidden("Only the author or a supervisor can delete a comment");
   }
   await prisma.comment.delete({ where: { id: commentId } });

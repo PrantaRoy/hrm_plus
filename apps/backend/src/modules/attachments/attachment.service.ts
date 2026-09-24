@@ -80,7 +80,7 @@ export async function deleteAttachment(prisma: PrismaClient, actor: Actor, attac
     attachment.attachableType as AttachableType,
     attachment.attachableId
   );
-  if (attachment.uploaderId !== actor.userId && !access.canManage) {
+  if (attachment.uploaderId !== actor.userId && !access.canModerate) {
     throw ApiError.forbidden("Only the uploader or a supervisor can delete an attachment");
   }
 

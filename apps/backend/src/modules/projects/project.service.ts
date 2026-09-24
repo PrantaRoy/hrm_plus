@@ -20,15 +20,15 @@ export interface ListProjectsOptions {
   search?: string;
 }
 
-// Update/member changes are manager-only, so the caller can manage and create tasks.
-const MANAGER_VIEWER = { canManage: true, canCreateTasks: true };
+// Creating, editing and deleting projects is Admin-only, so the caller can do everything.
+const ADMIN_VIEWER = { canManage: true, canCreateTasks: true, canModerate: true };
 
 function dayFromDateString(value: string): Date {
   return new Date(`${value}T00:00:00.000Z`);
 }
 
-function assertManager(actor: Actor): void {
-  if (!actor.isManager) throw ApiError.forbidden("Only Admin, HR or Manager users can manage projects");
+function assertAdmin(actor: Actor): void {
+  if (!actor.isAdmin) throw ApiError.forbidden("Only an Admin can create, edit or delete projects");
 }
 
 function assertDeadline(deadlineType: string, startDate: Date, targetEndDate: Date | null): void {
@@ -84,7 +84,10 @@ export async function listProjects(
 export async function getProject(prisma: PrismaClient, actor: Actor, id: number): Promise<ProjectDto> {
   const access = await loadProjectAccess(prisma, actor, id);
   const project = await prisma.project.findUniqueOrThrow({ where: { id }, include: projectInclude });
-  return { ...toProjectDto(project), viewer: { canManage: access.canManage, canCreateTasks: access.canCreateTasks } };
+  return {
+    ...toProjectDto(project),
+    viewer: { canManage: access.canManage, canCreateTasks: access.canCreateTasks, canModerate: access.canModerate },
+  };
 }
 
 export async function createProject(
@@ -92,7 +95,7 @@ export async function createProject(
   actor: Actor,
   input: CreateProjectInput
 ): Promise<ProjectDto> {
-  assertManager(actor);
+  assertAdmin(actor);
 
   const startDate = dayFromDateString(input.startDate);
   const targetEndDate = input.targetEndDate ? dayFromDateString(input.targetEndDate) : null;
@@ -147,7 +150,7 @@ export async function updateProject(
   id: number,
   input: UpdateProjectInput
 ): Promise<ProjectDto> {
-  assertManager(actor);
+  assertAdmin(actor);
   await loadProjectAccess(prisma, actor, id);
   const existing = await prisma.project.findUniqueOrThrow({ where: { id } });
 
@@ -192,7 +195,7 @@ export async function updateProject(
       include: projectInclude,
     });
   });
-  return { ...toProjectDto(updated), viewer: MANAGER_VIEWER };
+  return { ...toProjectDto(updated), viewer: ADMIN_VIEWER };
 }
 
 export async function setProjectMembers(
@@ -201,7 +204,7 @@ export async function setProjectMembers(
   id: number,
   employeeIds: number[]
 ): Promise<ProjectDto> {
-  assertManager(actor);
+  assertAdmin(actor);
   await loadProjectAccess(prisma, actor, id);
   const unique = Array.from(new Set(employeeIds));
   await assertEmployeesExist(prisma, unique);
@@ -211,12 +214,12 @@ export async function setProjectMembers(
     prisma.projectMember.createMany({ data: unique.map((employeeId) => ({ projectId: id, employeeId })) }),
   ]);
   const project = await prisma.project.findUniqueOrThrow({ where: { id }, include: projectInclude });
-  return { ...toProjectDto(project), viewer: MANAGER_VIEWER };
+  return { ...toProjectDto(project), viewer: ADMIN_VIEWER };
 }
 
 /** Projects that have tasks are archived (status = "archived") instead of deleted. */
 export async function deleteProject(prisma: PrismaClient, actor: Actor, id: number): Promise<void> {
-  assertManager(actor);
+  assertAdmin(actor);
   await loadProjectAccess(prisma, actor, id);
 
   const taskCount = await prisma.task.count({ where: { projectId: id } });

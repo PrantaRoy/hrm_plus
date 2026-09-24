@@ -100,18 +100,23 @@ export async function createTimeEntry(
   return toTimeEntryDto(entry);
 }
 
-export function startTimer(
+/** Starts a running timer. Working on a task that is still "To do" moves it to "In progress". */
+export async function startTimer(
   prisma: PrismaClient,
   actor: Actor,
   taskId: number,
   input: StartTimerInput
 ): Promise<TimeEntryDto> {
-  return createTimeEntry(prisma, actor, taskId, {
+  const entry = await createTimeEntry(prisma, actor, taskId, {
     startTime: new Date().toISOString(),
     endTime: null,
     note: input.note,
     isBillable: input.isBillable,
   });
+  // Conditional on the current status so it never overrides a task someone just put on hold,
+  // completed or cancelled. Project progress is unaffected: only the status label changes.
+  await prisma.task.updateMany({ where: { id: taskId, status: "to_do" }, data: { status: "in_progress" } });
+  return entry;
 }
 
 export async function stopTimer(

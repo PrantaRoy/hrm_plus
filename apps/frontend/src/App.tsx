@@ -34,6 +34,7 @@ import HolidayList from "./pages/holidays/HolidayList";
 import SettingsLayout from "./pages/settings/SettingsLayout";
 import GeneralSettings from "./pages/settings/GeneralSettings";
 import AiSettings from "./pages/settings/AiSettings";
+import AiKpiReport from "./pages/ai-kpi-report/AiKpiReport";
 import ShiftSettings from "./pages/settings/ShiftSettings";
 import WeekDaySettings from "./pages/settings/WeekDaySettings";
 import LeaveTypeSettings from "./pages/settings/LeaveTypeSettings";
@@ -284,6 +285,7 @@ export default function App() {
 
           <Route element={<RequireAuth roles={["Admin", "HR"]} />}>
             <Route path="/records/attendance/manual" element={<ManualAttendanceEntry />} />
+            <Route path="/ai-kpi-report" element={<AiKpiReport />} />
           </Route>
 
           <Route path="/payroll/my-payslips" element={<MyPayslips />} />

@@ -45,6 +45,7 @@ model User {
   attendanceSettingsUpdated  AttendanceSettings[]       @relation("AttendanceSettingsUpdatedBy")
   generalSettingsUpdated     GeneralSettings[]          @relation("GeneralSettingsUpdatedBy")
   aiSettingsUpdated          AiSettings[]               @relation("AiSettingsUpdatedBy")
+  aiKpiReportsGenerated      AiKpiReport[]              @relation("AiKpiReportGeneratedBy")
   attendanceDevicesApproved  EmployeeAttendanceDevice[] @relation("AttendanceDeviceApprovedBy")
   attendanceManualEntries    Attendance[]               @relation("AttendanceManualEntryBy")
   holidaysCreated            Holiday[]                  @relation("HolidayCreatedBy")
@@ -446,6 +447,30 @@ model AiSettings {
   updatedBy        User?    @relation("AiSettingsUpdatedBy", fields: [updatedById], references: [id])
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+}
+
+// Saved AI KPI report: deterministic attendance/leave/task metrics for a scope (one
+// employee, a department incl. sub-departments, or a designation) over a period, plus
+// the LLM-written impression per area and overall. Stored so it can be reopened without
+// another LLM call. metrics/impression shapes are AiKpiMetrics / AiKpiImpression in shared.
+model AiKpiReport {
+  id            Int      @id @default(autoincrement())
+  scopeType     String // "EMPLOYEE" | "DEPARTMENT" | "DESIGNATION"
+  scopeId       Int
+  scopeLabel    String
+  periodType    String // "LAST_2_WEEKS" | "LAST_4_WEEKS" | "CUSTOM"
+  startDate     DateTime @db.Date
+  endDate       DateTime @db.Date
+  employeeCount Int
+  metrics       Json
+  impression    Json
+  provider      String
+  model         String
+  generatedById Int
+  generatedBy   User     @relation("AiKpiReportGeneratedBy", fields: [generatedById], references: [id])
+  createdAt     DateTime @default(now())
+
+  @@index([createdAt])
 }
 
 // Meeting & Appointment Scheduler — an organizer proposes a meeting with internal
@@ -1470,6 +1495,7 @@ model Task {
   description            String         @db.Text
   progressPercentage     Int            @default(0)
   dueDate                DateTime?
+  completedAt            DateTime? // set when status becomes "completed", cleared if it leaves it; drives on-time vs late KPIs
   createdById            Int
   createdBy              User           @relation("TaskCreatedBy", fields: [createdById], references: [id])
   members                TaskMember[]

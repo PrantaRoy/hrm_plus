@@ -595,7 +595,7 @@ interface AttendanceDeltaInput {
 // Raw wall-clock differences against the scheduled shift boundaries — no grace
 // period applied (isLate/isEarlyCheckout on the Attendance row already carry the
 // graced verdict; this report shows the actual minutes early/late/over).
-function computeAttendanceDeltas(
+export function computeAttendanceDeltas(
   assignment: AttendanceDeltaInput,
   attendance: { checkInAt: Date | null; checkOutAt: Date | null } | null,
   timezone: string

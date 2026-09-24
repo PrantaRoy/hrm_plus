@@ -173,7 +173,7 @@ export default function TaskDetail() {
     );
   }
 
-  const viewer = task.viewer ?? { canManage: false, canWork: false };
+  const viewer = task.viewer ?? { canManage: false, canWork: false, canVerify: false, canModerate: false };
   const runningEntries = time?.items.filter((e) => e.isRunning) ?? [];
   const verifiedCount = task.checklists.filter((c) => c.isVerified).length;
   const completedCount = task.checklists.filter((c) => c.isCompleted).length;
@@ -291,7 +291,7 @@ export default function TaskDetail() {
                 <span className={item.isCompleted ? "text-slate-400 line-through" : "text-slate-800"}>{item.title}</span>
                 <span className="ml-auto flex items-center gap-3">
                   {item.isVerified && <Badge color="green">Verified</Badge>}
-                  {viewer.canManage && item.isCompleted && (
+                  {viewer.canVerify && item.isCompleted && (
                     <button onClick={() => toggleVerified(item)} className="text-xs text-brand-700 hover:underline">
                       {item.isVerified ? "Unverify" : "Verify"}
                     </button>
@@ -391,8 +391,8 @@ export default function TaskDetail() {
       </div>
 
       <div className="grid grid-cols-2 gap-5 items-start">
-        <CommentsPanel kind="task" ownerId={task.id} canModerate={viewer.canManage} />
-        <AttachmentsPanel kind="task" ownerId={task.id} canModerate={viewer.canManage} />
+        <CommentsPanel kind="task" ownerId={task.id} canModerate={viewer.canModerate} />
+        <AttachmentsPanel kind="task" ownerId={task.id} canModerate={viewer.canModerate} />
       </div>
 
       <TaskFormModal open={editing} onClose={() => setEditing(false)} task={task} onSaved={setTask} />

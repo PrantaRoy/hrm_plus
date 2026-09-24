@@ -36,6 +36,7 @@ import {
   Share2,
   ClipboardCheck,
   ShieldCheck,
+  Sparkles,
   UserRound,
   Users,
 } from "lucide-react";
@@ -134,7 +135,10 @@ function buildAdminViewGroups(isAdmin: boolean): SidebarGroup[] {
     PROJECTS_MANAGER_GROUP,
     {
       label: "Reports",
-      items: [{ key: "records", label: "Records", to: "/records", icon: BarChart3 }],
+      items: [
+        { key: "records", label: "Records", to: "/records", icon: BarChart3 },
+        { key: "ai-kpi-report", label: "AI KPI Report", to: "/ai-kpi-report", icon: Sparkles },
+      ],
     },
     {
       label: "Recruitment",

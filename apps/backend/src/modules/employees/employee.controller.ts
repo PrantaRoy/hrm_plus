@@ -1,10 +1,12 @@
 import { RequestHandler } from "express";
 import {
+  bulkImportEmployeesFieldsSchema,
   createEmployeeSchema,
   listEmployeesQuerySchema,
   updateEmployeeSchema,
 } from "./employee.schemas";
 import * as employeeService from "./employee.service";
+import { bulkImportEmployees, generateBulkImportTemplate } from "./employeeBulkImport.service";
 import { ApiError } from "../../utils/ApiError";
 
 export const listEmployeesHandler: RequestHandler = async (req, res, next) => {
@@ -32,6 +34,30 @@ export const createEmployeeHandler: RequestHandler = async (req, res, next) => {
   try {
     const input = createEmployeeSchema.parse(req.body);
     const result = await employeeService.createEmployee(req.prisma!, input);
+    res.status(201).json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const downloadBulkImportTemplateHandler: RequestHandler = (_req, res) => {
+  const file = generateBulkImportTemplate();
+  res.setHeader("Content-Type", file.mimeType);
+  res.setHeader("Content-Disposition", `attachment; filename="${file.fileName}"`);
+  res.send(file.content);
+};
+
+export const bulkImportEmployeesHandler: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.file) throw ApiError.badRequest("File is required");
+    const fields = bulkImportEmployeesFieldsSchema.parse(req.body);
+    const result = await bulkImportEmployees(req.prisma!, {
+      fileBuffer: req.file.buffer,
+      fileName: req.file.originalname,
+      role: fields.role,
+      departmentId: fields.departmentId ?? null,
+      designationId: fields.designationId ?? null,
+    });
     res.status(201).json(result);
   } catch (err) {
     next(err);

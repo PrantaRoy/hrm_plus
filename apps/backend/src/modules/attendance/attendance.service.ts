@@ -183,11 +183,8 @@ function buildTodayDto(
   const canStartBreak = !!attendance?.checkInAt && !attendance?.checkOutAt && !openBreak;
   const canEndBreak = !!openBreak;
 
-  let canResumeAfterCheckout = false;
-  if (!blockedReason && attendance?.checkOutAt && assignment.dutySchedule) {
-    const scheduledEnd = combineDateAndTimeInZone(assignment.date, assignment.dutySchedule.endTime, timezone);
-    canResumeAfterCheckout = new Date() < scheduledEnd && availableMethods.length > 0;
-  }
+  const canResumeAfterCheckout =
+    !blockedReason && !!attendance?.checkOutAt && !!assignment.dutySchedule && availableMethods.length > 0;
 
   return {
     assignment: toAssignmentDto(assignment),
@@ -271,14 +268,9 @@ export async function checkIn(prisma: PrismaClient, employeeId: number, input: C
   const scheduledStart = combineDateAndTimeInZone(assignment.date, assignment.dutySchedule.startTime, timezone);
 
   if (isResume) {
-    // Correcting an accidental checkout: resume is allowed any number of times as
-    // long as the shift isn't over yet. The checkout→checkin gap is logged as an
-    // automatic break; the day's original checkInAt/isLate/lateReason are untouched.
-    const scheduledEnd = combineDateAndTimeInZone(assignment.date, assignment.dutySchedule.endTime, timezone);
-    if (now > scheduledEnd) {
-      throw ApiError.badRequest("Cannot check in again — today's shift has ended");
-    }
-
+    // Correcting an accidental checkout: resume is allowed any number of times.
+    // The checkout→checkin gap is logged as an automatic break; the day's
+    // original checkInAt/isLate/lateReason are untouched.
     await prisma.$transaction([
       prisma.breakLog.create({
         data: {
@@ -296,11 +288,6 @@ export async function checkIn(prisma: PrismaClient, employeeId: number, input: C
     ]);
 
     return getTodayForEmployee(prisma, employeeId);
-  }
-
-  const earliestAllowed = addMinutes(scheduledStart, -assignment.dutySchedule.earlyCheckinBufferMinutes);
-  if (now < earliestAllowed) {
-    throw ApiError.badRequest("Too early to check in for today's duty");
   }
 
   const lateThreshold = addMinutes(scheduledStart, assignment.dutySchedule.checkinConsiderMinutes);
@@ -609,9 +596,9 @@ export function computeAttendanceDeltas(
   assignment: AttendanceDeltaInput,
   attendance: { checkInAt: Date | null; checkOutAt: Date | null } | null,
   timezone: string
-): { lateMinutes: number; earlyLeaveMinutes: number; overtimeMinutes: number } {
+): { lateMinutes: number; earlyLeaveMinutes: number; overtimeMinutes: number; isAnomalousLate: boolean } {
   if (!attendance?.checkInAt || !assignment.dutySchedule) {
-    return { lateMinutes: 0, earlyLeaveMinutes: 0, overtimeMinutes: 0 };
+    return { lateMinutes: 0, earlyLeaveMinutes: 0, overtimeMinutes: 0, isAnomalousLate: false };
   }
 
   const scheduledStart = combineDateAndTimeInZone(assignment.date, assignment.dutySchedule.startTime, timezone);
@@ -624,6 +611,10 @@ export function computeAttendanceDeltas(
     0,
     Math.round((attendance.checkInAt.getTime() - scheduledStart.getTime()) / 60_000)
   );
+  // A check-in after the shift's own end isn't a "late arrival" for this shift — it's more
+  // likely a wrong-day manual entry or a stale assignment match. Flag it instead of showing
+  // an oversized "Late Xh Ym" figure that can exceed the shift's own length.
+  const isAnomalousLate = attendance.checkInAt.getTime() > scheduledEnd.getTime();
 
   let earlyLeaveMinutes = 0;
   let overtimeMinutes = 0;
@@ -633,7 +624,7 @@ export function computeAttendanceDeltas(
     else earlyLeaveMinutes = -diff;
   }
 
-  return { lateMinutes, earlyLeaveMinutes, overtimeMinutes };
+  return { lateMinutes, earlyLeaveMinutes, overtimeMinutes, isAnomalousLate };
 }
 
 export async function getShiftAttendanceLog(
@@ -686,6 +677,7 @@ export async function getShiftAttendanceLog(
       lateMinutes: deltas.lateMinutes,
       earlyLeaveMinutes: deltas.earlyLeaveMinutes,
       overtimeMinutes: deltas.overtimeMinutes,
+      isAnomalousLate: deltas.isAnomalousLate,
       lateReason: att?.lateReason ?? null,
       earlyCheckoutReason: att?.earlyCheckoutReason ?? null,
       totalBreakMinutes: att ? totalBreakMinutes(att.breaks) : 0,

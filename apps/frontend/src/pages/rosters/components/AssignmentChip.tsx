@@ -7,9 +7,10 @@ interface AssignmentChipProps {
   assignment: DutyScheduleAssignmentDto;
   disabled?: boolean;
   onDelete?: () => void;
+  onClick?: () => void;
 }
 
-export function AssignmentChip({ assignment, disabled, onDelete }: AssignmentChipProps) {
+export function AssignmentChip({ assignment, disabled, onDelete, onClick }: AssignmentChipProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: String(assignment.id),
     disabled,
@@ -57,6 +58,7 @@ export function AssignmentChip({ assignment, disabled, onDelete }: AssignmentChi
       style={style}
       {...listeners}
       {...attributes}
+      onClick={onClick}
       className={`group relative flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium ${tone} ${
         disabled ? "cursor-default" : "cursor-grab active:cursor-grabbing"
       } ${isDragging ? "opacity-50" : ""}`}

@@ -21,6 +21,7 @@ import { listDepartments } from "../../api/departments";
 import { listEmployees } from "../../api/employees";
 import { listDutySchedules } from "../../api/dutySchedules";
 import { useAuth } from "../../auth/AuthContext";
+import { formatDutyScheduleOption } from "../../utils/dutySchedule";
 
 function toDateInput(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -123,7 +124,7 @@ export default function AttendanceReport() {
             <option value="">All duty schedules</option>
             {dutySchedules.map((d) => (
               <option key={d.id} value={d.id}>
-                {d.name}
+                {formatDutyScheduleOption(d)}
               </option>
             ))}
           </Select>

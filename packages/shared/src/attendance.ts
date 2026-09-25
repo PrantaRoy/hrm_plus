@@ -226,6 +226,10 @@ export interface ShiftAttendanceLogEntryDto {
   checkOutAt: string | null;
   /** Minutes checked in after the scheduled start (0 if on time or not checked in). */
   lateMinutes: number;
+  /** True when checkInAt falls after the shift's own scheduled end — likely a wrong-day
+   * manual entry rather than a genuine late arrival for this shift. lateMinutes is still
+   * populated (raw diff) but should be shown as "Anomalous", not "Late Xh Ym". */
+  isAnomalousLate: boolean;
   /** Minutes checked out before the scheduled end (0 otherwise). */
   earlyLeaveMinutes: number;
   /** Minutes worked past the scheduled end (0 otherwise). */

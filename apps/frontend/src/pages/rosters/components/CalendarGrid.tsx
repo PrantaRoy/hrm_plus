@@ -14,6 +14,7 @@ interface CalendarGridProps {
   assignmentsByKey: Map<string, DutyScheduleAssignmentDto>;
   readOnly?: boolean;
   onDeleteAssignment?: (assignment: DutyScheduleAssignmentDto) => void;
+  onCellClick?: (employeeId: number, date: string, assignment?: DutyScheduleAssignmentDto) => void;
 }
 
 function formatDateHeader(dateStr: string): { weekday: string; day: string } {
@@ -34,6 +35,7 @@ export function CalendarGrid({
   assignmentsByKey,
   readOnly,
   onDeleteAssignment,
+  onCellClick,
 }: CalendarGridProps) {
   return (
     <div className="overflow-x-auto rounded-md border border-slate-200">
@@ -68,12 +70,18 @@ export function CalendarGrid({
                 const assignment = assignmentsByKey.get(`${employee.id}|${date}`);
                 return (
                   <td key={date} className="p-0">
-                    <DroppableCell id={cellId(employee.id, date)}>
+                    <DroppableCell
+                      id={cellId(employee.id, date)}
+                      onClick={
+                        onCellClick && !assignment ? () => onCellClick(employee.id, date, assignment) : undefined
+                      }
+                    >
                       {assignment && (
                         <AssignmentChip
                           assignment={assignment}
                           disabled={readOnly}
                           onDelete={onDeleteAssignment ? () => onDeleteAssignment(assignment) : undefined}
+                          onClick={onCellClick ? () => onCellClick(employee.id, date, assignment) : undefined}
                         />
                       )}
                     </DroppableCell>

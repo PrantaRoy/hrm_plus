@@ -105,6 +105,8 @@ export function AttendanceWidget() {
   const [banner, setBanner] = useState<string | null>(null);
   const [lateReason, setLateReason] = useState("");
   const [earlyReason, setEarlyReason] = useState("");
+  const [forceLateReason, setForceLateReason] = useState(false);
+  const [forceEarlyReason, setForceEarlyReason] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const [deviceToken] = useState(() => getDeviceToken());
@@ -175,16 +177,18 @@ export function AttendanceWidget() {
   const startMinutes = today.scheduledStart ? parseHHMM(today.scheduledStart) : null;
   const endMinutes = today.scheduledEnd ? parseHHMM(today.scheduledEnd) : null;
   const isLikelyLate =
-    !today.attendance?.checkInAt &&
-    startMinutes !== null &&
-    today.checkinConsiderMinutes !== null &&
-    nowMinutes > startMinutes + today.checkinConsiderMinutes;
+    forceLateReason ||
+    (!today.attendance?.checkInAt &&
+      startMinutes !== null &&
+      today.checkinConsiderMinutes !== null &&
+      nowMinutes > startMinutes + today.checkinConsiderMinutes);
   const isLikelyEarlyCheckout =
-    !!today.attendance?.checkInAt &&
-    !today.attendance?.checkOutAt &&
-    endMinutes !== null &&
-    today.checkoutConsiderMinutes !== null &&
-    nowMinutes < endMinutes - today.checkoutConsiderMinutes;
+    forceEarlyReason ||
+    (!!today.attendance?.checkInAt &&
+      !today.attendance?.checkOutAt &&
+      endMinutes !== null &&
+      today.checkoutConsiderMinutes !== null &&
+      nowMinutes < endMinutes - today.checkoutConsiderMinutes);
 
   const locationBlocked = today.requiresLocationBinding && !coords;
   const geoFields = coords ? { latitude: coords.latitude, longitude: coords.longitude } : {};
@@ -196,6 +200,7 @@ export function AttendanceWidget() {
       const result = await checkIn({ method, deviceToken, ...geoFields, ...extra });
       setToday(result);
       setLateReason("");
+      setForceLateReason(false);
       const lateNote = result.attendance?.isLate ? " You're marked late for today." : "";
       setBanner(
         `${greetingWord(new Date())}, ${user?.firstName ?? ""}! You're checked in at ${formatTime(
@@ -203,7 +208,11 @@ export function AttendanceWidget() {
         )}.${lateNote}`
       );
     } catch (err: any) {
-      setError(err.response?.data?.error?.message ?? "Failed to check in");
+      const message = err.response?.data?.error?.message ?? "Failed to check in";
+      setError(message);
+      if (/reason is required for a late check-in/i.test(message)) {
+        setForceLateReason(true);
+      }
     } finally {
       setBusy(false);
     }
@@ -230,13 +239,18 @@ export function AttendanceWidget() {
       });
       setToday(result);
       setEarlyReason("");
+      setForceEarlyReason(false);
       setBanner(
         `${greetingWord(new Date())}, ${user?.firstName ?? ""}! You're checked out at ${formatTime(
           result.attendance?.checkOutAt
         )}. See you next time.`
       );
     } catch (err: any) {
-      setError(err.response?.data?.error?.message ?? "Failed to check out");
+      const message = err.response?.data?.error?.message ?? "Failed to check out";
+      setError(message);
+      if (/reason is required for an early checkout/i.test(message)) {
+        setForceEarlyReason(true);
+      }
     } finally {
       setBusy(false);
     }

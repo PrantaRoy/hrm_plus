@@ -8,19 +8,22 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { DutyScheduleAssignmentDto, RosterDto } from "@hrm-plus/shared";
+import { DutyScheduleAssignmentDto, DutyScheduleDto, RosterDto } from "@hrm-plus/shared";
 import { Button, Card, Field, PageHeader, Select, Spinner, StatusPill, Input } from "@hrm-plus/ui";
 import {
   autoGenerateRoster,
   approveRoster,
   bulkDeleteAssignments,
+  createAssignment,
   deleteAssignment,
   getRoster,
   listAssignments,
   updateAssignment,
 } from "../../api/rosters";
 import { listEmployees } from "../../api/employees";
+import { listDutySchedules } from "../../api/dutySchedules";
 import { CalendarEmployee, CalendarGrid } from "./components/CalendarGrid";
+import { AssignmentEditorModal } from "./components/AssignmentEditorModal";
 
 function toDateKey(iso: string): string {
   return iso.slice(0, 10);
@@ -44,9 +47,17 @@ export default function RosterCalendar() {
   const [roster, setRoster] = useState<RosterDto | null>(null);
   const [employees, setEmployees] = useState<CalendarEmployee[]>([]);
   const [assignments, setAssignments] = useState<DutyScheduleAssignmentDto[]>([]);
+  const [dutySchedules, setDutySchedules] = useState<DutyScheduleDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const [editingCell, setEditingCell] = useState<{
+    employeeId: number;
+    date: string;
+    assignment?: DutyScheduleAssignmentDto;
+  } | null>(null);
+  const [editBusy, setEditBusy] = useState(false);
 
   const [bulkEmployeeId, setBulkEmployeeId] = useState("");
   const [bulkStartDate, setBulkStartDate] = useState("");
@@ -64,9 +75,10 @@ export default function RosterCalendar() {
       const rosterDto = await getRoster(rosterId);
       setRoster(rosterDto);
 
-      const [employeeRes, assignmentList] = await Promise.all([
+      const [employeeRes, assignmentList, dutyScheduleRes] = await Promise.all([
         listEmployees({ page: 1, pageSize: 100, departmentId: rosterDto.departmentId }),
         listAssignments(rosterId, {}),
+        listDutySchedules({ page: 1, pageSize: 100, status: "Active" }),
       ]);
 
       setEmployees(
@@ -75,6 +87,7 @@ export default function RosterCalendar() {
           .map((e) => ({ id: e.id, name: `${e.firstName} ${e.lastName}`, code: e.employeeCode }))
       );
       setAssignments(assignmentList);
+      setDutySchedules(dutyScheduleRes.items);
     } finally {
       setLoading(false);
     }
@@ -196,6 +209,35 @@ export default function RosterCalendar() {
     }
   }
 
+  function handleCellClick(employeeId: number, date: string, assignment?: DutyScheduleAssignmentDto) {
+    setActionError(null);
+    setEditingCell({ employeeId, date, assignment });
+  }
+
+  async function handleSaveAssignment(dutyScheduleId: number | null) {
+    if (!editingCell) return;
+    setEditBusy(true);
+    setActionError(null);
+    try {
+      if (editingCell.assignment) {
+        const updated = await updateAssignment(rosterId, editingCell.assignment.id, { dutyScheduleId });
+        setAssignments((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
+      } else {
+        const created = await createAssignment(rosterId, {
+          employeeId: editingCell.employeeId,
+          date: editingCell.date,
+          dutyScheduleId,
+        });
+        setAssignments((prev) => [...prev, created]);
+      }
+      setEditingCell(null);
+    } catch (err: any) {
+      setActionError(err.response?.data?.error?.message ?? "Failed to save assignment");
+    } finally {
+      setEditBusy(false);
+    }
+  }
+
   function countMatching(employeeId: string, startDate: string, endDate: string): number {
     return assignments.filter((a) => {
       if (employeeId && a.employeeId !== Number(employeeId)) return false;
@@ -306,6 +348,7 @@ export default function RosterCalendar() {
               dates={dates}
               assignmentsByKey={assignmentsByKey}
               onDeleteAssignment={handleDeleteAssignment}
+              onCellClick={handleCellClick}
             />
           </DndContext>
         )}
@@ -349,6 +392,19 @@ export default function RosterCalendar() {
             </Button>
           </div>
         </Card>
+      )}
+
+      {editingCell && (
+        <AssignmentEditorModal
+          open
+          employeeName={employees.find((e) => e.id === editingCell.employeeId)?.name ?? "Employee"}
+          date={editingCell.date}
+          dutySchedules={dutySchedules}
+          currentDutyScheduleId={editingCell.assignment?.dutyScheduleId ?? null}
+          busy={editBusy}
+          onClose={() => setEditingCell(null)}
+          onSave={handleSaveAssignment}
+        />
       )}
     </div>
   );

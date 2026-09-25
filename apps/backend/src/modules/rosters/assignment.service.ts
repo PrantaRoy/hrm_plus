@@ -3,6 +3,7 @@ import { CreateAssignmentInput, DutyScheduleAssignmentDto, UpdateAssignmentInput
 import { ApiError } from "../../utils/ApiError";
 import { assignmentInclude, toAssignmentDto } from "./assignment.mapper";
 import { getPublishedHolidayForDate } from "../holidays/holiday.service";
+import { isWeekendDate, loadWeekendNames } from "../../utils/weekday";
 
 export interface ListAssignmentsOptions {
   startDate?: string;
@@ -74,6 +75,7 @@ export async function createAssignment(
 
   const dutyScheduleId = input.dutyScheduleId ?? null;
   const holiday = await getPublishedHolidayForDate(prisma, date);
+  const weekendNames = await loadWeekendNames(prisma);
 
   try {
     const assignment = await prisma.dutyScheduleAssignment.create({
@@ -86,6 +88,7 @@ export async function createAssignment(
         comment: input.comment ?? null,
         isLeave: input.isLeave ?? false,
         isHoliday: Boolean(holiday) && dutyScheduleId === null,
+        isWeekend: isWeekendDate(weekendNames, date) && dutyScheduleId === null,
         createdById,
       },
       include: assignmentInclude,
@@ -127,6 +130,7 @@ export async function updateAssignment(
 
   const resolvedDutyScheduleId = input.dutyScheduleId !== undefined ? input.dutyScheduleId : existing.dutyScheduleId;
   const holiday = await getPublishedHolidayForDate(prisma, resolvedDate);
+  const weekendNames = await loadWeekendNames(prisma);
 
   try {
     const assignment = await prisma.dutyScheduleAssignment.update({
@@ -139,6 +143,7 @@ export async function updateAssignment(
         comment: input.comment,
         isLeave: input.isLeave,
         isHoliday: Boolean(holiday) && resolvedDutyScheduleId === null,
+        isWeekend: isWeekendDate(weekendNames, resolvedDate) && resolvedDutyScheduleId === null,
         changeRequest: input.changeRequest,
         updatedById,
       },

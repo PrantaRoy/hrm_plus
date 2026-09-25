@@ -10,21 +10,30 @@ function pad(n: number): string {
   return String(n).padStart(2, "0");
 }
 
+// The backend keys "today" (and every assignment.date) by UTC calendar day, not the
+// viewer's local day — so date math here must stay in UTC too, or a viewer whose local
+// day has already rolled over relative to UTC ends up requesting tomorrow's (empty) row.
 function toKey(date: Date): string {
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
 }
 
 function addDays(date: Date, days: number): Date {
   const next = new Date(date);
-  next.setDate(next.getDate() + days);
+  next.setUTCDate(next.getUTCDate() + days);
   return next;
 }
 
 function mondayOf(date: Date): Date {
-  const next = new Date(date);
-  next.setHours(0, 0, 0, 0);
-  next.setDate(next.getDate() - ((next.getDay() + 6) % 7));
+  const next = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  next.setUTCDate(next.getUTCDate() - ((next.getUTCDay() + 6) % 7));
   return next;
+}
+
+// Turns a "YYYY-MM-DD" key back into a Date for display formatting, anchored at local
+// midnight so toLocaleDateString can't shift it back a day relative to the key's date.
+function keyToLocalDate(key: string): Date {
+  const [y, m, d] = key.split("-").map(Number);
+  return new Date(y, m - 1, d);
 }
 
 function fmtTime(iso: string | null): string {
@@ -69,10 +78,19 @@ function EntryRow({ entry }: { entry: ShiftAttendanceLogEntryDto }) {
             <span className="tabular-nums text-xs text-slate-600">
               {fmtTime(entry.checkInAt)} – {fmtTime(entry.checkOutAt)}
             </span>
-            {entry.lateMinutes > 0 && (
-              <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-700">
-                Late {fmtMinutes(entry.lateMinutes)}
+            {entry.isAnomalousLate ? (
+              <span
+                className="rounded bg-red-50 px-1.5 py-0.5 text-[11px] font-medium text-red-700"
+                title={`Checked in ${fmtMinutes(entry.lateMinutes)} after shift start — past the shift's own end, likely a wrong-day entry`}
+              >
+                Anomalous — check data
               </span>
+            ) : (
+              entry.lateMinutes > 0 && (
+                <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-700">
+                  Late {fmtMinutes(entry.lateMinutes)}
+                </span>
+              )
             )}
             {entry.overtimeMinutes > 0 && (
               <span className="rounded bg-sky-50 px-1.5 py-0.5 text-[11px] font-medium text-sky-700">
@@ -157,22 +175,28 @@ export function ShiftAttendanceLog() {
 
   const range = useMemo(() => {
     if (mode === "today") {
-      const day = addDays(new Date(), offset);
-      const key = toKey(day);
+      const key = toKey(addDays(new Date(), offset));
       return {
         startDate: key,
         endDate: key,
         heading: offset === 0 ? "Today" : fmtDateHeading(key),
-        sub: day.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "short", year: "numeric" }),
+        sub: keyToLocalDate(key).toLocaleDateString(undefined, {
+          weekday: "long",
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        }),
       };
     }
     const start = addDays(mondayOf(new Date()), offset * 7);
     const end = addDays(start, 6);
-    const startLabel = start.toLocaleDateString(undefined, { day: "numeric", month: "short" });
-    const endLabel = end.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+    const startKey = toKey(start);
+    const endKey = toKey(end);
+    const startLabel = keyToLocalDate(startKey).toLocaleDateString(undefined, { day: "numeric", month: "short" });
+    const endLabel = keyToLocalDate(endKey).toLocaleDateString(undefined, { day: "numeric", month: "short" });
     return {
-      startDate: toKey(start),
-      endDate: toKey(end),
+      startDate: startKey,
+      endDate: endKey,
       heading: offset === 0 ? "This Week" : `${startLabel} – ${endLabel}`,
       sub: `${startLabel} – ${endLabel}`,
     };

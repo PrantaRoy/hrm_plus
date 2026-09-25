@@ -247,7 +247,7 @@ describe("Resume after an accidental checkout", () => {
     expect(resume.body.attendance.breaks.some((b: any) => b.endAt !== null)).toBe(true);
   });
 
-  it("refuses to resume once the shift has ended", async () => {
+  it("allows resuming even after the shift has ended", async () => {
     const staff = await setupEmployeeWithAssignment("attendance.resume.late.staff@example.com", {
       startTime: "00:00",
       endTime: hhmmFromNow(-2),
@@ -267,6 +267,7 @@ describe("Resume after an accidental checkout", () => {
     const resume = await asUser(request(app).post("/api/attendance/check-in"), staff.token).send({
       method: "PressAndHold",
     });
-    expect(resume.status).toBe(400);
+    expect(resume.status).toBe(200);
+    expect(resume.body.assignment.status).toBe("CheckedIn");
   });
 });

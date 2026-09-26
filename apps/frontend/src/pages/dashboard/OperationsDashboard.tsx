@@ -4,12 +4,14 @@ import { DashboardSummaryDto, DashboardTrendsDto } from "@hrm-plus/shared";
 import { getDashboardSummary, getDashboardTrends } from "../../api/dashboard";
 import { useAuth } from "../../auth/AuthContext";
 import { TenantDutyCalendar } from "../../components/dashboard/TenantDutyCalendar";
+import { AiFeatureFabs } from "../../components/dashboard/AiFeatureFabs";
 import { TodayOverviewCard } from "../../components/dashboard/TodayOverviewCard";
 import { DutyScheduleReport } from "../../components/dashboard/DutyScheduleReport";
 import { ShiftAttendanceLog } from "../../components/dashboard/ShiftAttendanceLog";
 import { PendingLeaveApprovalsCard } from "../../components/dashboard/PendingLeaveApprovalsCard";
 import { MyMeetingsCard } from "../../components/dashboard/MyMeetingsCard";
 import { InProgressProjectsCard } from "../../components/dashboard/InProgressProjectsCard";
+import { StickyNotesBoard } from "../../components/dashboard/StickyNotesBoard";
 import { MyWorkSection } from "../../components/dashboard/MyWorkSection";
 import { AttendanceTrendChart } from "../../components/dashboard/charts/AttendanceTrendChart";
 import { LeaveStatusBreakdownChart } from "../../components/dashboard/charts/LeaveStatusBreakdownChart";
@@ -85,6 +87,8 @@ export default function OperationsDashboard() {
 
       <InProgressProjectsCard />
 
+      <StickyNotesBoard />
+
       {/* Managers have no Staff/Admin toggle, so their own work is shown here. */}
       {user?.role === "Manager" && <MyWorkSection />}
 
@@ -102,6 +106,8 @@ export default function OperationsDashboard() {
       <ShiftAttendanceLog />
 
       <TenantDutyCalendar />
+
+      {(user?.role === "Admin" || user?.role === "HR") && <AiFeatureFabs />}
     </div>
   );
 }

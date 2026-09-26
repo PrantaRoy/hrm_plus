@@ -88,6 +88,7 @@ model User {
   commentsWritten            Comment[]
   attachmentsUploaded        Attachment[]
   notifications              Notification[]
+  stickyNotes                StickyNote[]
   signatureImageUrl          String?
   signatureImageKey          String?
   signatureUpdatedAt         DateTime?
@@ -1649,4 +1650,30 @@ model Notification {
 
   @@index([userId, status])
   @@index([userId, createdAt])
+}
+
+enum StickyNotePriority {
+  HIGH
+  MEDIUM
+  REGULAR
+}
+
+enum StickyNoteStatus {
+  ACTIVE
+  DONE
+  DISMISSED
+}
+
+model StickyNote {
+  id        Int                @id @default(autoincrement())
+  userId    Int
+  user      User               @relation(fields: [userId], references: [id])
+  content   String
+  priority  StickyNotePriority @default(REGULAR)
+  deadline  DateTime?
+  status    StickyNoteStatus   @default(ACTIVE)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  @@index([userId, status])
 }

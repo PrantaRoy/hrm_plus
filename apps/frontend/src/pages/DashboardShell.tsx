@@ -105,21 +105,6 @@ function buildStaffViewGroups(): SidebarGroup[] {
 function buildAdminViewGroups(isAdmin: boolean): SidebarGroup[] {
   return [
     { items: [{ key: "dashboard", label: "Dashboard", to: "/", icon: LayoutDashboard, end: true }] },
-    ...(isAdmin
-      ? [
-          {
-            label: "Support",
-            items: [{ key: "support-tickets", label: "Support Tickets", to: "/support-tickets", icon: LifeBuoy }],
-          },
-        ]
-      : []),
-    {
-      label: "Approvals",
-      items: [
-        { key: "leave-approvals", label: "Leave Approvals", to: "/leave/approvals", icon: ClipboardCheck },
-        { key: "document-approvals", label: "Document Approvals", to: "/documents/approvals", icon: FileCheck },
-      ],
-    },
     {
       label: "People",
       items: [{ key: "employees", label: "Employees", to: "/employees", icon: Users }],
@@ -133,14 +118,21 @@ function buildAdminViewGroups(isAdmin: boolean): SidebarGroup[] {
         { key: "holidays", label: "Holidays", to: "/holidays", icon: PartyPopper },
       ],
     },
-    PROJECTS_MANAGER_GROUP,
     {
       label: "Reports",
       items: [
         { key: "records", label: "Records", to: "/records", icon: BarChart3 },
-        { key: "ai-kpi-report", label: "AI KPI Report", to: "/ai-kpi-report", icon: Sparkles },
+        {
+          key: "ai-kpi-report",
+          label: "AI KPI Report",
+          to: "/ai-kpi-report",
+          icon: Sparkles,
+          badge: "AI",
+          highlight: true,
+        },
       ],
     },
+    PROJECTS_MANAGER_GROUP,
     {
       label: "Recruitment",
       items: [
@@ -182,6 +174,21 @@ function buildAdminViewGroups(isAdmin: boolean): SidebarGroup[] {
         { key: "cms-legal", label: "Legal Pages", to: "/website-cms/legal-pages", icon: FileText },
       ],
     },
+    {
+      label: "Approvals",
+      items: [
+        { key: "leave-approvals", label: "Leave Approvals", to: "/leave/approvals", icon: ClipboardCheck },
+        { key: "document-approvals", label: "Document Approvals", to: "/documents/approvals", icon: FileCheck },
+      ],
+    },
+    ...(isAdmin
+      ? [
+          {
+            label: "Support",
+            items: [{ key: "support-tickets", label: "Support Tickets", to: "/support-tickets", icon: LifeBuoy }],
+          },
+        ]
+      : []),
   ];
 }
 
@@ -332,6 +339,7 @@ export default function DashboardShell() {
           onSignOut={logout}
           onMenuClick={() => setSidebarOpen(true)}
           actions={<NotificationBell />}
+          timezone={branding?.timezone}
         />
         <main className="mx-auto w-full max-w-[1600px] flex-1 p-4 sm:p-6 lg:p-8">
           <Outlet context={{ dashboardMode: mode }} />

@@ -2,6 +2,7 @@ import { ComponentType, ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import { X } from "lucide-react";
 import { cn } from "../cn";
+import { Badge } from "./Badge";
 
 export interface SidebarNavItem {
   key: string;
@@ -9,6 +10,10 @@ export interface SidebarNavItem {
   to: string;
   icon?: ComponentType<{ className?: string }>;
   end?: boolean;
+  /** Short pill text (e.g. "AI") shown after the label to call out a flagship feature. */
+  badge?: string;
+  /** Subtle gradient/glow treatment to make this item stand out from its siblings. */
+  highlight?: boolean;
 }
 
 export interface SidebarGroup {
@@ -89,8 +94,11 @@ export function SidebarItem({ item }: { item: SidebarNavItem }) {
         cn(
           "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
           isActive
-            ? "bg-white/10 text-white"
-            : "text-sidebar-muted hover:bg-sidebar-hover hover:text-white"
+            ? cn("bg-white/10 text-white", item.highlight && "shadow-glow")
+            : cn(
+                "text-sidebar-muted hover:bg-sidebar-hover hover:text-white",
+                item.highlight && "bg-gradient-to-r from-accent-500/10 to-accent-400/5 ring-1 ring-inset ring-accent-400/20"
+              )
         )
       }
     >
@@ -108,6 +116,14 @@ export function SidebarItem({ item }: { item: SidebarNavItem }) {
             />
           )}
           <span className="truncate">{item.label}</span>
+          {item.badge && (
+            <Badge
+              color="brand"
+              className="ml-auto shrink-0 !px-1.5 !py-0 bg-ai-gradient text-[10px] font-semibold uppercase tracking-wide text-white ring-0"
+            >
+              {item.badge}
+            </Badge>
+          )}
         </>
       )}
     </NavLink>

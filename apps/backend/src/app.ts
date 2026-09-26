@@ -21,6 +21,7 @@ import { designationRouter } from "./modules/designations/designation.routes";
 import { roleRouter } from "./modules/roles/role.routes";
 import { leaveRequestRouter } from "./modules/leave-requests/leaveRequest.routes";
 import { notificationRouter } from "./modules/notifications/notification.routes";
+import { stickyNoteRouter } from "./modules/sticky-notes/stickyNote.routes";
 import { attendanceRouter } from "./modules/attendance/attendance.routes";
 import { ipRuleRouter } from "./modules/attendance-ip-rules/ipRule.routes";
 import { locationRouter } from "./modules/attendance-locations/location.routes";
@@ -122,6 +123,7 @@ export function createApp(): Express {
   app.use("/api/roles", tenantResolver, roleRouter);
   app.use("/api/leave-requests", tenantResolver, leaveRequestRouter);
   app.use("/api/notifications", tenantResolver, notificationRouter);
+  app.use("/api/sticky-notes", tenantResolver, stickyNoteRouter);
   app.use("/api/attendance", tenantResolver, attendanceRouter);
   app.use("/api/attendance-ip-rules", tenantResolver, ipRuleRouter);
   app.use("/api/attendance-locations", tenantResolver, locationRouter);

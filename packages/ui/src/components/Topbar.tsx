@@ -1,5 +1,5 @@
-import { ReactNode } from "react";
-import { LogOut, Menu } from "lucide-react";
+import { ReactNode, useEffect, useState } from "react";
+import { Clock, LogOut, Menu } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { cn } from "../cn";
 
@@ -13,9 +13,33 @@ export interface TopbarProps {
   /** Extra controls rendered before the user block (search, notifications, ...). */
   actions?: ReactNode;
   className?: string;
+  /** IANA timezone (e.g. from site settings) used to render a live clock. Omit to hide the clock. */
+  timezone?: string;
 }
 
-export function Topbar({ title, userName, userMeta, onSignOut, onMenuClick, actions, className }: TopbarProps) {
+function TopbarClock({ timezone }: { timezone: string }) {
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const timeStr = now.toLocaleTimeString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: timezone,
+  });
+
+  return (
+    <div className="hidden items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-card sm:flex">
+      <Clock className="h-3.5 w-3.5 text-slate-400" />
+      <span className="tabular-nums">{timeStr}</span>
+    </div>
+  );
+}
+
+export function Topbar({ title, userName, userMeta, onSignOut, onMenuClick, actions, className, timezone }: TopbarProps) {
   return (
     <header
       className={cn(
@@ -37,6 +61,7 @@ export function Topbar({ title, userName, userMeta, onSignOut, onMenuClick, acti
         {title && <div className="truncate text-sm font-semibold text-slate-800">{title}</div>}
       </div>
       <div className="flex items-center gap-2 sm:gap-3">
+        {timezone && <TopbarClock timezone={timezone} />}
         {actions}
         <div className="flex items-center gap-2.5 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-3 shadow-card">
           <Avatar name={userName} size="sm" />

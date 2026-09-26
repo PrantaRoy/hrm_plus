@@ -25,6 +25,17 @@ export default {
           muted: "#94a3b8",
         },
         ink: "#0f172a",
+        // Vivid secondary accent for the AI-feature badge/glow/FABs (bolder than the muted brand scale).
+        accent: {
+          50: "#fdf2f8",
+          100: "#fce7f3",
+          200: "#fbcfe8",
+          300: "#f9a8d4",
+          400: "#f472b6",
+          500: "#ec4899",
+          600: "#db2777",
+          700: "#be185d",
+        },
       },
       fontFamily: {
         sans: ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "sans-serif"],
@@ -35,6 +46,11 @@ export default {
       boxShadow: {
         card: "0 1px 2px 0 rgb(15 23 42 / 0.04), 0 2px 8px -2px rgb(15 23 42 / 0.06)",
         pop: "0 10px 30px -8px rgb(15 23 42 / 0.18), 0 2px 6px -2px rgb(15 23 42 / 0.08)",
+        glow: "0 0 0 1px rgb(99 102 241 / 0.15), 0 4px 24px -4px rgb(236 72 153 / 0.35)",
+        fab: "0 8px 24px -6px rgb(15 23 42 / 0.35), 0 2px 8px -2px rgb(15 23 42 / 0.2)",
+      },
+      backgroundImage: {
+        "ai-gradient": "linear-gradient(135deg, #6366f1 0%, #ec4899 100%)",
       },
     },
   },

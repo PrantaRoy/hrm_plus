@@ -496,6 +496,7 @@ export type {
   UpdatePayrollSettingsInput,
   WorkReportDto,
   GenerateWorkReportsInput,
+  UpdateWorkReportInput,
   ListWorkReportsQuery,
   PayslipLineItemDto,
   PayslipDto,
@@ -572,6 +573,15 @@ export type {
 
 export { NOTIFICATION_STATUSES } from "./notification";
 export type { NotificationDto, NotificationStatus, ListNotificationsQuery } from "./notification";
+
+export { STICKY_NOTE_PRIORITIES, STICKY_NOTE_STATUSES } from "./stickyNote";
+export type {
+  StickyNotePriority,
+  StickyNoteStatus,
+  StickyNoteDto,
+  CreateStickyNoteInput,
+  ListStickyNotesQuery,
+} from "./stickyNote";
 
 export { GENDER_CODES, GENDER_CODE_MAP } from "./employeeBulkImport";
 export type {

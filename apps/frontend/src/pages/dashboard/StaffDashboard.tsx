@@ -6,11 +6,13 @@ import { Card, EmptyState, PageHeader, StatusPill } from "@hrm-plus/ui";
 import { listMyAllocations, listMyLeaveRequests } from "../../api/leaveRequests";
 import { useAuth } from "../../auth/AuthContext";
 import { AttendanceWidget } from "../../components/attendance/AttendanceWidget";
+import { AiFeatureFabs } from "../../components/dashboard/AiFeatureFabs";
 import { DutyScheduleMonthCalendar } from "../../components/DutyScheduleMonthCalendar";
 import { DutyScheduleReport } from "../../components/dashboard/DutyScheduleReport";
 import { MyMeetingsCard } from "../../components/dashboard/MyMeetingsCard";
 import { MyWorkSection } from "../../components/dashboard/MyWorkSection";
 import { LiveClock } from "../../components/LiveClock";
+import { StickyNotesBoard } from "../../components/dashboard/StickyNotesBoard";
 
 export default function StaffDashboard() {
   const { user } = useAuth();
@@ -41,6 +43,8 @@ export default function StaffDashboard() {
         <LiveClock />
         <AttendanceWidget />
       </div>
+
+      <StickyNotesBoard />
 
       <DutyScheduleReport />
 
@@ -107,6 +111,8 @@ export default function StaffDashboard() {
       </div>
 
       <DutyScheduleMonthCalendar />
+
+      {(user?.role === "Admin" || user?.role === "HR") && <AiFeatureFabs />}
     </div>
   );
 }

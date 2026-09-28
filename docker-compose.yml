@@ -1,67 +1,154 @@
+# Full stack: docker compose up --build   (copy .env.example to .env first)
+
+x-backend-env: &backend-env
+  NODE_ENV: production
+  CONTROL_DATABASE_URL: mysql://root:${MYSQL_ROOT_PASSWORD:-hrmplusdev}@mysql:3306/hrm_control
+  TENANT_MIGRATION_DATABASE_URL: mysql://root:${MYSQL_ROOT_PASSWORD:-hrmplusdev}@mysql:3306/hrm_tenant_template
+  TENANT_DB_HOST: mysql
+  TENANT_DB_PORT: "3306"
+  TENANT_DB_USER: root
+  TENANT_DB_PASSWORD: ${MYSQL_ROOT_PASSWORD:-hrmplusdev}
+  REDIS_URL: redis://redis:6379
+  JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change-me-dev-secret}
+  JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change-me-dev-refresh-secret}
+  JWT_SAAS_ACCESS_SECRET: ${JWT_SAAS_ACCESS_SECRET:-change-me-dev-saas-secret}
+  SETTINGS_ENCRYPTION_KEY: ${SETTINGS_ENCRYPTION_KEY:-change-me-dev-settings-encryption-key-32chars-min}
+  CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173,http://localhost:5174}
+  FRONTEND_BASE_URL: ${FRONTEND_BASE_URL:-http://localhost:5173}
+  PUBLIC_TENANT_BASE_DOMAIN: ${PUBLIC_TENANT_BASE_DOMAIN:-localhost}
+  SMTP_HOST: ${SMTP_HOST:-}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_SECURE: ${SMTP_SECURE:-false}
+  SMTP_USER: ${SMTP_USER:-}
+  SMTP_PASS: ${SMTP_PASS:-}
+  EMAIL_FROM: ${EMAIL_FROM:-HRM PLUS <no-reply@hrmplus.test>}
+  STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
+  AWS_REGION: ${AWS_REGION:-}
+  AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+  AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+  AWS_S3_BUCKET: ${AWS_S3_BUCKET:-}
+  AWS_S3_PUBLIC_BASE_URL: ${AWS_S3_PUBLIC_BASE_URL:-}
+  LLM_PROVIDER: ${LLM_PROVIDER:-groq}
+  OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+  ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+  GROQ_API_KEY: ${GROQ_API_KEY:-}
+  GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+
+x-backend-build: &backend-build
+  context: .
+  dockerfile: apps/backend/Dockerfile
+
 services:
   mysql:
     image: mysql:8.4
     restart: unless-stopped
     environment:
-      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-hrmplusdev}
     ports:
-      - "3306:3306"
+      - "${MYSQL_HOST_PORT:-3307}:3306"
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 20
+      start_period: 20s
 
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-    ports:
-      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
-  backend:
-    build:
-      context: .
-      dockerfile: apps/backend/Dockerfile
-    restart: unless-stopped
-    env_file:
-      - apps/backend/.env
+  # One-shot: applies control-DB migrations, then (optionally) seeds demo data. Idempotent.
+  migrate:
+    build: *backend-build
+    image: hrmplus-backend
+    restart: "no"
     environment:
-      TENANT_DB_HOST: mysql
-      CONTROL_DATABASE_URL: mysql://root@mysql:3306/hrm_control
-      REDIS_URL: redis://redis:6379
-    ports:
-      - "4000:4000"
-    depends_on:
-      mysql:
-        condition: service_healthy
-
-  worker:
-    build:
-      context: .
-      dockerfile: apps/backend/Dockerfile
-    command: ["node", "dist/worker.js"]
-    restart: unless-stopped
-    env_file:
-      - apps/backend/.env
-    environment:
-      TENANT_DB_HOST: mysql
-      CONTROL_DATABASE_URL: mysql://root@mysql:3306/hrm_control
-      REDIS_URL: redis://redis:6379
+      <<: *backend-env
+      SEED_DEMO: ${SEED_DEMO:-true}
+    command:
+      - sh
+      - -c
+      # Migrations must succeed; the demo seed is a convenience, so its failure only warns and never blocks the API.
+      - >-
+        npm run migrate:control:deploy &&
+        if [ "$$SEED_DEMO" = "true" ]; then
+        npm run db:seed || echo "WARNING: demo seed failed (see error above); the API will still start.";
+        fi
+    volumes:
+      - uploads:/repo/apps/backend/uploads
     depends_on:
       mysql:
         condition: service_healthy
       redis:
+        condition: service_healthy
+
+  backend:
+    build: *backend-build
+    image: hrmplus-backend
+    restart: unless-stopped
+    environment:
+      <<: *backend-env
+      PORT: "4000"
+    ports:
+      - "4000:4000"
+    volumes:
+      - uploads:/repo/apps/backend/uploads
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    image: hrmplus-backend
+    restart: unless-stopped
+    command: ["node", "dist/worker.js"]
+    environment:
+      <<: *backend-env
+    volumes:
+      - uploads:/repo/apps/backend/uploads
+    depends_on:
+      backend:
         condition: service_started
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
 
   frontend:
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:4000/api}
+        VITE_DEFAULT_TENANT_SLUG: ${VITE_DEFAULT_TENANT_SLUG:-acme}
+        VITE_PUBLIC_TENANT_BASE_DOMAIN: ${VITE_PUBLIC_TENANT_BASE_DOMAIN:-localhost}
     restart: unless-stopped
     ports:
-      - "5173:5173"
+      - "5173:80"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
     depends_on:
       - backend
 
@@ -69,11 +156,21 @@ services:
     build:
       context: .
       dockerfile: apps/saas-frontend/Dockerfile
+      args:
+        # No /api suffix for this app, hence a separate variable from the tenant frontend's.
+        VITE_API_BASE_URL: ${VITE_SAAS_API_BASE_URL:-http://localhost:4000}
     restart: unless-stopped
     ports:
-      - "5174:5174"
+      - "5174:80"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
     depends_on:
       - backend
 
 volumes:
   mysql-data:
+  redis-data:
+  uploads:

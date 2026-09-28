@@ -18,7 +18,7 @@ apps/backend        Express API — tenant-scoped /api/* routes + SaaS control-p
 apps/frontend        React app — the logged-in tenant employee portal
 apps/saas-frontend   React app — public landing/signup + super-admin dashboard
 packages/shared      TypeScript types shared between all three apps
-docker-compose.yml   Containerised stack for later deployment/dev
+docker-compose.yml   Full containerised stack (see "Run with Docker")
 ```
 
 ## Local development setup
@@ -56,6 +56,22 @@ npm run provision-tenant -- --name "Acme Ltd" --slug acme --admin-password <pass
 - Backend: http://localhost:4000
 - Tenant employee portal: http://localhost:5173
 - SaaS landing/signup + super-admin portal: http://localhost:5174
+
+## Run with Docker
+
+Prerequisite: Docker with Compose v2. Nothing else (no Node, MySQL or Redis) is needed on the host.
+
+```bash
+cp .env.example .env      # defaults work locally; change every secret for a real deployment
+docker compose up --build
+```
+
+This starts MySQL, Redis, the API, the BullMQ worker and both frontends (nginx), and a one-shot `migrate` service that applies the control-DB migrations and seeds the demo data (`SEED_DEMO=true`). The ports and demo logins are the same as in local development (API `:4000`, tenant portal `:5173`, SaaS portal `:5174`; MySQL is on host port `3307`).
+
+- Logs: `docker compose logs -f backend worker`
+- Stop: `docker compose down` (data and uploads live in the `mysql-data`, `redis-data` and `uploads` volumes); add `-v` to wipe everything.
+- The `VITE_*` values in `.env` are baked into the frontend bundles at build time — after changing them run `docker compose up --build`.
+- For a real domain, change `PUBLIC_TENANT_BASE_DOMAIN`, `VITE_PUBLIC_TENANT_BASE_DOMAIN`, `CORS_ORIGIN`, `FRONTEND_BASE_URL` and the `VITE_*_API_BASE_URL` values together, and set `SEED_DEMO=false`.
 
 ## Demo login details
 

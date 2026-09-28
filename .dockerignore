@@ -1,0 +1,26 @@
+**/node_modules
+**/dist
+**/build
+**/coverage
+**/*.log
+**/.DS_Store
+
+# Secrets / local config — never bake into images
+**/.env
+**/.env.*
+!**/.env.example
+
+# Generated at image build time
+apps/backend/generated
+
+# Local uploaded files
+apps/backend/uploads
+
+# Not needed to build
+.git
+.github
+.claude
+.vscode
+docs
+postman
+**/*.md

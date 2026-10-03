@@ -41,6 +41,9 @@ export default function EmployeeDetail() {
     jobTitle: "",
     terminationDate: "",
     employmentType: "Full-Time" as EmploymentType,
+    irdNumber: "",
+    bankName: "",
+    bankAccountNumber: "",
     departmentId: "",
     designationId: "",
     reportingToId: "",
@@ -64,6 +67,9 @@ export default function EmployeeDetail() {
         jobTitle: e.jobTitle ?? "",
         terminationDate: e.terminationDate ? e.terminationDate.slice(0, 10) : "",
         employmentType: e.employmentType,
+        irdNumber: e.irdNumber ?? "",
+        bankName: e.bankName ?? "",
+        bankAccountNumber: e.bankAccountNumber ?? "",
         departmentId: e.departmentId ? String(e.departmentId) : "",
         designationId: e.designationId ? String(e.designationId) : "",
         reportingToId: e.reportingToId ? String(e.reportingToId) : "",
@@ -95,6 +101,9 @@ export default function EmployeeDetail() {
         jobTitle: form.jobTitle || null,
         terminationDate: form.terminationDate || null,
         employmentType: form.employmentType,
+        irdNumber: form.irdNumber || null,
+        bankName: form.bankName || null,
+        bankAccountNumber: form.bankAccountNumber || null,
         departmentId: form.departmentId ? Number(form.departmentId) : null,
         designationId: form.designationId ? Number(form.designationId) : null,
         reportingToId: form.reportingToId ? Number(form.reportingToId) : null,
@@ -249,6 +258,12 @@ export default function EmployeeDetail() {
               <dd className="text-slate-900">{employee.role ?? "—"}</dd>
               <dt className="text-slate-500">Employment type</dt>
               <dd className="text-slate-900">{employee.employmentType}</dd>
+              <dt className="text-slate-500">IRD number</dt>
+              <dd className="text-slate-900">{employee.irdNumber ?? "—"}</dd>
+              <dt className="text-slate-500">Bank name</dt>
+              <dd className="text-slate-900">{employee.bankName ?? "—"}</dd>
+              <dt className="text-slate-500">Account number</dt>
+              <dd className="text-slate-900">{employee.bankAccountNumber ?? "—"}</dd>
               <dt className="text-slate-500">Joining date</dt>
               <dd className="text-slate-900">{employee.joiningDate.slice(0, 10)}</dd>
               <dt className="text-slate-500">Termination date</dt>
@@ -289,6 +304,26 @@ export default function EmployeeDetail() {
                   <Input
                     value={form.jobTitle}
                     onChange={(e) => setForm((f) => ({ ...f, jobTitle: e.target.value }))}
+                  />
+                </Field>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <Field label="IRD number">
+                  <Input
+                    value={form.irdNumber}
+                    onChange={(e) => setForm((f) => ({ ...f, irdNumber: e.target.value }))}
+                  />
+                </Field>
+                <Field label="Bank name">
+                  <Input
+                    value={form.bankName}
+                    onChange={(e) => setForm((f) => ({ ...f, bankName: e.target.value }))}
+                  />
+                </Field>
+                <Field label="Account number">
+                  <Input
+                    value={form.bankAccountNumber}
+                    onChange={(e) => setForm((f) => ({ ...f, bankAccountNumber: e.target.value }))}
                   />
                 </Field>
               </div>

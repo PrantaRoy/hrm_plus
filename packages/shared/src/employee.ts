@@ -52,6 +52,9 @@ export interface EmployeeDto {
   joiningDate: string;
   terminationDate: string | null;
   employmentType: EmploymentType;
+  irdNumber: string | null;
+  bankName: string | null;
+  bankAccountNumber: string | null;
   avatarUrl: string | null;
   departmentId: number | null;
   departmentName: string | null;
@@ -72,6 +75,9 @@ export interface CreateEmployeeInput {
   jobTitle?: string;
   joiningDate: string;
   employmentType?: EmploymentType;
+  irdNumber?: string;
+  bankName?: string;
+  bankAccountNumber?: string;
   departmentId?: number | null;
   designationId?: number | null;
   reportingToId?: number | null;
@@ -88,6 +94,9 @@ export interface UpdateEmployeeInput {
   jobTitle?: string | null;
   terminationDate?: string | null;
   employmentType?: EmploymentType;
+  irdNumber?: string | null;
+  bankName?: string | null;
+  bankAccountNumber?: string | null;
   departmentId?: number | null;
   designationId?: number | null;
   reportingToId?: number | null;

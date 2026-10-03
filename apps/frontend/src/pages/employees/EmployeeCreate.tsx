@@ -33,6 +33,9 @@ export default function EmployeeCreate() {
     jobTitle: "",
     joiningDate: new Date().toISOString().slice(0, 10),
     employmentType: "Full-Time" as EmploymentType,
+    irdNumber: "",
+    bankName: "",
+    bankAccountNumber: "",
     departmentId: "",
     designationId: "",
     reportingToId: "",
@@ -76,6 +79,9 @@ export default function EmployeeCreate() {
         jobTitle: form.jobTitle || undefined,
         joiningDate: form.joiningDate,
         employmentType: form.employmentType,
+        irdNumber: form.irdNumber || undefined,
+        bankName: form.bankName || undefined,
+        bankAccountNumber: form.bankAccountNumber || undefined,
         departmentId: form.departmentId ? Number(form.departmentId) : null,
         designationId: form.designationId ? Number(form.designationId) : null,
         reportingToId: form.reportingToId ? Number(form.reportingToId) : null,
@@ -199,6 +205,25 @@ export default function EmployeeCreate() {
                     </option>
                   ))}
                 </Select>
+              </Field>
+            </div>
+          </div>
+        </Card>
+
+        <Card title="Tax & bank details">
+          <div className="space-y-4">
+            <Field label="IRD number">
+              <Input value={form.irdNumber} onChange={(e) => set("irdNumber", e.target.value)} />
+            </Field>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Bank name">
+                <Input value={form.bankName} onChange={(e) => set("bankName", e.target.value)} />
+              </Field>
+              <Field label="Account number">
+                <Input
+                  value={form.bankAccountNumber}
+                  onChange={(e) => set("bankAccountNumber", e.target.value)}
+                />
               </Field>
             </div>
           </div>

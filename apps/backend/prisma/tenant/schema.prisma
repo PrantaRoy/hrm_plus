@@ -164,6 +164,9 @@ model Employee {
   joiningDate           DateTime
   terminationDate       DateTime?
   employmentType        String                       @default("Full-Time")
+  irdNumber             String?
+  bankName              String?
+  bankAccountNumber     String?
   avatarUrl             String?
   avatarKey             String?
   departmentId          Int?

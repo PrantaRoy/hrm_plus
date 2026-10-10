@@ -7,7 +7,7 @@ export async function listSaasTenants(): Promise<SaasTenantDto[]> {
 }
 
 export async function createSaasTenant(
-  input: SubmitApplicationInput,
+  input: SubmitApplicationInput & { seedDemoData?: boolean },
   logo: File | null
 ): Promise<SaasTenantDto> {
   const form = new FormData();
@@ -18,6 +18,7 @@ export async function createSaasTenant(
   form.append("contactEmail", input.contactEmail);
   form.append("subdomainSlug", input.subdomainSlug);
   form.append("packageId", String(input.packageId));
+  form.append("seedDemoData", String(!!input.seedDemoData));
   if (logo) {
     form.append("logo", logo);
   }

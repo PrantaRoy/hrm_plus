@@ -6,7 +6,7 @@ import { approveApplication } from "../applications/approvalService";
 import { tenantInclude, toSaasTenantDto } from "./saasTenant.mapper";
 
 export async function createTenantByAdmin(
-  input: SubmitApplicationInput,
+  input: SubmitApplicationInput & { seedDemoData?: boolean },
   companyLogoUrl: string | null
 ): Promise<SaasTenantDto> {
   const pkg = await controlClient.package.findUnique({ where: { id: input.packageId } });
@@ -34,7 +34,7 @@ export async function createTenantByAdmin(
     },
   });
 
-  await approveApplication(application.id);
+  await approveApplication(application.id, { seedDemoData: input.seedDemoData });
 
   const tenant = await controlClient.tenant.findUnique({
     where: { applicationId: application.id },

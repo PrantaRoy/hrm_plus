@@ -11,6 +11,7 @@ export default function TenantCreate() {
   const [logo, setLogo] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [seedDemoData, setSeedDemoData] = useState(false);
   const [form, setForm] = useState({
     companyName: "",
     companyType: "",
@@ -45,6 +46,7 @@ export default function TenantCreate() {
           contactEmail: form.contactEmail,
           subdomainSlug: form.subdomainSlug.toLowerCase(),
           packageId: Number(form.packageId),
+          seedDemoData,
         },
         logo
       );
@@ -135,6 +137,20 @@ export default function TenantCreate() {
               className="mt-1 w-full text-sm text-slate-600"
             />
           </Field>
+          <label className="flex items-start gap-2 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              checked={seedDemoData}
+              onChange={(e) => setSeedDemoData(e.target.checked)}
+              className="mt-0.5"
+            />
+            <span>
+              Add demo / seed data
+              <span className="block text-xs text-slate-500">
+                Departments, designations, leave types, weekdays, shifts, hero slides, services, blogs and assets.
+              </span>
+            </span>
+          </label>
 
           <Button type="submit" isLoading={submitting}>
             Create company

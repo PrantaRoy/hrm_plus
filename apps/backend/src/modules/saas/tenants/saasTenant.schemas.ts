@@ -24,4 +24,9 @@ export const createSaasTenantSchema = z.object({
     .max(63)
     .regex(slugPattern, "Use lowercase letters, numbers, and hyphens only"),
   packageId: z.coerce.number().int().positive(),
+  // multipart form fields arrive as strings, so "false" must not be coerced to true
+  seedDemoData: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((v) => v === "true"),
 });

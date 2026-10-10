@@ -10,12 +10,16 @@ import {
   runTenantMigrations,
   seedDefaultRoles,
 } from "../../tenants/tenantProvisioning";
+import { seedDemoOrgData } from "../../tenants/demoSeed";
 import { sendApplicationApprovedEmail } from "../../notifications/email.service";
 import { applicationInclude, toApplicationDto } from "./application.mapper";
 
 const DEFAULT_TENANT_ADMIN_PASSWORD = "12345678";
 
-export async function approveApplication(applicationId: number): Promise<TenantApplicationDto> {
+export async function approveApplication(
+  applicationId: number,
+  opts: { seedDemoData?: boolean } = {}
+): Promise<TenantApplicationDto> {
   const application = await controlClient.tenantApplication.findUnique({
     where: { id: applicationId },
     include: applicationInclude,
@@ -78,6 +82,19 @@ export async function approveApplication(applicationId: number): Promise<TenantA
       userId: adminUser.id,
     },
   });
+
+  if (opts.seedDemoData) {
+    // Provisioning isn't transactional, so a demo-data failure must not fail company creation.
+    try {
+      await seedDemoOrgData(
+        tenantClient,
+        { id: adminUser.id, email: adminUser.email },
+        application.companyName
+      );
+    } catch (err) {
+      console.error(`Demo data seeding failed for tenant ${tenant.slug}:`, err);
+    }
+  }
 
   const updatedApplication = await controlClient.tenantApplication.update({
     where: { id: application.id },

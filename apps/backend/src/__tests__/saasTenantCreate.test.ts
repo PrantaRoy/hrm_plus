@@ -94,6 +94,48 @@ describe("SaaS admin can create a company directly", () => {
     expect(loginRes.body.mustChangePassword).toBe(true);
   }, 30000);
 
+  it("leaves the tenant empty when demo data is not requested", async () => {
+    const tenantClient = getTenantClient(tenantDatabaseName!);
+    expect(await tenantClient.department.count()).toBe(0);
+    expect(await tenantClient.asset.count()).toBe(0);
+  });
+
+  it("seeds demo data when seedDemoData is true", async () => {
+    const slug = `admindemo-${Date.now()}`;
+    const res = await asSaasAdmin(
+      request(app)
+        .post("/saas/admin/tenants")
+        .field("companyName", "Demo Seeded Co")
+        .field("companyType", "Services")
+        .field("overview", "Company provisioned with demo data")
+        .field("numberOfEmployees", "10")
+        .field("contactEmail", `demo-${Date.now()}@admincreatetest.example`)
+        .field("subdomainSlug", slug)
+        .field("packageId", String(packageId))
+        .field("seedDemoData", "true")
+    );
+    expect(res.status).toBe(201);
+
+    const tenant = await controlClient.tenant.findUnique({ where: { slug } });
+    try {
+      const tc = getTenantClient(tenant!.databaseName);
+      expect(await tc.department.count()).toBe(6);
+      expect(await tc.shift.count()).toBe(3);
+      expect(await tc.leaveType.count()).toBe(6);
+      expect(await tc.weekDay.count()).toBe(7);
+      expect(await tc.weekDay.count({ where: { isWeekend: true } })).toBe(2);
+      expect(await tc.heroSlide.count()).toBe(3);
+      expect(await tc.companyService.count()).toBe(5);
+      expect(await tc.blogPost.count()).toBe(5);
+      expect(await tc.asset.count()).toBeGreaterThan(0);
+    } finally {
+      await disconnectAllTenantClients();
+      await controlClient.tenant.deleteMany({ where: { id: tenant!.id } });
+      await controlClient.tenantApplication.deleteMany({ where: { id: tenant!.applicationId! } });
+      await dropTenantDatabase(tenant!.databaseName);
+    }
+  }, 120000);
+
   it("rejects a duplicate subdomain", async () => {
     const res = await asSaasAdmin(
       request(app)

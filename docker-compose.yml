@@ -38,14 +38,25 @@ x-backend-build: &backend-build
   context: .
   dockerfile: apps/backend/Dockerfile
 
+# Bounds container log growth (pino/json-file logs can otherwise fill a small EBS volume over
+# several days uptime). Applied to every service below.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   mysql:
     image: mysql:8.4
     restart: unless-stopped
+    logging: *default-logging
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-hrmplusdev}
     ports:
-      - "${MYSQL_HOST_PORT:-3307}:3306"
+      # Bound to localhost only: MySQL is for host-side DB tools (e.g. a GUI client over an SSH
+      # tunnel), never meant to be reachable from the internet even if a security group is loose.
+      - "127.0.0.1:${MYSQL_HOST_PORT:-3307}:3306"
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:
@@ -58,6 +69,7 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    logging: *default-logging
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redis-data:/data
@@ -72,6 +84,7 @@ services:
     build: *backend-build
     image: hrmplus-backend
     restart: "no"
+    logging: *default-logging
     environment:
       <<: *backend-env
       SEED_DEMO: ${SEED_DEMO:-true}
@@ -96,6 +109,7 @@ services:
     build: *backend-build
     image: hrmplus-backend
     restart: unless-stopped
+    logging: *default-logging
     environment:
       <<: *backend-env
       PORT: "4000"
@@ -120,6 +134,7 @@ services:
   worker:
     image: hrmplus-backend
     restart: unless-stopped
+    logging: *default-logging
     command: ["node", "dist/worker.js"]
     environment:
       <<: *backend-env
@@ -142,6 +157,7 @@ services:
         VITE_DEFAULT_TENANT_SLUG: ${VITE_DEFAULT_TENANT_SLUG:-acme}
         VITE_PUBLIC_TENANT_BASE_DOMAIN: ${VITE_PUBLIC_TENANT_BASE_DOMAIN:-localhost}
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - "5173:80"
     healthcheck:
@@ -160,6 +176,7 @@ services:
         # No /api suffix for this app, hence a separate variable from the tenant frontend's.
         VITE_API_BASE_URL: ${VITE_SAAS_API_BASE_URL:-http://localhost:4000}
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - "5174:80"
     healthcheck:

@@ -1,0 +1,616 @@
+﻿"Test ID","Module","Test Step","Input","Expected","Actual Result","Environment","Status","Note"
+"TC-0001","unit/apiError","ApiError › is an Error carrying status, code and details","const err = new ApiError(418, ""teapot"", ""TEAPOT"", { a: 1 })","err → toBeInstanceOf(Error);
+err.message → toBe(""teapot"");
+err.status → toBe(418);
+err.code → toBe(""TEAPOT"");
+err.details → toEqual({ a: 1 })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0002","unit/apiError","ApiError › factory badRequest maps to the right status/code/message","const err = make()","err.status → toBe(status);
+err.code → toBe(code);
+err.message → toBe(message)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0003","unit/apiError","ApiError › factory unauthorized maps to the right status/code/message","const err = make()","err.status → toBe(status);
+err.code → toBe(code);
+err.message → toBe(message)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0004","unit/apiError","ApiError › factory unauthorized (custom) maps to the right status/code/message","const err = make()","err.status → toBe(status);
+err.code → toBe(code);
+err.message → toBe(message)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0005","unit/apiError","ApiError › factory forbidden maps to the right status/code/message","const err = make()","err.status → toBe(status);
+err.code → toBe(code);
+err.message → toBe(message)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0006","unit/apiError","ApiError › factory notFound maps to the right status/code/message","const err = make()","err.status → toBe(status);
+err.code → toBe(code);
+err.message → toBe(message)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0007","unit/apiError","ApiError › factory conflict maps to the right status/code/message","const err = make()","err.status → toBe(status);
+err.code → toBe(code);
+err.message → toBe(message)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0008","unit/apiError","ApiError › factory conflict (custom code) maps to the right status/code/message","const err = make()","err.status → toBe(status);
+err.code → toBe(code);
+err.message → toBe(message)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0009","unit/apiError","ApiError › factory gone maps to the right status/code/message","const err = make()","err.status → toBe(status);
+err.code → toBe(code);
+err.message → toBe(message)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0010","unit/apiError","ApiError › badRequest leaves code undefined when not provided","ApiError.badRequest(""x"").code","result → toBeUndefined()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0011","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › allows everything when the employee has no rules row","run({ rules: undefined }, { ip: null }).promise","await result → resolves.toBeUndefined()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","7 ms"
+"TC-0012","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › allows everything when every binding is disabled","const { prisma, promise } = run({ rules: {} }, { ip: null })","promise → resolves.toBeUndefined();
+prisma.employeeAttendanceIpRule.findMany → not.toHaveBeenCalled()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0013","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › IP binding › conflicts when no active network is configured (inactive ones are ignored)","run({ rules, ipRules: [{ cidr: ""10.0.0.0/8"", status: ""Inactive"" }] }, { ip: ""10.1.2.3"" }).promise","await result → rejects.toMatchObject({ status: 409 })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0014","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › IP binding › forbids when the client IP is unknown","run({ rules, ipRules: [{ cidr: ""10.0.0.0/8"", status: ""Active"" }] }, { ip: null }).promise","await result → rejects.toMatchObject({ status: 403, message: ""Could not determine your network address"", })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0015","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › IP binding › ip 10.1.2.3 vs 10.0.0.0/8 -> allowed=true","const { promise } = run({ rules, ipRules: [{ cidr, status: ""Active"" }] }, { ip });
+if (allowed) await expect(promise).resolves.toBeUndefined();
+else await expect(promise).rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","promise → resolves.toBeUndefined();
+promise → rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0016","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › IP binding › ip 10.255.255.255 vs 10.0.0.0/8 -> allowed=true","const { promise } = run({ rules, ipRules: [{ cidr, status: ""Active"" }] }, { ip });
+if (allowed) await expect(promise).resolves.toBeUndefined();
+else await expect(promise).rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","promise → resolves.toBeUndefined();
+promise → rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0017","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › IP binding › ip 11.0.0.1 vs 10.0.0.0/8 -> allowed=false","const { promise } = run({ rules, ipRules: [{ cidr, status: ""Active"" }] }, { ip });
+if (allowed) await expect(promise).resolves.toBeUndefined();
+else await expect(promise).rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","promise → resolves.toBeUndefined();
+promise → rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0018","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › IP binding › ip 192.168.1.50 vs 192.168.1.0/24 -> allowed=true","const { promise } = run({ rules, ipRules: [{ cidr, status: ""Active"" }] }, { ip });
+if (allowed) await expect(promise).resolves.toBeUndefined();
+else await expect(promise).rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","promise → resolves.toBeUndefined();
+promise → rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0019","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › IP binding › ip 192.168.2.50 vs 192.168.1.0/24 -> allowed=false","const { promise } = run({ rules, ipRules: [{ cidr, status: ""Active"" }] }, { ip });
+if (allowed) await expect(promise).resolves.toBeUndefined();
+else await expect(promise).rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","promise → resolves.toBeUndefined();
+promise → rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0020","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › IP binding › ip 203.0.113.7 vs 203.0.113.7/32 -> allowed=true","const { promise } = run({ rules, ipRules: [{ cidr, status: ""Active"" }] }, { ip });
+if (allowed) await expect(promise).resolves.toBeUndefined();
+else await expect(promise).rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","promise → resolves.toBeUndefined();
+promise → rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0021","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › IP binding › ip 203.0.113.8 vs 203.0.113.7/32 -> allowed=false","const { promise } = run({ rules, ipRules: [{ cidr, status: ""Active"" }] }, { ip });
+if (allowed) await expect(promise).resolves.toBeUndefined();
+else await expect(promise).rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","promise → resolves.toBeUndefined();
+promise → rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0022","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › IP binding › ip ::ffff:10.1.2.3 vs 10.0.0.0/8 -> allowed=true","const { promise } = run({ rules, ipRules: [{ cidr, status: ""Active"" }] }, { ip });
+if (allowed) await expect(promise).resolves.toBeUndefined();
+else await expect(promise).rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","promise → resolves.toBeUndefined();
+promise → rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0023","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › IP binding › ip 2001:db8::1 vs 2001:db8::/32 -> allowed=true","const { promise } = run({ rules, ipRules: [{ cidr, status: ""Active"" }] }, { ip });
+if (allowed) await expect(promise).resolves.toBeUndefined();
+else await expect(promise).rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","promise → resolves.toBeUndefined();
+promise → rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0024","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › IP binding › ip 2001:db9::1 vs 2001:db8::/32 -> allowed=false","const { promise } = run({ rules, ipRules: [{ cidr, status: ""Active"" }] }, { ip });
+if (allowed) await expect(promise).resolves.toBeUndefined();
+else await expect(promise).rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","promise → resolves.toBeUndefined();
+promise → rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0025","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › IP binding › ip 10.1.2.3 vs 2001:db8::/32 -> allowed=false","const { promise } = run({ rules, ipRules: [{ cidr, status: ""Active"" }] }, { ip });
+if (allowed) await expect(promise).resolves.toBeUndefined();
+else await expect(promise).rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","promise → resolves.toBeUndefined();
+promise → rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0026","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › IP binding › ip 10.1.2.3 vs not-a-cidr -> allowed=false","const { promise } = run({ rules, ipRules: [{ cidr, status: ""Active"" }] }, { ip });
+if (allowed) await expect(promise).resolves.toBeUndefined();
+else await expect(promise).rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","promise → resolves.toBeUndefined();
+promise → rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0027","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › IP binding › ip garbage vs 10.0.0.0/8 -> allowed=false","const { promise } = run({ rules, ipRules: [{ cidr, status: ""Active"" }] }, { ip });
+if (allowed) await expect(promise).resolves.toBeUndefined();
+else await expect(promise).rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","promise → resolves.toBeUndefined();
+promise → rejects.toMatchObject({ status: 403, message: ""You must check in from an approved network"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0028","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › IP binding › passes when any one of several networks matches","const ipRules = [ { cidr: ""10.0.0.0/8"", status: ""Active"" }, { cidr: ""192.168.0.0/16"", status: ""Active"" }, ];
+run({ rules, ipRules }, { ip: ""192.168.9.9"" }).promise","await result → resolves.toBeUndefined()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0029","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › location binding › conflicts when no active location is configured","run({ rules, locations: [{ ...office, status: ""Inactive"" }] }, { ip: null, latitude: 1, longitude: 1 }).promise","await result → rejects.toMatchObject({ status: 409, })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0030","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › location binding › requires coordinates (400)","run({ rules, locations: [office] }, { ip: null }).promise;
+run({ rules, locations: [office] }, { ip: null, latitude: 23.8 }).promise","await result → rejects.toMatchObject({ status: 400 });
+await result → rejects.toMatchObject({ status: 400 })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0031","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › location binding › accepts 0,0 as a real coordinate pair (not treated as missing)","const equator = { ...office, latitude: 0, longitude: 0 };
+run({ rules, locations: [equator] }, { ip: null, latitude: 0, longitude: 0 }).promise","await result → resolves.toBeUndefined()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0032","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › location binding › accepts a point at the center and one inside the radius","run({ rules, locations: [office] }, { ip: null, latitude: 23.8103, longitude: 90.4125 }).promise;
+run({ rules, locations: [office] }, { ip: null, latitude: 23.8113, longitude: 90.4125 }).promise","await result → resolves.toBeUndefined();
+await result → resolves.toBeUndefined()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0033","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › location binding › rejects a point outside the radius and names the nearest location","run({ rules, locations: [office] }, { ip: null, latitude: 23.8133, longitude: 90.4125 }).promise","await result → rejects.toMatchObject({ status: 403, message: ""You are outside the allowed check-in location (must be within 200m of HQ)"", })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0034","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › location binding › measures longitude distance correctly away from the equator","const probe = { ip: null, latitude: 23.8103, longitude: 90.4155 };
+run({ rules, locations: [office] }, probe).promise;
+run({ rules, locations: [{ ...office, radiusMeters: 400 }] }, probe).promise","await result → rejects.toMatchObject({ status: 403 });
+await result → resolves.toBeUndefined()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0035","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › location binding › passes when within ANY configured location and reports the nearest one on failure","const branch = { name: ""Branch"", latitude: 22.3569, longitude: 91.7832, radiusMeters: 150, status: ""Active"" };
+run({ rules, locations: [office, branch] }, { ip: null, latitude: 22.3569, longitude: 91.7832 }).promise;
+run({ rules, locations: [office, branch] }, { ip: null, latitude: 22.4, longitude: 91.8 }).promise","await result → resolves.toBeUndefined();
+await result → rejects.toMatchObject({ message: expect.stringContaining(""Branch""), })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0036","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › device binding › requires a device token (400)","run({ rules }, { ip: null }).promise","await result → rejects.toMatchObject({ status: 400 })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0037","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › device binding › registers an unknown device as Pending and rejects it, citing the last 4 chars","const { prisma, promise } = run({ rules, device: null }, { ip: ""1.2.3.4"", deviceToken: ""abcdef-wxyz"" })","promise → rejects.toMatchObject({ status: 403, message: expect.stringContaining(""WXYZ"") });
+prisma.employeeAttendanceDevice.create → toHaveBeenCalledWith({ data: expect.objectContaining({ employeeId: 1, deviceToken: ""abcdef-wxyz"", status: ""Pending"", lastSeenIp: ""1.2.3.4"" }), })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0038","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › device binding › rejects a device that belongs to another employee without touching it","const { prisma, promise } = run({ rules, device: { id: 9, employeeId: 2, status: ""Approved"" } }, { ip: null, deviceToken: ""tok"" })","promise → rejects.toMatchObject({ status: 403, message: ""This device is registered to a different account"" });
+prisma.employeeAttendanceDevice.update → not.toHaveBeenCalled()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0039","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › device binding › accepts an approved device and refreshes last-seen","const { prisma, promise } = run({ rules, device: { id: 9, employeeId: 1, status: ""Approved"" } }, { ip: ""5.6.7.8"", deviceToken: ""tok"" })","promise → resolves.toBeUndefined();
+prisma.employeeAttendanceDevice.update → toHaveBeenCalledWith({ where: { id: 9 }, data: expect.objectContaining({ lastSeenIp: ""5.6.7.8"" }), })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0040","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › device binding › rejects pending and rejected devices (still recording the attempt)","const pending = run({ rules, device: { id: 9, employeeId: 1, status: ""Pending"" } }, { ip: null, deviceToken: ""tok"" });
+const rejected = run({ rules, device: { id: 9, employeeId: 1, status: ""Rejected"" } }, { ip: null, deviceToken: ""tok"" })","pending.promise → rejects.toMatchObject({ message: expect.stringContaining(""not yet approved"") });
+pending.prisma.employeeAttendanceDevice.update → toHaveBeenCalled();
+rejected.promise → rejects.toMatchObject({ message: ""This device has been blocked for attendance. Contact HR."" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0041","unit/attendanceRestrictionsEngine","enforceAttendanceRestrictions › checks rules in IP -> location -> device order and stops at the first failure","const { prisma, promise } = run( { rules: { ipBindingEnabled: true, locationBindingEnabled: true, deviceBindingEnabled: true }, ipRules: [{ cidr: ""10.0.0.0/8"", status: ""Active"" }] }, { ip: ""8.8.8.8"" } )","promise → rejects.toMatchObject({ message: ""You must check in from an approved network"" });
+prisma.employeeAttendanceLocation.findMany → not.toHaveBeenCalled();
+prisma.employeeAttendanceDevice.findUnique → not.toHaveBeenCalled()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0042","unit/authMiddleware","requireAuth › rejects a missing Authorization header","const next = run(requireAuth, reqWith(undefined))","next.mock.calls[0][0] → toMatchObject({ status: 401, message: ""Missing access token"" });
+verifyAccessToken → not.toHaveBeenCalled()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","3 ms"
+"TC-0043","unit/authMiddleware","requireAuth › rejects non-Bearer schemes","const next = run(requireAuth, reqWith(""Basic abc""))","next.mock.calls[0][0] → toMatchObject({ status: 401, message: ""Missing access token"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0044","unit/authMiddleware","requireAuth › rejects an invalid or expired token","verifyAccessToken.mockImplementation(() => { throw new Error(""jwt expired""); });
+const next = run(requireAuth, reqWith(""Bearer bad""))","next.mock.calls[0][0] → toMatchObject({ status: 401, message: ""Invalid or expired token"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0045","unit/authMiddleware","requireAuth › rejects a token issued for a different tenant","verifyAccessToken.mockReturnValue({ sub: 1, email: ""a@b.c"", role: ""Admin"", tenantSlug: ""other"" });
+const next = run(requireAuth, reqWith(""Bearer t"", ""acme""))","next.mock.calls[0][0] → toMatchObject({ status: 401, message: ""Token does not match tenant"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0046","unit/authMiddleware","requireAuth › rejects when no tenant was resolved on the request","verifyAccessToken.mockReturnValue({ sub: 1, email: ""a@b.c"", role: ""Admin"", tenantSlug: ""acme"" });
+const next = run(requireAuth, reqWith(""Bearer t"", null))","next.mock.calls[0][0] → toMatchObject({ status: 401 })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0047","unit/authMiddleware","requireAuth › populates req.user and continues on success","verifyAccessToken.mockReturnValue({ sub: 7, email: ""jane@acme.test"", role: ""HR"", tenantSlug: ""acme"" });
+const req = reqWith(""Bearer good-token"");
+const next = run(requireAuth, req)","verifyAccessToken → toHaveBeenCalledWith(""good-token"");
+req.user → toEqual({ id: 7, email: ""jane@acme.test"", role: ""HR"" });
+next → toHaveBeenCalledWith()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0048","unit/authMiddleware","requireRole › returns 401 when unauthenticated","const next = run(requireRole(""Admin""), {})","next.mock.calls[0][0] → toMatchObject({ status: 401 })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0049","unit/authMiddleware","requireRole › returns 403 naming the required roles when the role does not match","const next = run(requireRole(""Admin"", ""HR""), { user: { id: 1, email: ""x"", role: ""Staff"" } })","next.mock.calls[0][0] → toMatchObject({ status: 403, message: ""Requires role: Admin, HR"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0050","unit/authMiddleware","requireRole › allows any of the listed roles","for (const role of [""Admin"", ""HR""]) { const next = run(requireRole(""Admin"", ""HR""), { user: { id: 1, email: ""x"", role } }); expect(next).toHaveBeenCalledWith(); }","next → toHaveBeenCalledWith()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0051","unit/authMiddleware","requireRole › is case-sensitive","const next = run(requireRole(""Admin""), { user: { id: 1, email: ""x"", role: ""admin"" } })","next.mock.calls[0][0] → toMatchObject({ status: 403 })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0052","unit/bankExport","generateBankExportFile — NZ direct credit CSV › returns csv metadata","(none — see Test Step)","out.mimeType → toBe(""text/csv"");
+out.fileName → toBe(""nz-direct-credit.csv"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0053","unit/bankExport","generateBankExportFile — NZ direct credit CSV › emits a header plus one row per employee with 2-decimal amounts","const rows = out.content.split(""\n"")","rows → toHaveLength(3);
+rows[0] → toBe(""AccountNumber,Amount,Code,Reference,PayeeName"");
+rows[1] → toBe('00000000,1234.50,PAYROLL,EMP-001,""Jane Doe""');
+rows[2] → toBe('00000000,100.00,PAYROLL,EMP-002,""John Smith""')","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0054","unit/bankExport","generateBankExportFile — NZ direct credit CSV › emits only the header for no lines","generateBankExportFile([], ""NZ_DIRECT_CREDIT_CSV"").content","result → toBe(""AccountNumber,Amount,Code,Reference,PayeeName"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0055","unit/bankExport","generateBankExportFile — ABA › returns aba metadata","(none — see Test Step)","out.mimeType → toBe(""text/plain"");
+out.fileName → toBe(""payroll.aba"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0056","unit/bankExport","generateBankExportFile — ABA › emits one detail record per employee and a trailer","const rows = out.content.split(""\n"")","rows → toHaveLength(3);
+rows[0][0] → toBe(""1"");
+rows[1][0] → toBe(""1"");
+rows[2][0] → toBe(""7"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0057","unit/bankExport","generateBankExportFile — ABA › encodes the amount in cents, zero-padded to 10 digits, after the transaction code","const [first, second] = out.content.split(""\n"");
+first.slice(18, 20);
+first.slice(20, 30);
+second.slice(20, 30)","result → toBe(""50"");
+result → toBe(""0000123450"");
+result → toBe(""0000010000"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0058","unit/bankExport","generateBankExportFile — ABA › pads/truncates names and references to their fixed widths","const long = generateBankExportFile( [{ employeeCode: ""C"".repeat(40), employeeName: ""N"".repeat(60), netPay: 1 }], ""AU_ABA"" as never ).content.split(""\n"")[0];
+const short = out.content.split(""\n"")[0];
+long.slice(30, 62);
+long.slice(62, 80);
+short.slice(30, 62)","result → toBe(""N"".repeat(32));
+result → toBe(""C"".repeat(18));
+result → toBe(""Jane Doe"".padEnd(32, "" ""))","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0059","unit/bankExport","generateBankExportFile — ABA › totals the trailer in cents and counts the records","const trailer = out.content.split(""\n"")[2];
+const totalCents = 123450 + 10000;
+trailer.slice(-6)","trailer → toContain(String(totalCents).padStart(10, ""0"").repeat(2));
+result → toBe(""000002"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0060","unit/bankExport","generateBankExportFile — ABA › produces a zero-total trailer for no lines","const trailer = generateBankExportFile([], ""AU_ABA"" as never).content;
+trailer.slice(-6)","trailer[0] → toBe(""7"");
+result → toBe(""000000"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0061","unit/date","toDateOnlyUTC › drops the time portion in UTC","toDateOnlyUTC(new Date(""2026-03-05T23:59:59.999Z"")).toISOString()","result → toBe(""2026-03-05T00:00:00.000Z"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0062","unit/date","toDateOnlyUTC › is idempotent","const once = toDateOnlyUTC(new Date(""2026-03-05T13:00:00Z""));
+toDateOnlyUTC(once).getTime()","result → toBe(once.getTime())","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0063","unit/date","addMinutes › adds and subtracts minutes without mutating the input","const base = new Date(""2026-01-01T00:00:00Z"");
+addMinutes(base, 90).toISOString();
+addMinutes(base, -30).toISOString();
+base.toISOString()","result → toBe(""2026-01-01T01:30:00.000Z"");
+result → toBe(""2025-12-31T23:30:00.000Z"");
+result → toBe(""2026-01-01T00:00:00.000Z"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0064","unit/date","combineDateAndTimeUTC › applies HH:mm to the UTC calendar day","combineDateAndTimeUTC(new Date(""2026-06-10T18:45:00Z""), ""09:30"").toISOString()","result → toBe(""2026-06-10T09:30:00.000Z"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0065","unit/date","combineDateAndTimeInZone › equals the UTC combine for the UTC zone","combineDateAndTimeInZone(day, ""09:00"", ""UTC"").toISOString()","result → toBe(""2026-01-15T09:00:00.000Z"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","18 ms"
+"TC-0066","unit/date","combineDateAndTimeInZone › converts a zone ahead of UTC (Asia/Dhaka, UTC+6, no DST)","combineDateAndTimeInZone(day, ""09:00"", ""Asia/Dhaka"").toISOString()","result → toBe(""2026-01-15T03:00:00.000Z"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","2 ms"
+"TC-0067","unit/date","combineDateAndTimeInZone › converts a zone behind UTC and can roll to the previous UTC day","combineDateAndTimeInZone(day, ""20:00"", ""America/New_York"").toISOString()","result → toBe(""2026-01-16T01:00:00.000Z"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0068","unit/date","combineDateAndTimeInZone › uses the DST-correct offset (Pacific/Auckland: +13 in January, +12 in July)","combineDateAndTimeInZone(day, ""09:00"", ""Pacific/Auckland"").toISOString();
+combineDateAndTimeInZone(new Date(""2026-07-15T00:00:00Z""), ""09:00"", ""Pacific/Auckland"").toISOString()","result → toBe(""2026-01-14T20:00:00.000Z"");
+result → toBe( ""2026-07-14T21:00:00.000Z"" )","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0069","unit/date","combineDateAndTimeInZone › stays correct on the day of a DST transition (US spring forward, 2026-03-08)","const transitionDay = new Date(""2026-03-08T00:00:00Z"");
+combineDateAndTimeInZone(transitionDay, ""01:00"", ""America/New_York"").toISOString();
+combineDateAndTimeInZone(transitionDay, ""12:00"", ""America/New_York"").toISOString()","result → toBe(""2026-03-08T06:00:00.000Z"");
+result → toBe(""2026-03-08T16:00:00.000Z"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0070","unit/date","toDateKey / enumerateDateKeys › formats YYYY-MM-DD","toDateKey(new Date(""2026-12-31T23:59:59Z""))","result → toBe(""2026-12-31"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0071","unit/date","toDateKey / enumerateDateKeys › enumerates inclusive ranges and ignores time-of-day","enumerateDateKeys(new Date(""2026-02-27T22:00:00Z""), new Date(""2026-03-02T01:00:00Z""))","result → toEqual([ ""2026-02-27"", ""2026-02-28"", ""2026-03-01"", ""2026-03-02"", ])","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","2 ms"
+"TC-0072","unit/date","toDateKey / enumerateDateKeys › returns a single key when start and end are the same day","enumerateDateKeys(new Date(""2026-05-05T00:00:00Z""), new Date(""2026-05-05T23:00:00Z""))","result → toEqual([""2026-05-05""])","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0073","unit/date","toDateKey / enumerateDateKeys › returns an empty list when start is after end","enumerateDateKeys(new Date(""2026-05-06T00:00:00Z""), new Date(""2026-05-05T00:00:00Z""))","result → toEqual([])","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0074","unit/encryption","encryption (AES-256-GCM) › round-trips plaintext, including unicode and empty-ish values","for (const text of [""sk-secret-123"", ""pässwörd ✓ 日本語"", ""a"", ""x"".repeat(5000)]) { expect(decrypt(encrypt(text))).toBe(text); }","decrypt(encrypt(text)) → toBe(text)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","4 ms"
+"TC-0075","unit/encryption","encryption (AES-256-GCM) › emits the versioned v1:iv:tag:ciphertext format","const parts = encrypt(""hello"").split("":"");
+Buffer.from(parts[1], ""base64"");
+Buffer.from(parts[2], ""base64"")","parts → toHaveLength(4);
+parts[0] → toBe(""v1"");
+result → toHaveLength(12);
+result → toHaveLength(16)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0076","unit/encryption","encryption (AES-256-GCM) › uses a fresh IV per call so equal plaintexts encrypt differently","encrypt(""same"")","result → not.toBe(encrypt(""same""))","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0077","unit/encryption","encryption (AES-256-GCM) › does not leak the plaintext","encrypt(""super-secret-api-key"")","result → not.toContain(""super-secret-api-key"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0078","unit/encryption","encryption (AES-256-GCM) › rejects an unrecognized version or malformed payload","() => decrypt(""v2:a:b:c"");
+() => decrypt(""v1:onlyone"");
+() => decrypt(""garbage"")","result → toThrow(""Unrecognized ciphertext format"");
+result → toThrow(""Unrecognized ciphertext format"");
+result → toThrow(""Unrecognized ciphertext format"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","2 ms"
+"TC-0079","unit/encryption","encryption (AES-256-GCM) › detects tampering with the ciphertext (GCM auth)","const [v, iv, tag, ct] = encrypt(""tamper me"").split("":"");
+const flipped = Buffer.from(ct, ""base64"");
+flipped[0] ^= 0xff;
+() => decrypt([v, iv, tag, flipped.toString(""base64"")].join("":""))","result → toThrow()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","4 ms"
+"TC-0080","unit/encryption","encryption (AES-256-GCM) › detects tampering with the auth tag","const [v, iv, tag, ct] = encrypt(""tamper me"").split("":"");
+const badTag = Buffer.from(tag, ""base64"");
+badTag[0] ^= 0xff;
+() => decrypt([v, iv, badTag.toString(""base64""), ct].join("":""))","result → toThrow()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","13 ms"
+"TC-0081","unit/envHelpers","config/env › applies defaults for optional settings","const { env } = loadEnv({ JWT_ACCESS_TTL: undefined, STORAGE_DRIVER: undefined, LLM_PROVIDER: undefined })","env.JWT_ACCESS_TTL → toBe(""30m"");
+env.STORAGE_DRIVER → toBe(""local"");
+env.LLM_PROVIDER → toBe(""groq"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","8 ms"
+"TC-0082","unit/envHelpers","config/env › fails fast when CONTROL_DATABASE_URL is missing","const spy = silence();
+spy.mockRestore();
+() => loadEnv({ [key]: undefined })","result → toThrow(""Invalid environment configuration"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","5 ms"
+"TC-0083","unit/envHelpers","config/env › fails fast when JWT_ACCESS_SECRET is missing","const spy = silence();
+spy.mockRestore();
+() => loadEnv({ [key]: undefined })","result → toThrow(""Invalid environment configuration"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0084","unit/envHelpers","config/env › fails fast when JWT_REFRESH_SECRET is missing","const spy = silence();
+spy.mockRestore();
+() => loadEnv({ [key]: undefined })","result → toThrow(""Invalid environment configuration"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","2 ms"
+"TC-0085","unit/envHelpers","config/env › fails fast when JWT_SAAS_ACCESS_SECRET is missing","const spy = silence();
+spy.mockRestore();
+() => loadEnv({ [key]: undefined })","result → toThrow(""Invalid environment configuration"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","2 ms"
+"TC-0086","unit/envHelpers","config/env › fails fast when TENANT_DB_HOST is missing","const spy = silence();
+spy.mockRestore();
+() => loadEnv({ [key]: undefined })","result → toThrow(""Invalid environment configuration"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","2 ms"
+"TC-0087","unit/envHelpers","config/env › requires SETTINGS_ENCRYPTION_KEY to be at least 32 chars","const spy = silence();
+spy.mockRestore();
+() => loadEnv({ SETTINGS_ENCRYPTION_KEY: ""short"" })","result → toThrow(""Invalid environment configuration"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","4 ms"
+"TC-0088","unit/envHelpers","config/env › rejects unknown STORAGE_DRIVER / LLM_PROVIDER values","const spy = silence();
+spy.mockRestore();
+() => loadEnv({ STORAGE_DRIVER: ""ftp"" });
+() => loadEnv({ LLM_PROVIDER: ""skynet"" })","result → toThrow();
+result → toThrow()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","2 ms"
+"TC-0089","unit/envHelpers","config/env › splits and trims CORS origins","loadEnv().corsOrigins","result → toEqual([""http://localhost:5173"", ""http://localhost:5174""])","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","2 ms"
+"TC-0090","unit/envHelpers","config/env › isTenantOrigin › accepts the base domain and its subdomains","isTenantOrigin(""https://hrmplus.test"");
+isTenantOrigin(""https://acme.hrmplus.test"");
+isTenantOrigin(""http://a.b.hrmplus.test:8080"")","result → toBe(true);
+result → toBe(true);
+result → toBe(true)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0091","unit/envHelpers","config/env › isTenantOrigin › rejects look-alike and unrelated hosts","isTenantOrigin(""https://evilhrmplus.test"");
+isTenantOrigin(""https://hrmplus.test.evil.com"");
+isTenantOrigin(""https://example.com"")","result → toBe(false);
+result → toBe(false);
+result → toBe(false)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0092","unit/envHelpers","config/env › isTenantOrigin › rejects malformed origins instead of throwing","isTenantOrigin(""not a url"");
+isTenantOrigin("""")","result → toBe(false);
+result → toBe(false)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0093","unit/envHelpers","config/env › tenantDatabaseUrl › omits the password section when none is set","loadEnv().tenantDatabaseUrl(""hrm_acme"")","result → toBe(""mysql://root@db.local:3307/hrm_acme"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","3 ms"
+"TC-0094","unit/envHelpers","config/env › tenantDatabaseUrl › URL-encodes credentials","const { tenantDatabaseUrl } = loadEnv({ TENANT_DB_USER: ""app user"", TENANT_DB_PASSWORD: ""p@ss:w/rd"" });
+tenantDatabaseUrl(""db"")","result → toBe(""mysql://app%20user:p%40ss%3Aw%2Frd@db.local:3307/db"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","3 ms"
+"TC-0095","unit/envHelpers","config/env › builds the tenant login URL","loadEnv().tenantLoginUrl(""acme"")","result → toBe(""https://acme.hrmplus.test"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","2 ms"
+"TC-0096","unit/errorHandler","errorHandler › serializes ApiError with status, message and code","const res = invoke(ApiError.notFound(""Employee not found""))","res.status → toHaveBeenCalledWith(404);
+res.json → toHaveBeenCalledWith({ error: { message: ""Employee not found"", code: ""NOT_FOUND"" } })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0097","unit/errorHandler","errorHandler › includes details only when provided","const res = invoke(ApiError.conflict(""dup"", ""DUP"", { field: ""email"" }))","res.json → toHaveBeenCalledWith({ error: { message: ""dup"", code: ""DUP"", details: { field: ""email"" } } })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0098","unit/errorHandler","errorHandler › maps ZodError to a 400 VALIDATION_ERROR with flattened details","const parsed = z.object({ email: z.string().email() }).safeParse({ email: ""nope"" });
+const res = invoke((parsed as { error: unknown }).error);
+const body = res.json.mock.calls[0][0]","res.status → toHaveBeenCalledWith(400);
+body.error → toMatchObject({ message: ""Validation failed"", code: ""VALIDATION_ERROR"" });
+body.error.details.fieldErrors.email → toBeDefined()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0099","unit/errorHandler","errorHandler › hides internals for unknown errors and logs them","const res = invoke(new Error(""db password is hunter2""));
+JSON.stringify(res.json.mock.calls)","res.status → toHaveBeenCalledWith(500);
+res.json → toHaveBeenCalledWith({ error: { message: ""Internal server error"" } });
+result → not.toContain(""hunter2"");
+loggerError → toHaveBeenCalledTimes(1)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0100","unit/groqProvider","GroqProvider.generateJson › sends model, auth header and a JSON-only system prompt, honoring maxTokens","respond('{""a"":1}');
+await provider.generateJson({ system: ""Be brief."", prompt: ""Hi"", maxTokens: 321 });
+const [url, init] = fetchMock.mock.calls[0];
+const body = JSON.parse(init.body)","url → toBe(""https://api.groq.com/openai/v1/chat/completions"");
+init.headers.Authorization → toBe(""Bearer key-123"");
+body → toMatchObject({ model: ""test-model"", max_tokens: 321, messages: [{ role: ""system"" }, { role: ""user"", content: ""Hi"" }] });
+body.messages[0].content → toContain(""Be brief."");
+body.messages[0].content → toContain(""ONLY the JSON object"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0101","unit/groqProvider","GroqProvider.generateJson › defaults max_tokens to 1500","respond(""{}"");
+await provider.generateJson({ system: ""s"", prompt: ""p"" });
+JSON.parse(fetchMock.mock.calls[0][1].body).max_tokens","result → toBe(1500)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0102","unit/groqProvider","GroqProvider.generateJson › parses bare JSON","respond('{""score"": 7}');
+provider.generateJson({ system: ""s"", prompt: ""p"" })","await result → resolves.toEqual({ score: 7 })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0103","unit/groqProvider","GroqProvider.generateJson › extracts the JSON object out of surrounding prose / code fences","respond('Sure! Here you go:\n```json\n{""score"": 9, ""nested"": {""x"": [1,2]}}\n```\nHope that helps.');
+provider.generateJson({ system: ""s"", prompt: ""p"" })","await result → resolves.toEqual({ score: 9, nested: { x: [1, 2] } })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0104","unit/groqProvider","GroqProvider.generateJson › maps a network failure to 502 LLM_ERROR","fetchMock.mockRejectedValue(new Error(""ECONNRESET""));
+provider.generateJson({ system: ""s"", prompt: ""p"" })","await result → rejects.toMatchObject({ status: 502, code: ""LLM_ERROR"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0105","unit/groqProvider","GroqProvider.generateJson › maps a non-2xx response to 502 LLM_ERROR without leaking the upstream body","respond(""ignored"", false);
+provider.generateJson({ system: ""s"", prompt: ""p"" })","await result → rejects.toMatchObject({ status: 502, message: ""AI provider request failed"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0106","unit/groqProvider","GroqProvider.generateJson › maps empty content / missing choices to an empty-response error","respond("""");
+respond(undefined);
+provider.generateJson({ system: ""s"", prompt: ""p"" });
+provider.generateJson({ system: ""s"", prompt: ""p"" })","await result → rejects.toMatchObject({ message: ""AI provider returned an empty response"" });
+await result → rejects.toMatchObject({ message: ""AI provider returned an empty response"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0107","unit/groqProvider","GroqProvider.generateJson › maps non-JSON content to an unparseable-response error","respond(""I cannot help with that."");
+provider.generateJson({ system: ""s"", prompt: ""p"" })","await result → rejects.toMatchObject({ message: ""AI provider returned an unparseable response"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0108","unit/jwt","tenant access/refresh tokens › round-trips the access payload","verifyAccessToken(signAccessToken(payload))","result → toMatchObject(payload)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","5 ms"
+"TC-0109","unit/jwt","tenant access/refresh tokens › round-trips the refresh payload","verifyRefreshToken(signRefreshToken({ sub: 5, tenantSlug: ""acme"" }))","result → toMatchObject({ sub: 5, tenantSlug: ""acme"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0110","unit/jwt","tenant access/refresh tokens › sets an expiry from the configured TTL","const decoded = jwt.decode(signAccessToken(payload)) as { iat: number; exp: number };
+const refresh = jwt.decode(signRefreshToken({ sub: 1, tenantSlug: ""a"" })) as { iat: number; exp: number };
+decoded.exp - decoded.iat;
+refresh.exp - refresh.iat","result → toBe(30 * 60);
+result → toBe(7 * 24 * 3600)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","2 ms"
+"TC-0111","unit/jwt","tenant access/refresh tokens › keeps access and refresh secrets separate","() => verifyAccessToken(signRefreshToken({ sub: 1, tenantSlug: ""a"" }));
+() => verifyRefreshToken(signAccessToken(payload))","result → toThrow();
+result → toThrow()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","2 ms"
+"TC-0112","unit/jwt","tenant access/refresh tokens › rejects tampered, foreign-signed and expired tokens","const token = signAccessToken(payload);
+() => verifyAccessToken(token.slice(0, -2) + ""xx"");
+() => verifyAccessToken(jwt.sign(payload, ""wrong-secret""));
+() => verifyAccessToken(jwt.sign(payload, ""access-secret"", { expiresIn: -10 }))","result → toThrow();
+result → toThrow();
+result → toThrow(/expired/)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","2 ms"
+"TC-0113","unit/jwt","tenant access/refresh tokens › rejects an unsigned (alg=none) token","const none = Buffer.from(JSON.stringify({ alg: ""none"", typ: ""JWT"" })).toString(""base64url"");
+const body = Buffer.from(JSON.stringify(payload)).toString(""base64url"");
+() => verifyAccessToken(`${none}.${body}.`)","result → toThrow()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0114","unit/jwt","SaaS admin tokens › round-trips and stamps the saas-admin scope","const decoded = verifySaasAdminToken(signSaasAdminToken({ sub: 1, email: ""root@saas.test"" }))","decoded → toMatchObject({ sub: 1, email: ""root@saas.test"", scope: ""saas-admin"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0115","unit/jwt","SaaS admin tokens › cannot be used as a tenant access token or vice versa","() => verifyAccessToken(signSaasAdminToken({ sub: 1, email: ""e"" }));
+() => verifySaasAdminToken(signAccessToken(payload))","result → toThrow();
+result → toThrow()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","2 ms"
+"TC-0116","unit/jwt","SaaS admin tokens › rejects a correctly signed token with the wrong scope","const wrongScope = jwt.sign({ sub: 1, email: ""e"", scope: ""tenant"" }, ""saas-secret"");
+const noScope = jwt.sign({ sub: 1, email: ""e"" }, ""saas-secret"");
+() => verifySaasAdminToken(wrongScope);
+() => verifySaasAdminToken(noScope)","result → toThrow(""Invalid token scope"");
+result → toThrow(""Invalid token scope"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0117","unit/kpiTaskDeadline","taskDeadline › treats a date-only (midnight UTC) due date as the end of that day","taskDeadline(new Date(""2026-05-10T00:00:00.000Z"")).toISOString()","result → toBe(""2026-05-10T23:59:59.999Z"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","2 ms"
+"TC-0118","unit/kpiTaskDeadline","taskDeadline › uses a due date that carries a time as-is","const due = new Date(""2026-05-10T14:30:00.000Z"");
+taskDeadline(due).getTime()","result → toBe(due.getTime())","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0119","unit/kpiTaskDeadline","taskDeadline › a task finished late on its due day is therefore on time","new Date(""2026-05-10T22:00:00Z"").getTime();
+new Date(""2026-05-11T00:00:00Z"").getTime()","result → toBeLessThanOrEqual(taskDeadline(new Date(""2026-05-10T00:00:00Z"")).getTime());
+result → toBeGreaterThan(taskDeadline(new Date(""2026-05-10T00:00:00Z"")).getTime())","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0120","unit/kpiTaskDeadline","taskDeadline › does not treat one millisecond past midnight as date-only","const due = new Date(""2026-05-10T00:00:00.001Z"");
+taskDeadline(due).getTime()","result → toBe(due.getTime())","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0121","unit/llmProviderFactory","getLlmProvider › prefers the tenant's own configuration over env","envMock.LLM_PROVIDER = ""openai"";
+envMock.OPENAI_API_KEY = ""env-key"";
+resolveProviderConfig.mockResolvedValue({ provider: ""GEMINI"", apiKey: ""tenant-key"", model: ""m"" });
+resolveProviderConfig.mockResolvedValue({ provider: ""GROQ"", apiKey: ""tenant-key"", model: ""m"" });
+getLlmProvider(prisma);
+getLlmProvider(prisma)","await result → resolves.toBeInstanceOf(GeminiProvider);
+await result → resolves.toBeInstanceOf(GroqProvider)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0122","unit/llmProviderFactory","getLlmProvider › falls back to the env anthropic provider when configured","envMock.LLM_PROVIDER = name;
+envMock[keyVar] = ""k"";
+getLlmProvider(prisma)","await result → resolves.toBeInstanceOf(Ctor)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0123","unit/llmProviderFactory","getLlmProvider › falls back to the env gemini provider when configured","envMock.LLM_PROVIDER = name;
+envMock[keyVar] = ""k"";
+getLlmProvider(prisma)","await result → resolves.toBeInstanceOf(Ctor)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0124","unit/llmProviderFactory","getLlmProvider › falls back to the env openai provider when configured","envMock.LLM_PROVIDER = name;
+envMock[keyVar] = ""k"";
+getLlmProvider(prisma)","await result → resolves.toBeInstanceOf(Ctor)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0125","unit/llmProviderFactory","getLlmProvider › falls back to the env groq provider when configured","envMock.LLM_PROVIDER = name;
+envMock[keyVar] = ""k"";
+getLlmProvider(prisma)","await result → resolves.toBeInstanceOf(Ctor)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0126","unit/llmProviderFactory","getLlmProvider › throws 502 LLM_NOT_CONFIGURED for anthropic without a key","envMock.LLM_PROVIDER = name;
+getLlmProvider(prisma)","await result → rejects.toMatchObject({ status: 502, code: ""LLM_NOT_CONFIGURED"", message: `${keyVar} is not configured` })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0127","unit/llmProviderFactory","getLlmProvider › throws 502 LLM_NOT_CONFIGURED for gemini without a key","envMock.LLM_PROVIDER = name;
+getLlmProvider(prisma)","await result → rejects.toMatchObject({ status: 502, code: ""LLM_NOT_CONFIGURED"", message: `${keyVar} is not configured` })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0128","unit/llmProviderFactory","getLlmProvider › throws 502 LLM_NOT_CONFIGURED for openai without a key","envMock.LLM_PROVIDER = name;
+getLlmProvider(prisma)","await result → rejects.toMatchObject({ status: 502, code: ""LLM_NOT_CONFIGURED"", message: `${keyVar} is not configured` })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0129","unit/llmProviderFactory","getLlmProvider › throws 502 LLM_NOT_CONFIGURED for groq without a key","envMock.LLM_PROVIDER = name;
+getLlmProvider(prisma)","await result → rejects.toMatchObject({ status: 502, code: ""LLM_NOT_CONFIGURED"", message: `${keyVar} is not configured` })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0130","unit/llmProviderFactory","getLlmProvider › defaults to groq for an unrecognized provider","envMock.LLM_PROVIDER = ""mystery"";
+envMock.GROQ_API_KEY = ""k"";
+getLlmProvider(prisma)","await result → resolves.toBeInstanceOf(GroqProvider)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0131","unit/llmProviderFactory","getLlmProviderInfo › reports the tenant's provider (lower-cased) and model","resolveProviderConfig.mockResolvedValue({ provider: ""GEMINI"", apiKey: ""k"", model: ""gemini-pro"" });
+getLlmProviderInfo(prisma)","await result → resolves.toEqual({ provider: ""gemini"", model: ""gemini-pro"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0132","unit/llmProviderFactory","getLlmProviderInfo › reports env provider anthropic -> model claude-x","envMock.LLM_PROVIDER = name;
+const info = await getLlmProviderInfo(prisma)","info.model → toBe(model);
+info.provider → toBe(name === ""whatever"" ? ""groq"" : name)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0133","unit/llmProviderFactory","getLlmProviderInfo › reports env provider gemini -> model gemini-x","envMock.LLM_PROVIDER = name;
+const info = await getLlmProviderInfo(prisma)","info.model → toBe(model);
+info.provider → toBe(name === ""whatever"" ? ""groq"" : name)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0134","unit/llmProviderFactory","getLlmProviderInfo › reports env provider openai -> model gpt-x","envMock.LLM_PROVIDER = name;
+const info = await getLlmProviderInfo(prisma)","info.model → toBe(model);
+info.provider → toBe(name === ""whatever"" ? ""groq"" : name)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0135","unit/llmProviderFactory","getLlmProviderInfo › reports env provider groq -> model groq-x","envMock.LLM_PROVIDER = name;
+const info = await getLlmProviderInfo(prisma)","info.model → toBe(model);
+info.provider → toBe(name === ""whatever"" ? ""groq"" : name)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0136","unit/llmProviderFactory","getLlmProviderInfo › reports env provider whatever -> model groq-x","envMock.LLM_PROVIDER = name;
+const info = await getLlmProviderInfo(prisma)","info.model → toBe(model);
+info.provider → toBe(name === ""whatever"" ? ""groq"" : name)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0137","unit/llmProviderFactory","getLlmProviderInfo › does not require an API key (info only, no provider is built)","envMock.LLM_PROVIDER = ""openai"";
+getLlmProviderInfo(prisma)","await result → resolves.toEqual({ provider: ""openai"", model: ""gpt-x"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0138","unit/payrollLock","assertNotPayrollLocked › passes when no approved/processed report covers the date","assertNotPayrollLocked(prismaReturning(null) as never, 1, new Date())","await result → resolves.toBeUndefined()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0139","unit/payrollLock","assertNotPayrollLocked › queries only HR_APPROVED/PAYROLL_PROCESSED reports whose period contains the UTC calendar day","const prisma = prismaReturning(null);
+await assertNotPayrollLocked(prisma as never, 42, new Date(""2026-03-10T17:45:00Z""))","prisma.workReport.findFirst → toHaveBeenCalledWith({ where: { employeeId: 42, status: { in: [""HR_APPROVED"", ""PAYROLL_PROCESSED""] }, periodStart: { lte: new Date(""2026-03-10T00:00:00Z"") }, periodEnd: { gte: new Date(""2026-03-10T00:00:00Z"") }, }, })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0140","unit/payrollLock","assertNotPayrollLocked › throws a 409 naming the locking report","assertNotPayrollLocked(prismaReturning({ id: 7, status: ""HR_APPROVED"" }) as never, 1, new Date())","await result → rejects.toMatchObject({ status: 409, message: expect.stringContaining(""#7, HR_APPROVED""), })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0141","unit/pdfTemplating","renderTemplate › substitutes simple and dotted-path tokens","renderTemplate(""Hi {{employee.firstName}} from {{employee.address.city}}"", data)","result → toBe(""Hi Jane from Dhaka"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0142","unit/pdfTemplating","renderTemplate › tolerates whitespace inside the braces","renderTemplate(""{{ employee.firstName }}"", data)","result → toBe(""Jane"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0143","unit/pdfTemplating","renderTemplate › renders falsy-but-defined values (0, false) rather than blanking them","renderTemplate(""{{count}}|{{flag}}"", data)","result → toBe(""0|false"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0144","unit/pdfTemplating","renderTemplate › renders unknown paths and null values as empty strings","renderTemplate(""[{{missing}}][{{employee.nope.deeper}}][{{nothing}}]"", data)","result → toBe(""[][][]"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0145","unit/pdfTemplating","renderTemplate › leaves signature tokens untouched for the signature pass","renderTemplate(""{{signature:HR}} {{employee.firstName}}"", data)","result → toBe(""{{signature:HR}} Jane"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0146","unit/pdfTemplating","renderTemplate › replaces every occurrence","renderTemplate(""{{count}}-{{count}}"", data)","result → toBe(""0-0"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0147","unit/pdfTemplating","renderTemplate › does not resolve inherited prototype members such as {{constructor}}","renderTemplate(""[{{constructor}}][{{toString}}]"", {})","result → toBe(""[][]"")","Defect reproduced as documented (assertion currently fails, as expected)","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms; KNOWN BUG documented with it.failing — passes while the bug exists; flips to FAIL once fixed"
+"TC-0148","unit/pdfTemplating","renderTemplate › never evaluates token content as code","renderTemplate(""{{1+1}} {{process.exit()}}"", {})","result → toBe("" "")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0149","unit/pdfTemplating","renderTemplate › stringifies non-string values","renderTemplate(""{{d}}"", { d: new Date(""2026-01-01T00:00:00Z"") })","result → toContain(""2026"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0150","unit/pdfTemplating","injectSignatures › replaces a role token with an inline data-URI image (mime from the key's extension)","read.mockResolvedValue(Buffer.from(""PNGDATA""));
+const html = await injectSignatures(""<p>{{signature:HR}}</p>"", [ { approverType: ""Role"", roleName: ""HR"", signatureImageKey: ""sigs/hr.PNG"" }, ])","html → toContain(`src=""data:image/png;base64,${Buffer.from(""PNGDATA"").toString(""base64"")}""`);
+html → toContain('alt=""signature""');
+read → toHaveBeenCalledWith(""sigs/hr.PNG"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0151","unit/pdfTemplating","injectSignatures › uses image/webp for .webp and defaults to png for unknown extensions","read.mockResolvedValue(Buffer.from(""x""));
+const webp = await injectSignatures(""{{signature:HR}}"", [{ approverType: ""Role"", roleName: ""HR"", signatureImageKey: ""a.webp"" }]);
+const other = await injectSignatures(""{{signature:HR}}"", [{ approverType: ""Role"", roleName: ""HR"", signatureImageKey: ""a.bin"" }])","webp → toContain(""data:image/webp;base64,"");
+other → toContain(""data:image/png;base64,"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0152","unit/pdfTemplating","injectSignatures › keys ReportingManager steps by the ReportingManager token","read.mockResolvedValue(Buffer.from(""x""));
+const html = await injectSignatures(""{{signature:ReportingManager}}"", [ { approverType: ""ReportingManager"", roleName: null, signatureImageKey: ""m.png"" }, ])","html → toContain(""<img"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0153","unit/pdfTemplating","injectSignatures › resolves tokens without a matching/uploaded signature to an empty string","const html = await injectSignatures(""[{{signature:Finance}}][{{signature:HR}}]"", [ { approverType: ""Role"", roleName: ""HR"", signatureImageKey: null }, ])","html → toBe(""[][]"");
+read → not.toHaveBeenCalled()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0154","unit/pdfTemplating","injectSignatures › reads each distinct role image once, even when the token repeats","read.mockResolvedValue(Buffer.from(""x""));
+const html = await injectSignatures(""{{signature:HR}}{{signature:HR}}"", [ { approverType: ""Role"", roleName: ""HR"", signatureImageKey: ""a.png"" }, { approverType: ""Role"", roleName: ""HR"", signatureImageKey: ""b.png"" }, ]);
+html.match(/<img/g)","result → toHaveLength(2);
+read → toHaveBeenCalledTimes(1)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0155","unit/pdfTemplating","injectSignatures › tolerates whitespace in the token","read.mockResolvedValue(Buffer.from(""x""));
+const html = await injectSignatures(""{{ signature: HR }}"", [{ approverType: ""Role"", roleName: ""HR"", signatureImageKey: ""a.png"" }])","html → toContain(""<img"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0156","unit/projectAccess","resolveActor › derives flags for role Admin","const a = await resolveActor(prismaFor({ id: 5 }), { id: 1, role })","a → toMatchObject({ userId: 1, role, employeeId: 5, ...flags })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","5 ms"
+"TC-0157","unit/projectAccess","resolveActor › derives flags for role HR","const a = await resolveActor(prismaFor({ id: 5 }), { id: 1, role })","a → toMatchObject({ userId: 1, role, employeeId: 5, ...flags })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0158","unit/projectAccess","resolveActor › derives flags for role Manager","const a = await resolveActor(prismaFor({ id: 5 }), { id: 1, role })","a → toMatchObject({ userId: 1, role, employeeId: 5, ...flags })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0159","unit/projectAccess","resolveActor › derives flags for role Staff","const a = await resolveActor(prismaFor({ id: 5 }), { id: 1, role })","a → toMatchObject({ userId: 1, role, employeeId: 5, ...flags })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0160","unit/projectAccess","resolveActor › derives flags for role Payroll","const a = await resolveActor(prismaFor({ id: 5 }), { id: 1, role })","a → toMatchObject({ userId: 1, role, employeeId: 5, ...flags })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0161","unit/projectAccess","resolveActor › sets employeeId to null when the user has no employee profile","(await resolveActor(prismaFor(null), { id: 1, role: ""Admin"" })).employeeId","result → toBeNull()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0162","unit/projectAccess","requireEmployeeId › returns the id when present","requireEmployeeId(actor({ employeeId: 3 }))","result → toBe(3)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0163","unit/projectAccess","requireEmployeeId › throws NO_EMPLOYEE_PROFILE otherwise","try { requireEmployeeId(actor({ employeeId: null })); fail(""expected throw""); } catch (e) { expect(e).toBeInstanceOf(ApiError); expect((e as ApiError).status).toBe(400); expect((e as ApiError).code).toBe(""NO_EMPLOYEE_PROFILE""); }","e → toBeInstanceOf(ApiError);
+(e as ApiError).status → toBe(400);
+(e as ApiError).code → toBe(""NO_EMPLOYEE_PROFILE"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0164","unit/projectAccess","taskVisibilityWhere › does not restrict users who can view everything","taskVisibilityWhere(actor({ canViewAll: true }))","result → toEqual({})","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0165","unit/projectAccess","taskVisibilityWhere › matches nothing for a user without an employee profile","taskVisibilityWhere(actor({ employeeId: null }))","result → toEqual({ id: -1 })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0166","unit/projectAccess","taskVisibilityWhere › limits ordinary users to supervised/member/followed tasks and tasks in projects they supervise","taskVisibilityWhere(actor({ employeeId: 10 }))","result → toEqual({ OR: [ { supervisorId: 10 }, { members: { some: { employeeId: 10 } } }, { followers: { some: { employeeId: 10 } } }, { project: { supervisorId: 10 } }, ], })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0167","unit/projectAccess","projectVisibilityWhere › does not restrict users who can view everything","projectVisibilityWhere(actor({ canViewAll: true }))","result → toEqual({})","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0168","unit/projectAccess","projectVisibilityWhere › matches nothing for a user without an employee profile","projectVisibilityWhere(actor({ employeeId: null }))","result → toEqual({ id: -1 })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0169","unit/projectAccess","projectVisibilityWhere › includes projects reachable through involvement in a task","const where = projectVisibilityWhere(actor({ employeeId: 10 })) as { OR: unknown[] };
+JSON.stringify(where.OR[2])","where.OR → toHaveLength(3);
+where.OR[0] → toEqual({ supervisorId: 10 });
+where.OR[1] → toEqual({ members: { some: { employeeId: 10 } } });
+result → toContain('""followers"":{""some"":{""employeeId"":10}}')","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0170","unit/projectAccess","loadProjectAccess › 404s when the project is missing or invisible (no existence leak)","loadProjectAccess(prismaWithProject(null) as never, actor(), 1)","await result → rejects.toMatchObject({ status: 404 })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","2 ms"
+"TC-0171","unit/projectAccess","loadProjectAccess › scopes the lookup with the actor's visibility filter","const prisma = prismaWithProject(project);
+await loadProjectAccess(prisma as never, actor({ canViewAll: true }), 1)","prisma.project.findFirst → toHaveBeenCalledWith( expect.objectContaining({ where: { AND: [{ id: 1 }, {}] } }) )","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0172","unit/projectAccess","loadProjectAccess › grants admins manage + moderate + create-tasks","const a = await loadProjectAccess( prismaWithProject(project) as never, actor({ isAdmin: true, canViewAll: true, canAddTasks: true, employeeId: 99 }), 1 )","a → toMatchObject({ isSupervisor: false, canManage: true, canCreateTasks: true, canModerate: true })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0173","unit/projectAccess","loadProjectAccess › lets the supervising employee moderate but not manage","const a = await loadProjectAccess(prismaWithProject(project) as never, actor({ employeeId: 10 }), 1)","a → toMatchObject({ isSupervisor: true, canManage: false, canCreateTasks: false, canModerate: true })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0174","unit/projectAccess","loadProjectAccess › gives a plain member no elevated rights","const a = await loadProjectAccess(prismaWithProject(project) as never, actor({ employeeId: 11 }), 1)","a → toMatchObject({ isSupervisor: false, canManage: false, canModerate: false })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0175","unit/projectAccess","loadProjectAccess › lets HR/Manager create tasks without managing","const a = await loadProjectAccess( prismaWithProject(project) as never, actor({ role: ""HR"", canViewAll: true, canAddTasks: true, employeeId: 11 }), 1 )","a → toMatchObject({ canManage: false, canCreateTasks: true, canModerate: false })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0176","unit/projectAccess","loadProjectAccess › never treats an employee-less actor as supervisor","const a = await loadProjectAccess( prismaWithProject({ ...project, supervisorId: 0 }) as never, actor({ employeeId: null, canViewAll: true }), 1 )","a.isSupervisor → toBe(false)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0177","unit/projectCode","deriveProjectCodeBase › ""HRM Plus"" -> ""hrm""","deriveProjectCodeBase(title)","result → toBe(expected)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0178","unit/projectCode","deriveProjectCodeBase › ""Website Redesign"" -> ""website""","deriveProjectCodeBase(title)","result → toBe(expected)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0179","unit/projectCode","deriveProjectCodeBase › ""  leading spaces project"" -> ""leading""","deriveProjectCodeBase(title)","result → toBe(expected)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0180","unit/projectCode","deriveProjectCodeBase › ""Extraordinarily long"" -> ""extraor""","deriveProjectCodeBase(title)","result → toBe(expected)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0181","unit/projectCode","deriveProjectCodeBase › ""A"" -> ""prj""","deriveProjectCodeBase(title)","result → toBe(expected)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0182","unit/projectCode","deriveProjectCodeBase › ""!!"" -> ""prj""","deriveProjectCodeBase(title)","result → toBe(expected)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0183","unit/projectCode","deriveProjectCodeBase › """" -> ""prj""","deriveProjectCodeBase(title)","result → toBe(expected)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0184","unit/projectCode","deriveProjectCodeBase › ""R&D Lab"" -> ""rd""","deriveProjectCodeBase(title)","result → toBe(expected)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0185","unit/projectCode","deriveProjectCodeBase › ""2026 Launch"" -> ""2026""","deriveProjectCodeBase(title)","result → toBe(expected)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0186","unit/projectCode","deriveProjectCodeBase › always yields a code matching the allowed pattern","for (const title of [""HRM Plus"", ""A"", ""!!"", ""Extraordinarily long"", ""R&D""]) { expect(deriveProjectCodeBase(title)).toMatch(PROJECT_CODE_PATTERN); }","deriveProjectCodeBase(title) → toMatch(PROJECT_CODE_PATTERN)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0187","unit/projectCode","generateUniqueProjectCode › returns the base when it is free","generateUniqueProjectCode(dbWithTaken([]), ""HRM Plus"")","await result → resolves.toBe(""hrm"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0188","unit/projectCode","generateUniqueProjectCode › counts upward from 2 until a free code is found","generateUniqueProjectCode(dbWithTaken([""hrm""]), ""HRM Plus"");
+generateUniqueProjectCode(dbWithTaken([""hrm"", ""hrm2"", ""hrm3""]), ""HRM Plus"")","await result → resolves.toBe(""hrm2"");
+await result → resolves.toBe(""hrm4"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0189","unit/projectCode","generateUniqueProjectCode › gives up after 999 attempts","const db = { project: { findUnique: jest.fn().mockResolvedValue({ id: 1 }) } } as never;
+generateUniqueProjectCode(db, ""HRM Plus"")","await result → rejects.toThrow(""Could not generate a unique project code"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","4 ms"
+"TC-0190","unit/projectProgress","recalculateProjectProgress › averages the non-cancelled tasks and persists the rounded value","const db = makeDb(66.6667);
+recalculateProjectProgress(db as never, 7)","await result → resolves.toBe(67);
+db.task.aggregate → toHaveBeenCalledWith({ where: { projectId: 7, status: { not: ""cancelled"" } }, _avg: { progressPercentage: true }, });
+db.project.update → toHaveBeenCalledWith({ where: { id: 7 }, data: { progressPercentage: 67 } })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","2 ms"
+"TC-0191","unit/projectProgress","recalculateProjectProgress › reports 0 for a project with no active tasks","const db = makeDb(null);
+recalculateProjectProgress(db as never, 1)","await result → resolves.toBe(0);
+db.project.update → toHaveBeenCalledWith({ where: { id: 1 }, data: { progressPercentage: 0 } })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0192","unit/projectProgress","recalculateProjectProgress › rounds 49.5 -> 50","recalculateProjectProgress(makeDb(avg) as never, 1)","await result → resolves.toBe(expected)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0193","unit/projectProgress","recalculateProjectProgress › rounds 49.4 -> 49","recalculateProjectProgress(makeDb(avg) as never, 1)","await result → resolves.toBe(expected)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","5 ms"
+"TC-0194","unit/projectProgress","recalculateProjectProgress › rounds 100 -> 100","recalculateProjectProgress(makeDb(avg) as never, 1)","await result → resolves.toBe(expected)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0195","unit/projectProgress","recalculateProjectProgress › rounds 0 -> 0","recalculateProjectProgress(makeDb(avg) as never, 1)","await result → resolves.toBe(expected)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0196","unit/sanitizeAndMultipart","stripHtml › removes all tags and attributes, keeping text","stripHtml(""<b>bold</b> <a href='http://x' onclick='x()'>link</a>"")","result → toBe(""bold link"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","4 ms"
+"TC-0197","unit/sanitizeAndMultipart","stripHtml › drops script/style content entirely","stripHtml(""hi<script>alert(1)</script>there"");
+stripHtml(""<style>body{}</style>ok"")","result → toBe(""hithere"");
+result → toBe(""ok"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0198","unit/sanitizeAndMultipart","stripHtml › neutralizes event-handler and javascript: payloads","const out = stripHtml('<img src=x onerror=""alert(1)""><svg onload=alert(1)>text</svg>')","out → not.toMatch(/<|onerror|onload/);
+out → toContain(""text"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0199","unit/sanitizeAndMultipart","stripHtml › trims whitespace and leaves plain text alone","stripHtml("" plain text "")","result → toBe(""plain text"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0200","unit/sanitizeAndMultipart","multipartBoolean › parses the string encodings multipart forms send","multipartBoolean.parse(""true"");
+multipartBoolean.parse(""false"")","result → toBe(true);
+result → toBe(false)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0201","unit/sanitizeAndMultipart","multipartBoolean › passes real booleans through","multipartBoolean.parse(true);
+multipartBoolean.parse(false)","result → toBe(true);
+result → toBe(false)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0202","unit/sanitizeAndMultipart","multipartBoolean › rejects ""yes""","multipartBoolean.safeParse(value).success","result → toBe(false)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0203","unit/sanitizeAndMultipart","multipartBoolean › rejects ""1""","multipartBoolean.safeParse(value).success","result → toBe(false)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0204","unit/sanitizeAndMultipart","multipartBoolean › rejects """"","multipartBoolean.safeParse(value).success","result → toBe(false)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0205","unit/sanitizeAndMultipart","multipartBoolean › rejects ""TRUE""","multipartBoolean.safeParse(value).success","result → toBe(false)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0206","unit/sanitizeAndMultipart","multipartBoolean › rejects 1","multipartBoolean.safeParse(value).success","result → toBe(false)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0207","unit/sanitizeAndMultipart","multipartBoolean › rejects null","multipartBoolean.safeParse(value).success","result → toBe(false)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0208","unit/sanitizeAndMultipart","multipartBoolean › rejects undefined","multipartBoolean.safeParse(value).success","result → toBe(false)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0209","unit/sharedHelpers","extractTenantSlug › acme.hrmplus.test -> acme","extractTenantSlug(host, base)","result → toBe(slug)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0210","unit/sharedHelpers","extractTenantSlug › ACME.HrmPlus.Test -> acme","extractTenantSlug(host, base)","result → toBe(slug)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0211","unit/sharedHelpers","extractTenantSlug › acme.hrmplus.test:5173 -> acme","extractTenantSlug(host, base)","result → toBe(slug)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0212","unit/sharedHelpers","extractTenantSlug › my-company.hrmplus.test -> my-company","extractTenantSlug(host, base)","result → toBe(slug)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0213","unit/sharedHelpers","extractTenantSlug › ""hrmplus.test"" yields null (the bare base domain)","extractTenantSlug(host, base)","result → toBeNull()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0214","unit/sharedHelpers","extractTenantSlug › ""localhost"" yields null (a foreign host)","extractTenantSlug(host, base)","result → toBeNull()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0215","unit/sharedHelpers","extractTenantSlug › ""acme.example.com"" yields null (a different domain)","extractTenantSlug(host, base)","result → toBeNull()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0216","unit/sharedHelpers","extractTenantSlug › ""evilhrmplus.test"" yields null (a suffix look-alike)","extractTenantSlug(host, base)","result → toBeNull()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0217","unit/sharedHelpers","extractTenantSlug › ""a.b.hrmplus.test"" yields null (nested subdomains)","extractTenantSlug(host, base)","result → toBeNull()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0218","unit/sharedHelpers","extractTenantSlug › ""www.hrmplus.test"" yields null (reserved www)","extractTenantSlug(host, base)","result → toBeNull()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0219","unit/sharedHelpers","extractTenantSlug › ""app.hrmplus.test"" yields null (reserved app)","extractTenantSlug(host, base)","result → toBeNull()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0220","unit/sharedHelpers","extractTenantSlug › ""admin.hrmplus.test"" yields null (reserved admin)","extractTenantSlug(host, base)","result → toBeNull()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0221","unit/sharedHelpers","extractTenantSlug › ""api.hrmplus.test"" yields null (reserved api)","extractTenantSlug(host, base)","result → toBeNull()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0222","unit/sharedHelpers","extractTenantSlug › """" yields null (an empty host)","extractTenantSlug(host, base)","result → toBeNull()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0223","unit/sharedHelpers","extractTenantSlug › is case-insensitive about the base domain","extractTenantSlug(""acme.hrmplus.test"", ""HRMPLUS.TEST"")","result → toBe(""acme"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0224","unit/sharedHelpers","roles › lists the six built-in roles","(none — see Test Step)","[...ROLES] → toEqual([""Admin"", ""HR"", ""Manager"", ""Staff"", ""Payroll"", ""Finance""])","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0225","unit/sharedHelpers","roles › isRoleName accepts any non-blank string and rejects blanks","isRoleName(""Admin"");
+isRoleName(""Custom Role"");
+isRoleName("""");
+isRoleName("" "")","result → toBe(true);
+result → toBe(true);
+result → toBe(false);
+result → toBe(false)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0226","unit/slug","slugify › slugify(""Hello World"") -> ""hello-world""","slugify(input)","result → toBe(expected)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0227","unit/slug","slugify › slugify(""  Trim  Me  "") -> ""trim-me""","slugify(input)","result → toBe(expected)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0228","unit/slug","slugify › slugify(""Rock & Roll!!"") -> ""rock-roll""","slugify(input)","result → toBe(expected)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0229","unit/slug","slugify › slugify(""---already--dashed---"") -> ""already-dashed""","slugify(input)","result → toBe(expected)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0230","unit/slug","slugify › slugify(""Ünïcode Títle"") -> ""n-code-t-tle""","slugify(input)","result → toBe(expected)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0231","unit/slug","slugify › slugify(""2026 Q1 Report"") -> ""2026-q1-report""","slugify(input)","result → toBe(expected)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0232","unit/slug","slugify › slugify(""!!!"") -> """"","slugify(input)","result → toBe(expected)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0233","unit/slug","slugify › slugify("""") -> """"","slugify(input)","result → toBe(expected)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0234","unit/slug","generateUniqueSlug › returns the base slug when it is free","const exists = jest.fn().mockResolvedValue(false);
+generateUniqueSlug(""My Post"", ""post"", exists)","await result → resolves.toBe(""my-post"");
+exists → toHaveBeenCalledWith(""my-post"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0235","unit/slug","generateUniqueSlug › appends a 6-char lowercase suffix when the base is taken","const exists = jest.fn().mockResolvedValue(true);
+const slug = await generateUniqueSlug(""My Post"", ""post"", exists)","slug → toMatch(/^my-post-[a-z0-9_-]{6}$/);
+slug → toBe(slug.toLowerCase())","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0236","unit/slug","generateUniqueSlug › falls back when the title slugifies to nothing","const exists = jest.fn().mockResolvedValue(false);
+generateUniqueSlug(""!!!"", ""untitled"", exists)","await result → resolves.toBe(""untitled"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0237","unit/statutoryTax","calculateStatutoryDeductions — NZ › gross 0 -> tax 0","calculateStatutoryDeductions(gross, ""NZ"")","result → toBeCloseTo(tax, 2)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","2 ms"
+"TC-0238","unit/statutoryTax","calculateStatutoryDeductions — NZ › gross -100 -> tax 0","calculateStatutoryDeductions(gross, ""NZ"")","result → toBeCloseTo(tax, 2)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0239","unit/statutoryTax","calculateStatutoryDeductions — NZ › gross 10000 -> tax 1050","calculateStatutoryDeductions(gross, ""NZ"")","result → toBeCloseTo(tax, 2)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0240","unit/statutoryTax","calculateStatutoryDeductions — NZ › gross 14000 -> tax 1470","calculateStatutoryDeductions(gross, ""NZ"")","result → toBeCloseTo(tax, 2)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0241","unit/statutoryTax","calculateStatutoryDeductions — NZ › gross 30000 -> tax 4270","calculateStatutoryDeductions(gross, ""NZ"")","result → toBeCloseTo(tax, 2)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0242","unit/statutoryTax","calculateStatutoryDeductions — NZ › gross 48000 -> tax 7420","calculateStatutoryDeductions(gross, ""NZ"")","result → toBeCloseTo(tax, 2)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0243","unit/statutoryTax","calculateStatutoryDeductions — NZ › gross 60000 -> tax 11020","calculateStatutoryDeductions(gross, ""NZ"")","result → toBeCloseTo(tax, 2)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0244","unit/statutoryTax","calculateStatutoryDeductions — NZ › gross 100000 -> tax 23920","calculateStatutoryDeductions(gross, ""NZ"")","result → toBeCloseTo(tax, 2)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0245","unit/statutoryTax","calculateStatutoryDeductions — NZ › gross 200000 -> tax 58120","calculateStatutoryDeductions(gross, ""NZ"")","result → toBeCloseTo(tax, 2)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0246","unit/statutoryTax","calculateStatutoryDeductions — AU › gross 0 -> tax 0","calculateStatutoryDeductions(gross, ""AU"")","result → toBeCloseTo(tax, 2)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0247","unit/statutoryTax","calculateStatutoryDeductions — AU › gross 18200 -> tax 0","calculateStatutoryDeductions(gross, ""AU"")","result → toBeCloseTo(tax, 2)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0248","unit/statutoryTax","calculateStatutoryDeductions — AU › gross 30000 -> tax 2242","calculateStatutoryDeductions(gross, ""AU"")","result → toBeCloseTo(tax, 2)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0249","unit/statutoryTax","calculateStatutoryDeductions — AU › gross 45000 -> tax 5092","calculateStatutoryDeductions(gross, ""AU"")","result → toBeCloseTo(tax, 2)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0250","unit/statutoryTax","calculateStatutoryDeductions — AU › gross 100000 -> tax 22967","calculateStatutoryDeductions(gross, ""AU"")","result → toBeCloseTo(tax, 2)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0251","unit/statutoryTax","calculateStatutoryDeductions — AU › gross 200000 -> tax 60667","calculateStatutoryDeductions(gross, ""AU"")","result → toBeCloseTo(tax, 2)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0252","unit/statutoryTax","calculateStatutoryDeductions — general behavior › is monotonically non-decreasing in gross pay","for (const region of [""NZ"", ""AU""] as const) { let prev = -1; for (let gross = 0; gross <= 250000; gross += 997) { const tax = calculateStatutoryDeductions(gross, region); expect(tax).toBeGreaterThanOrEqual(prev); prev = tax; } }","tax → toBeGreaterThanOrEqual(prev)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","25 ms"
+"TC-0253","unit/statutoryTax","calculateStatutoryDeductions — general behavior › never takes more than the gross pay","for (const gross of [1, 500, 20000, 90000, 500000]) { expect(calculateStatutoryDeductions(gross, ""NZ"")).toBeLessThan(gross); expect(calculateStatutoryDeductions(gross, ""AU"")).toBeLessThan(gross); }","calculateStatutoryDeductions(gross, ""NZ"") → toBeLessThan(gross);
+calculateStatutoryDeductions(gross, ""AU"") → toBeLessThan(gross)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0254","unit/statutoryTax","calculateStatutoryDeductions — general behavior › rounds to cents","const tax = calculateStatutoryDeductions(1234.567, ""NZ"");
+Math.round(tax * 100) / 100","result → toBe(tax)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0255","unit/statutoryTax","calculateStatutoryDeductions — general behavior › throws for an unregistered region","() => calculateStatutoryDeductions(1000, ""US"" as never)","result → toThrow('No statutory tax calculator registered for region ""US""')","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","2 ms"
+"TC-0256","unit/tenantResolver","tenantResolver › prefers the tenant header over the hostname","findUnique.mockResolvedValue({ id: 1, slug: ""acme"", databaseName: ""hrm_acme"", status: ""Active"" });
+const { req, next } = await resolve({ [TENANT_HEADER]: ""acme"" }, ""other.hrmplus.test"")","findUnique → toHaveBeenCalledWith({ where: { slug: ""acme"" } });
+req.tenant → toEqual({ id: 1, slug: ""acme"", databaseName: ""hrm_acme"" });
+req.prisma → toEqual({ __client: ""hrm_acme"" });
+next → toHaveBeenCalledWith()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","3 ms"
+"TC-0257","unit/tenantResolver","tenantResolver › falls back to the subdomain when no header is sent","findUnique.mockResolvedValue({ id: 2, slug: ""beta"", databaseName: ""hrm_beta"", status: ""Active"" });
+await resolve({}, ""beta.hrmplus.test"")","findUnique → toHaveBeenCalledWith({ where: { slug: ""beta"" } })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0258","unit/tenantResolver","tenantResolver › answers 400 TENANT_REQUIRED when neither header nor subdomain identify a tenant","const { next } = await resolve({}, ""localhost"")","next.mock.calls[0][0] → toMatchObject({ status: 400, code: ""TENANT_REQUIRED"" });
+findUnique → not.toHaveBeenCalled()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0259","unit/tenantResolver","tenantResolver › answers 404 for an unknown tenant","findUnique.mockResolvedValue(null);
+const { next } = await resolve({ [TENANT_HEADER]: ""ghost"" }, ""x"")","next.mock.calls[0][0] → toMatchObject({ status: 404 })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0260","unit/tenantResolver","tenantResolver › answers 404 for a Suspended tenant (no existence leak)","findUnique.mockResolvedValue({ id: 3, slug: ""s"", databaseName: ""d"", status });
+const { next } = await resolve({ [TENANT_HEADER]: ""s"" }, ""x"")","next.mock.calls[0][0] → toMatchObject({ status: 404 });
+getTenantClient → not.toHaveBeenCalled()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","6 ms"
+"TC-0261","unit/tenantResolver","tenantResolver › answers 404 for a Pending tenant (no existence leak)","findUnique.mockResolvedValue({ id: 3, slug: ""s"", databaseName: ""d"", status });
+const { next } = await resolve({ [TENANT_HEADER]: ""s"" }, ""x"")","next.mock.calls[0][0] → toMatchObject({ status: 404 });
+getTenantClient → not.toHaveBeenCalled()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0262","unit/tenantResolver","tenantResolver › answers 404 for a Inactive tenant (no existence leak)","findUnique.mockResolvedValue({ id: 3, slug: ""s"", databaseName: ""d"", status });
+const { next } = await resolve({ [TENANT_HEADER]: ""s"" }, ""x"")","next.mock.calls[0][0] → toMatchObject({ status: 404 });
+getTenantClient → not.toHaveBeenCalled()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0263","unit/tenantResolver","tenantResolver › forwards unexpected lookup failures to next()","findUnique.mockRejectedValue(new Error(""db down""));
+const { next } = await resolve({ [TENANT_HEADER]: ""acme"" }, ""x"")","next.mock.calls[0][0] → toMatchObject({ message: ""db down"" })","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0264","unit/ttlCache","createTtlCache › returns undefined for unknown keys","createTtlCache<number>(1000).get(""nope"")","result → toBeUndefined()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0265","unit/ttlCache","createTtlCache › returns a stored value until the TTL elapses","const cache = createTtlCache<string>(1000);
+cache.set(""k"", ""v"");
+jest.advanceTimersByTime(1000);
+jest.advanceTimersByTime(1);
+cache.get(""k"");
+cache.get(""k"");
+cache.get(""k"")","result → toBe(""v"");
+result → toBe(""v"");
+result → toBeUndefined()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0266","unit/ttlCache","createTtlCache › re-setting a key restarts its TTL","const cache = createTtlCache<string>(1000);
+cache.set(""k"", ""a"");
+jest.advanceTimersByTime(800);
+cache.set(""k"", ""b"");
+jest.advanceTimersByTime(800);
+cache.get(""k"")","result → toBe(""b"")","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0267","unit/ttlCache","createTtlCache › keeps keys independent","const cache = createTtlCache<number>(1000);
+cache.set(""a"", 1);
+jest.advanceTimersByTime(600);
+cache.set(""b"", 2);
+jest.advanceTimersByTime(600);
+cache.get(""a"");
+cache.get(""b"")","result → toBeUndefined();
+result → toBe(2)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0268","unit/ttlCache","createTtlCache › clear() removes everything","const cache = createTtlCache<number>(1000);
+cache.set(""a"", 1);
+cache.clear();
+cache.get(""a"")","result → toBeUndefined()","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0269","unit/ttlCache","createTtlCache › caches falsy values correctly","const cache = createTtlCache<number>(1000);
+cache.set(""zero"", 0);
+cache.get(""zero"")","result → toBe(0)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0270","unit/weekday","loadWeekendNames › falls back to Saturday/Sunday when no WeekDay rows exist","await loadWeekendNames(prismaWith([]))","result → toEqual(new Set([""Saturday"", ""Sunday""]))","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","1 ms"
+"TC-0271","unit/weekday","loadWeekendNames › returns only the configured weekend days","const names = await loadWeekendNames( prismaWith([ { name: ""Friday"", isWeekend: true }, { name: ""Saturday"", isWeekend: true }, { name: ""Sunday"", isWeekend: false }, ]) )","names → toEqual(new Set([""Friday"", ""Saturday""]))","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0272","unit/weekday","loadWeekendNames › returns an empty set when rows exist but none are weekend (does not use the fallback)","await loadWeekendNames(prismaWith([{ name: ""Sunday"", isWeekend: false }]))","result → toEqual(new Set())","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"
+"TC-0273","unit/weekday","isWeekendDate › checks the UTC weekday name against the set","isWeekendDate(weekend, new Date(""2026-01-02T12:00:00Z""));
+isWeekendDate(weekend, new Date(""2026-01-03T00:00:00Z""));
+isWeekendDate(weekend, new Date(""2026-01-04T12:00:00Z""));
+isWeekendDate(weekend, new Date(""2026-01-05T12:00:00Z""))","result → toBe(true);
+result → toBe(true);
+result → toBe(false);
+result → toBe(false)","Behaved as expected — all assertions held","Node v26.5.0; Darwin 27.0.0 (arm64); Jest 29.7.0; Unit (white-box, mocked)","PASS","0 ms"

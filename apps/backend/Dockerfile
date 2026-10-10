@@ -42,8 +42,23 @@ COPY --from=build /repo/node_modules ./node_modules
 COPY --from=build /repo/packages/shared ./packages/shared
 COPY --from=build /repo/apps/backend ./apps/backend
 
-# Pre-create the uploads dir so a named volume mounted here inherits node ownership.
-RUN mkdir -p /repo/apps/backend/uploads && chown -R node:node /repo/apps/backend/uploads
+# Pre-create the uploads dir (so a named volume mounted here inherits node ownership) and every
+# subdir code expects to already exist. Most paths go through localStorageDriver.ts, which mkdirs
+# on demand, but src/middleware/upload.ts's multer.diskStorage does not — it 500s with ENOENT if
+# uploads/logos is missing, which it otherwise would be, since .dockerignore excludes uploads/.
+RUN mkdir -p /repo/apps/backend/uploads/logos \
+    /repo/apps/backend/uploads/avatars \
+    /repo/apps/backend/uploads/branding \
+    /repo/apps/backend/uploads/document-request-attachments \
+    /repo/apps/backend/uploads/document-requests \
+    /repo/apps/backend/uploads/employee-documents \
+    /repo/apps/backend/uploads/ird-payday-filing \
+    /repo/apps/backend/uploads/payslips \
+    /repo/apps/backend/uploads/project-attachments \
+    /repo/apps/backend/uploads/resumes \
+    /repo/apps/backend/uploads/support-ticket-attachments \
+    /repo/apps/backend/uploads/website-cms \
+    && chown -R node:node /repo/apps/backend/uploads
 USER node
 WORKDIR /repo/apps/backend
 EXPOSE 4000

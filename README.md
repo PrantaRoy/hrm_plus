@@ -72,6 +72,7 @@ This starts MySQL, Redis, the API, the BullMQ worker and both frontends (nginx),
 - Stop: `docker compose down` (data and uploads live in the `mysql-data`, `redis-data` and `uploads` volumes); add `-v` to wipe everything.
 - The `VITE_*` values in `.env` are baked into the frontend bundles at build time — after changing them run `docker compose up --build`.
 - For a real domain, change `PUBLIC_TENANT_BASE_DOMAIN`, `VITE_PUBLIC_TENANT_BASE_DOMAIN`, `CORS_ORIGIN`, `FRONTEND_BASE_URL` and the `VITE_*_API_BASE_URL` values together, and set `SEED_DEMO=false`.
+- Deploying to a cloud VM instead of running locally? See [docs/DEPLOY_AWS.md](docs/DEPLOY_AWS.md) for a single-EC2-instance runbook (no domain required).
 
 ## Demo login details
 

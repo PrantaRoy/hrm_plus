@@ -144,8 +144,109 @@ export interface RestrictionCheckInput {
   longitude?: number;
 }
 
+// Rejects the check-in unless the request comes from one of the employee's approved networks.
+async function enforceIpRule(prisma: PrismaClient, employeeId: number, ip: string | null): Promise<void> {
+  const assigned = await prisma.employeeAttendanceIpRule.findMany({
+    where: { employeeId },
+    include: { ipRule: true },
+  });
+  const activeRules = assigned.map((a) => a.ipRule).filter((r) => r.status === "Active");
+  if (activeRules.length === 0) {
+    throw ApiError.conflict("IP binding is enabled for you but no networks are configured; contact HR");
+  }
+  if (!ip) {
+    throw ApiError.forbidden("Could not determine your network address");
+  }
+  if (!activeRules.some((rule) => ipMatchesCidr(ip, rule.cidr))) {
+    throw ApiError.forbidden("You must check in from an approved network");
+  }
+}
+
+// Rejects the check-in unless the employee is inside the radius of one of their assigned locations.
+async function enforceLocationRule(
+  prisma: PrismaClient,
+  employeeId: number,
+  latitude: number | undefined,
+  longitude: number | undefined
+): Promise<void> {
+  const assigned = await prisma.employeeAttendanceLocation.findMany({
+    where: { employeeId },
+    include: { location: true },
+  });
+  const activeLocations = assigned.map((a) => a.location).filter((l) => l.status === "Active");
+  if (activeLocations.length === 0) {
+    throw ApiError.conflict("Location binding is enabled for you but no locations are configured; contact HR");
+  }
+  if (latitude === undefined || longitude === undefined) {
+    throw ApiError.badRequest("Location is required to check in. Please allow location access.");
+  }
+
+  const here = { latitude, longitude };
+  let nearest = activeLocations[0];
+  let nearestDistance = Infinity;
+  let withinAny = false;
+  for (const location of activeLocations) {
+    const distance = haversineDistanceMeters(here, location);
+    if (distance < nearestDistance) {
+      nearestDistance = distance;
+      nearest = location;
+    }
+    if (distance <= location.radiusMeters) {
+      withinAny = true;
+    }
+  }
+  if (!withinAny) {
+    throw ApiError.forbidden(
+      `You are outside the allowed check-in location (must be within ${nearest.radiusMeters}m of ${nearest.name})`
+    );
+  }
+}
+
+// Registers an unknown device as Pending, then rejects any device HR has not approved for this employee.
+async function enforceDeviceRule(
+  prisma: PrismaClient,
+  employeeId: number,
+  input: RestrictionCheckInput
+): Promise<void> {
+  if (!input.deviceToken) {
+    throw ApiError.badRequest("Device verification is required. Please reload the app and try again.");
+  }
+  const fingerprint = input.deviceToken.slice(-4).toUpperCase();
+  const notApproved = `This device is not yet approved (device ending in ${fingerprint}). Ask HR to approve it.`;
+  const existing = await prisma.employeeAttendanceDevice.findUnique({ where: { deviceToken: input.deviceToken } });
+
+  if (!existing) {
+    await prisma.employeeAttendanceDevice.create({
+      data: {
+        employeeId,
+        deviceToken: input.deviceToken,
+        status: "Pending",
+        lastSeenAt: new Date(),
+        lastSeenIp: input.ip,
+      },
+    });
+    throw ApiError.forbidden(notApproved);
+  }
+
+  if (existing.employeeId !== employeeId) {
+    throw ApiError.forbidden("This device is registered to a different account");
+  }
+
+  await prisma.employeeAttendanceDevice.update({
+    where: { id: existing.id },
+    data: { lastSeenAt: new Date(), lastSeenIp: input.ip },
+  });
+
+  if (existing.status === "Pending") {
+    throw ApiError.forbidden(notApproved);
+  }
+  if (existing.status === "Rejected") {
+    throw ApiError.forbidden("This device has been blocked for attendance. Contact HR.");
+  }
+}
+
 // Called from both checkIn() and checkOut() right after method validation.
-// Throws ApiError on the first failing rule.
+// Throws ApiError on the first failing rule (IP, then location, then device).
 export async function enforceAttendanceRestrictions(
   prisma: PrismaClient,
   employeeId: number,
@@ -155,90 +256,12 @@ export async function enforceAttendanceRestrictions(
   if (!rules) return;
 
   if (rules.ipBindingEnabled) {
-    const assigned = await prisma.employeeAttendanceIpRule.findMany({
-      where: { employeeId },
-      include: { ipRule: true },
-    });
-    const activeRules = assigned.map((a) => a.ipRule).filter((r) => r.status === "Active");
-    if (activeRules.length === 0) {
-      throw ApiError.conflict("IP binding is enabled for you but no networks are configured; contact HR");
-    }
-    if (!input.ip) {
-      throw ApiError.forbidden("Could not determine your network address");
-    }
-    const matches = activeRules.some((rule) => ipMatchesCidr(input.ip!, rule.cidr));
-    if (!matches) {
-      throw ApiError.forbidden("You must check in from an approved network");
-    }
+    await enforceIpRule(prisma, employeeId, input.ip);
   }
-
   if (rules.locationBindingEnabled) {
-    const assigned = await prisma.employeeAttendanceLocation.findMany({
-      where: { employeeId },
-      include: { location: true },
-    });
-    const activeLocations = assigned.map((a) => a.location).filter((l) => l.status === "Active");
-    if (activeLocations.length === 0) {
-      throw ApiError.conflict("Location binding is enabled for you but no locations are configured; contact HR");
-    }
-    if (input.latitude === undefined || input.longitude === undefined) {
-      throw ApiError.badRequest("Location is required to check in. Please allow location access.");
-    }
-    const here = { latitude: input.latitude, longitude: input.longitude };
-    let nearest = activeLocations[0];
-    let nearestDistance = Infinity;
-    let withinAny = false;
-    for (const location of activeLocations) {
-      const distance = haversineDistanceMeters(here, location);
-      if (distance < nearestDistance) {
-        nearestDistance = distance;
-        nearest = location;
-      }
-      if (distance <= location.radiusMeters) {
-        withinAny = true;
-      }
-    }
-    if (!withinAny) {
-      throw ApiError.forbidden(
-        `You are outside the allowed check-in location (must be within ${nearest.radiusMeters}m of ${nearest.name})`
-      );
-    }
+    await enforceLocationRule(prisma, employeeId, input.latitude, input.longitude);
   }
-
   if (rules.deviceBindingEnabled) {
-    if (!input.deviceToken) {
-      throw ApiError.badRequest("Device verification is required. Please reload the app and try again.");
-    }
-    const fingerprint = input.deviceToken.slice(-4).toUpperCase();
-    const existing = await prisma.employeeAttendanceDevice.findUnique({ where: { deviceToken: input.deviceToken } });
-
-    if (!existing) {
-      await prisma.employeeAttendanceDevice.create({
-        data: {
-          employeeId,
-          deviceToken: input.deviceToken,
-          status: "Pending",
-          lastSeenAt: new Date(),
-          lastSeenIp: input.ip,
-        },
-      });
-      throw ApiError.forbidden(`This device is not yet approved (device ending in ${fingerprint}). Ask HR to approve it.`);
-    }
-
-    if (existing.employeeId !== employeeId) {
-      throw ApiError.forbidden("This device is registered to a different account");
-    }
-
-    await prisma.employeeAttendanceDevice.update({
-      where: { id: existing.id },
-      data: { lastSeenAt: new Date(), lastSeenIp: input.ip },
-    });
-
-    if (existing.status === "Pending") {
-      throw ApiError.forbidden(`This device is not yet approved (device ending in ${fingerprint}). Ask HR to approve it.`);
-    }
-    if (existing.status === "Rejected") {
-      throw ApiError.forbidden("This device has been blocked for attendance. Contact HR.");
-    }
+    await enforceDeviceRule(prisma, employeeId, input);
   }
 }

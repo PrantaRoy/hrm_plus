@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { RequireAuth } from "./auth/RequireAuth";
-import { useTenantSubdomain } from "./hooks/useTenantSubdomain";
+import { useResolvedTenantSlug } from "./hooks/useResolvedTenantSlug";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -115,7 +115,10 @@ import PayrollSettingsPage from "./pages/payroll/PayrollSettingsPage";
 import MyPayslips from "./pages/payroll/MyPayslips";
 
 export default function App() {
-  const tenantSlug = useTenantSubdomain();
+  // Falls back to VITE_DEFAULT_TENANT_SLUG when there's no subdomain to resolve a tenant from
+  // (e.g. a bare-IP deployment with no domain), so "/" still shows that tenant's landing page
+  // instead of redirecting straight to /login.
+  const tenantSlug = useResolvedTenantSlug();
 
   return (
     <Routes>

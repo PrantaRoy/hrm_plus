@@ -71,6 +71,10 @@ services:
     restart: unless-stopped
     logging: *default-logging
     command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      # Bound to localhost only (like MySQL): lets the "Node terminal" setup run the API on the host
+      # while Redis runs in Docker. Never reachable from the internet, even with a loose firewall.
+      - "127.0.0.1:${REDIS_HOST_PORT:-6379}:6379"
     volumes:
       - redis-data:/data
     healthcheck:

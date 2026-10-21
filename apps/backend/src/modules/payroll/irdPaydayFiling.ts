@@ -22,7 +22,7 @@ export async function prepareIrdPaydayFiling(prisma: PrismaClient, payrollRunId:
       employeeCode: p.employee.employeeCode,
       firstName: p.employee.firstName,
       lastName: p.employee.lastName,
-      irdNumber: null, // placeholder — no IRD-number field on Employee yet
+      irdNumber: p.employee.irdNumber ?? null,
       grossEarnings: Number(p.grossPay),
       payeDeducted: Number(p.taxDeductions),
       netPay: Number(p.netPay),

@@ -20,7 +20,10 @@
     "migrate:control": "npm run migrate:control --workspace=apps/backend",
     "provision-tenant": "npm run provision-tenant --workspace=apps/backend",
     "create-saas-admin": "npm run create-saas-admin --workspace=apps/backend",
-    "db:seed": "npm run db:seed --workspace=apps/backend"
+    "db:seed": "npm run db:seed --workspace=apps/backend",
+    "setup": "npm install && npm run build --workspace=packages/shared && npm run prisma:generate --workspace=apps/backend && npm run migrate:control:deploy --workspace=apps/backend && npm run db:seed",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down"
   },
   "devDependencies": {
     "typescript": "^5.6.3"
